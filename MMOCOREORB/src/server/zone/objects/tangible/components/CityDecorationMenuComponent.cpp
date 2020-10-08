@@ -6,23 +6,26 @@
  */
 
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "CityDecorationMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/region/CityRegion.h"
+#include "server/zone/Zone.h"
 #include "server/zone/managers/city/CityManager.h"
 #include "server/zone/managers/city/CityDecorationTask.h"
 
-void CityDecorationMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void CityDecorationMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	TangibleObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, player);
 
-	ManagedReference<CityRegion*> city = player->getCityRegion().get();
+	ManagedReference<CityRegion*> city = player->getCityRegion();
 
 
-	if(isInInventory(sceneObject, player) && player->getParent() == nullptr) {
+	if(isInInventory(sceneObject, player) && player->getParent() == NULL) {
 		menuResponse->addRadialMenuItem(233, 3, "@city/city:place"); // Place Decoration
 	}
 
-	if(city != nullptr && sceneObject->getParent() == nullptr && sceneObject->getCityRegion() == city && city->isMayor(player->getObjectID()) ) {
+	if(city != NULL && sceneObject->getParent().get() == NULL && sceneObject->getCityRegion() == city && city->isMayor(player->getObjectID()) ) {
 		menuResponse->addRadialMenuItem(234, 3, "@city/city:mt_remove"); // Remove
 
 		menuResponse->addRadialMenuItem(73, 3, "@city/city:align"); // Align
@@ -34,7 +37,7 @@ void CityDecorationMenuComponent::fillObjectMenuResponse(SceneObject* sceneObjec
 
 }
 
-int CityDecorationMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int CityDecorationMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isTangibleObject())
 		return 0;
 
@@ -54,7 +57,7 @@ int CityDecorationMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject
 		return 0;
 
 	} else if (selectedID == 74 || selectedID == 75 || selectedID == 76 || selectedID == 77) {
-		ManagedReference<CityRegion*> city = player->getCityRegion().get();
+		ManagedReference<CityRegion*> city = player->getCityRegion();
 
 		CityManager* cityManager = sceneObject->getZoneServer()->getCityManager();
 		cityManager->alignAmenity(city, player, sceneObject, selectedID - 74);
@@ -65,7 +68,7 @@ int CityDecorationMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject
 	return TangibleObjectMenuComponent::handleObjectMenuSelect(sceneObject, player, selectedID);
 }
 
-bool CityDecorationMenuComponent::isInInventory(SceneObject* sceneObject, CreatureObject* player) const {
+bool CityDecorationMenuComponent::isInInventory(SceneObject* sceneObject, CreatureObject* player){
 	return sceneObject->isASubChildOf(player);
 }
 

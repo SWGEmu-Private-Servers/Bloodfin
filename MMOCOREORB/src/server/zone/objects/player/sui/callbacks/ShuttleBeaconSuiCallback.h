@@ -19,14 +19,14 @@ public:
 
 		SuiListBox* listBox = cast<SuiListBox*>(suiBox);
 
-		ManagedReference<SceneObject*> beacon = listBox->getUsingObject().get();
+		ManagedReference<SceneObject*> beacon = listBox->getUsingObject();
 
-		if (beacon == nullptr)
+		if (beacon == NULL)
 			return;
 
 		ManagedReference<ShuttleBeacon*> shuttleBeacon = cast<ShuttleBeacon*>(beacon.get());
 
-		if (shuttleBeacon == nullptr)
+		if (shuttleBeacon == NULL)
 			return;
 
 		if (args->size() < 1)

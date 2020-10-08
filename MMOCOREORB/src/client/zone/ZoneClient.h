@@ -5,7 +5,8 @@
 #ifndef ZONECLIENT_H_
 #define ZONECLIENT_H_
 
-#include "client/zone/objects/player/PlayerCreature.h"
+#include "engine/engine.h"
+#include "objects/player/PlayerCreature.h"
 
 class Zone;
 class ZonePacketHandler;
@@ -47,7 +48,7 @@ public:
 	}
 
 	ServiceClient* createConnection(Socket* sock, SocketAddress& addr) {
-		return nullptr;
+		return NULL;
 	}
 
 	bool deleteConnection(ServiceClient* client) {

@@ -5,6 +5,7 @@
 #ifndef LOWBLOWCOMMAND_H_
 #define LOWBLOWCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "CombatQueueCommand.h"
 
 class LowBlowCommand : public CombatQueueCommand {
@@ -22,6 +23,9 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
 		return doCombatAction(creature, target);
 	}
 

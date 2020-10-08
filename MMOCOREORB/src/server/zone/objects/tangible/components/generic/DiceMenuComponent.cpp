@@ -7,18 +7,20 @@
 
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "DiceMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
+#include "server/zone/objects/scene/components/DataObjectComponentReference.h"
 #include "server/zone/objects/tangible/components/generic/DiceDataComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/packets/chat/ChatSystemMessage.h"
 
 void DiceMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
-		ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+		ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
 	if (!sceneObject->isDiceObject())
 		return;
 
 	Reference<DiceTemplate*> diceTemplate = cast<DiceTemplate*>(sceneObject->getObjectTemplate());
-	if (diceTemplate == nullptr) {
+	if (diceTemplate == NULL) {
 		error("No DiceTemplate for: " + String::valueOf(sceneObject->getServerObjectCRC()));
 		return;
 	}
@@ -50,7 +52,7 @@ void DiceMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
 }
 
 int DiceMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
-		CreatureObject* player, byte selectedID) const {
+		CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isDiceObject())
 		return 0;
 
@@ -58,27 +60,27 @@ int DiceMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 		return 0;
 
 	TangibleObject* dice = cast<TangibleObject*>(sceneObject);
-	if (dice == nullptr)
+	if (dice == NULL)
 		return 0;
 
 	if (!player->isPlayerCreature())
 		return 0;
 
-	if (player->getZone() == nullptr)
+	if (player->getZone() == NULL)
 		return 0;
 
 	/// Get Dice Template
 	Reference<DiceTemplate*> diceTemplate = cast<DiceTemplate*>(sceneObject->getObjectTemplate());
-	if (diceTemplate == nullptr) {
+	if (diceTemplate == NULL) {
 		error("No DiceTemplate for: " + String::valueOf(sceneObject->getServerObjectCRC()));
 		return 0;
 	}
 
-	DiceDataComponent* diceData = nullptr;
+	DiceDataComponent* diceData = NULL;
 	/// Get sides count
 	byte sides = diceTemplate->getSides();
 	DataObjectComponent* data = dice->getDataObjectComponent()->get();
-	if(data != nullptr && data->isDiceData()) {
+	if(data != NULL && data->isDiceData()) {
 		diceData = cast<DiceDataComponent*>(data);
 		sides = diceData->getSides();
 	}
@@ -107,37 +109,37 @@ int DiceMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 		break;
 	case 171:
 		/// 8 sides
-		if(diceData != nullptr)
+		if(diceData != NULL)
 			diceData->setSides(8);
 		break;
 	case 170:
 		/// 7 sides
-		if(diceData != nullptr)
+		if(diceData != NULL)
 			diceData->setSides(7);
 		break;
 	case 169:
 		/// 6 sides
-		if(diceData != nullptr)
+		if(diceData != NULL)
 			diceData->setSides(6);
 		break;
 	case 168:
 		/// 5 sides
-		if(diceData != nullptr)
+		if(diceData != NULL)
 			diceData->setSides(5);
 		break;
 	case 167:
 		/// 4 sides
-		if(diceData != nullptr)
+		if(diceData != NULL)
 			diceData->setSides(4);
 		break;
 	case 166:
 		/// 3 sides
-		if(diceData != nullptr)
+		if(diceData != NULL)
 			diceData->setSides(3);
 		break;
 	case 165:
 		/// 2 sides
-		if(diceData != nullptr)
+		if(diceData != NULL)
 			diceData->setSides(2);
 		break;
 	default:
@@ -148,7 +150,7 @@ int DiceMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 	return 0;
 }
 
-void DiceMenuComponent::doRoll(CreatureObject* player, DiceTemplate* diceTemplate, int sides, const String& sidesText, int numRoll) const {
+void DiceMenuComponent::doRoll(CreatureObject* player, DiceTemplate* diceTemplate, int sides, const String& sidesText, int numRoll) {
 
 	StringIdChatParameter self("dice/dice", diceTemplate->getSelfSingleResult());
 	StringIdChatParameter others("dice/dice", diceTemplate->getOthersSingleResult());

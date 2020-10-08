@@ -7,6 +7,7 @@
 
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
+#include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
 #include "server/zone/managers/player/PlayerMap.h"
 
 class FindPlayerCommand : public QueueCommand {
@@ -29,11 +30,11 @@ public:
 
 		ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
 
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return GENERALERROR;
 
 		try {
-			Reference<SceneObject*> targetObject = nullptr;
+			Reference<SceneObject*> targetObject = NULL;
 
 			StringTokenizer tokenizer(arguments.toString());
 			String filter;

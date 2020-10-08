@@ -14,12 +14,12 @@ using namespace server::zone::objects::scene;
 
 PendingTasksMap::PendingTasksMap() : taskMap(1, 1), orderedTasks(1, 1) {
 	taskMap.setNoDuplicateInsertPlan();
-	taskMap.setNullValue(nullptr);
+	taskMap.setNullValue(NULL);
 }
 
 PendingTasksMap::PendingTasksMap(const PendingTasksMap& p) : Object(), taskMap(p.taskMap), orderedTasks(p.orderedTasks) {
 	taskMap.setNoDuplicateInsertPlan();
-	taskMap.setNullValue(nullptr);
+	taskMap.setNullValue(NULL);
 }
 
 int PendingTasksMap::put(const String& name, Task* task) {
@@ -40,7 +40,7 @@ bool PendingTasksMap::contains(const String& name) {
 	return taskMap.contains(name);
 }
 
-Reference<Task*> PendingTasksMap::get(const String& name) const {
+Reference<Task*> PendingTasksMap::get(const String& name) {
 	Locker guard(&mutex);
 
 	return taskMap.get(name);
@@ -52,13 +52,12 @@ void PendingTasksMap::putOrdered(Task* task, server::zone::objects::scene::Scene
 	orderedTasks.add(task);
 
 	if (orderedTasks.size() == 1) {
-		OrderedTaskExecutioner* newTask = new OrderedTaskExecutioner(sceneObject);
-		newTask->setCustomTaskQueue(task->getCustomTaskQueue());
-		newTask->execute();
+		OrderedTaskExecutioner* task = new OrderedTaskExecutioner(sceneObject);
+		task->execute();
 	}
 }
 
-int PendingTasksMap::getOrderedTasksSize() const {
+int PendingTasksMap::getOrderedTasksSize() {
 	return orderedTasks.size();
 }
 
@@ -68,10 +67,7 @@ bool PendingTasksMap::runMoreOrderedTasks(server::zone::objects::scene::SceneObj
 	orderedTasks.remove(0);
 
 	if (orderedTasks.size() > 0) {
-		auto nextTask = orderedTasks.get(0);
-
-		Reference<OrderedTaskExecutioner*> task = new OrderedTaskExecutioner(sceneObject);
-		task->setCustomTaskQueue(nextTask->getCustomTaskQueue());
+		OrderedTaskExecutioner* task = new OrderedTaskExecutioner(sceneObject);
 		task->execute();
 
 		return true;
@@ -91,4 +87,5 @@ Reference<Task*> PendingTasksMap::getNextOrderedTask() {
 
 	return task;
 }
+
 

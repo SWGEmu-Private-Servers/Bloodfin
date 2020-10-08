@@ -8,19 +8,20 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "InsuranceTerminalMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
 #include "server/zone/objects/player/sui/callbacks/InsuranceMenuSuiCallback.h"
 #include "server/zone/managers/player/PlayerManager.h"
 #include "server/zone/objects/region/CityRegion.h"
-#include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 
-void InsuranceTerminalMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void InsuranceTerminalMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
 	TangibleObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, player);
 }
 
-int InsuranceTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int InsuranceTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isTangibleObject())
 		return 0;
 
@@ -29,7 +30,7 @@ int InsuranceTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObj
 
 	ManagedReference<CityRegion* > region = sceneObject->getCityRegion().get();
 
-	if (region != nullptr) {
+	if (region != NULL) {
 		if (region->isBanned(player->getObjectID())) {
 				player->sendSystemMessage("@city/city:banned_services"); // You are banned from using this city's services.
 				return 0;
@@ -69,7 +70,7 @@ int InsuranceTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObj
 		for (int i = 0; i < insurableItems.size(); i++) {
 			SceneObject* item = insurableItems.get(i);
 
-			if (item != nullptr)
+			if (item != NULL)
 				suiInsuranceMenuBox->addMenuItem(item->getDisplayedName(), item->getObjectID());
 		}
 

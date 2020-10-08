@@ -8,8 +8,8 @@
 #ifndef DICEMENUCOMPONENT_H_
 #define DICEMENUCOMPONENT_H_
 
-#include "server/zone/objects/tangible/components//TangibleObjectMenuComponent.h"
-#include "templates/tangible/DiceTemplate.h"
+#include "../TangibleObjectMenuComponent.h"
+#include "server/zone/templates/tangible/DiceTemplate.h"
 
 
 class DiceMenuComponent : public TangibleObjectMenuComponent {
@@ -21,7 +21,7 @@ public:
 	 * @post { this object is locked, menuResponse is complete}
 	 * @param menuResponse ObjectMenuResponse that will be sent to the client
 	 */
-	virtual void fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const;
+	virtual void fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player);
 
 	/**
 	 * Handles the radial selection sent by the client, must be overriden by inherited objects
@@ -31,9 +31,9 @@ public:
 	 * @param selectedID selected menu id
 	 * @returns 0 if successfull
 	 */
-	virtual int handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const;
+	virtual int handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID);
 
-	void doRoll(CreatureObject* player, DiceTemplate* diceTemplate, int sides, const String& sidesText, int numRoll) const;
+	void doRoll(CreatureObject* player, DiceTemplate* diceTemplate, int sides, const String& sidesText, int numRoll);
 };
 
 

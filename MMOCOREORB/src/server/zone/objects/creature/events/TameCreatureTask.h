@@ -3,6 +3,7 @@
 #define TAMECREATURETASK_H_
 
 #include "server/zone/managers/combat/CombatManager.h"
+#include "server/zone/managers/creature/CreatureManager.h"
 #include "server/zone/managers/creature/PetManager.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/intangible/PetControlDevice.h"
@@ -15,28 +16,22 @@ class TameCreatureTask : public Task {
 private:
 	enum Phase { INITIAL, SECOND, FINAL} currentPhase;
 	int originalMask;
-	ManagedWeakReference<Creature*> mob;
-	ManagedWeakReference<CreatureObject*> play;
+	ManagedReference<Creature*> creature;
+	ManagedReference<CreatureObject*> player;
 	bool force;
 	bool adult;
 
 public:
 	TameCreatureTask(Creature* cre, CreatureObject* playo, int pvpMask, bool forced, bool adults) : Task() {
 		currentPhase = INITIAL;
-		mob = cre;
-		play = playo;
+		creature = cre;
+		player = playo;
 		originalMask = pvpMask;
 		force = forced;
 		adult = adults;
 	}
 
 	void run() {
-		ManagedReference<Creature*> creature = mob.get();
-		ManagedReference<CreatureObject*> player = play.get();
-
-		if (creature == nullptr || player == nullptr)
-			return;
-
 		Locker locker(creature);
 
 		Locker _clocker(player, creature);
@@ -64,18 +59,18 @@ public:
 		ChatManager* chatManager = player->getZoneServer()->getChatManager();
 		ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
 
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return;
 
 		switch (currentPhase) {
 		case INITIAL:
-			chatManager->broadcastChatMessage(player, "@hireling/hireling:taming_" + String::valueOf(System::random(4) + 1), 0, 0, player->getMoodID(), 0, ghost->getLanguageID());
+			chatManager->broadcastChatMessage(player, "@hireling/hireling:taming_" + String::valueOf(System::random(4) + 1), 0, 0, 0, ghost->getLanguageID());
 			player->doAnimation("");
 			currentPhase = SECOND;
 			player->addPendingTask("tame_pet", this, 10000);
 			break;
 		case SECOND:
-			chatManager->broadcastChatMessage(player, "@hireling/hireling:taming_" + String::valueOf(System::random(4) + 1), 0, 0, player->getMoodID(), 0, ghost->getLanguageID());
+			chatManager->broadcastChatMessage(player, "@hireling/hireling:taming_" + String::valueOf(System::random(4) + 1), 0, 0, 0, ghost->getLanguageID());
 			currentPhase = FINAL;
 			player->addPendingTask("tame_pet", this, 10000);
 			break;
@@ -103,12 +98,6 @@ public:
 	}
 
 	void success(bool adult) {
-		ManagedReference<CreatureObject*> player = play.get();
-		ManagedReference<Creature*> creature = mob.get();
-
-		if (creature == nullptr || player == nullptr)
-			return;
-
 		ZoneServer* zoneServer = player->getZoneServer();
 
 		String objectString = creature->getControlDeviceTemplate();
@@ -119,14 +108,14 @@ public:
 		PlayerManager* playerManager = zoneServer->getPlayerManager();
 		ObjectManager* objectManager = zoneServer->getObjectManager();
 
-		if (datapad == nullptr || playerManager == nullptr || objectManager == nullptr) {
+		if (datapad == NULL || playerManager == NULL || objectManager == NULL) {
 			resetStatus();
 			return;
 		}
 
 		ManagedReference<PetControlDevice*> controlDevice = zoneServer->createObject(objectString.hashCode(), 1).castTo<PetControlDevice*>();
 
-		if (controlDevice == nullptr) {
+		if (controlDevice == NULL) {
 			resetStatus();
 			return;
 		}
@@ -172,20 +161,20 @@ public:
 
 		if (creature->isAiAgent()) {
 			AiAgent* agent = cast<AiAgent*>(creature.get());
-			ManagedReference<CellObject*> parent = player->getParent().get().castTo<CellObject*>();
+			ManagedReference<SceneObject*> parent = player->getParent().get();
 
 			float respawn = agent->getRespawnTimer() * 1000;
 
-			if (respawn > 0 && agent->getHomeObject().get() == nullptr) {
+			if (respawn > 0 && agent->getHomeObject().get() == NULL) {
 
 				if (agent->getRandomRespawn()) {
 					respawn = System::random(respawn) + (respawn / 2.f);
 				}
 
 				uint32 tempCRC = 0;
-				auto crTemplate = agent->getCreatureTemplate();
+				CreatureTemplate* crTemplate = agent->getCreatureTemplate();
 
-				if (crTemplate != nullptr)
+				if (crTemplate != NULL)
 					tempCRC = crTemplate->getTemplateName().hashCode();
 
 				PatrolPoint* homeLoc = agent->getHomeLocation();
@@ -194,12 +183,11 @@ public:
 				task->schedule(respawn);
 			}
 
-			agent->setLairTemplateCRC(0);
 			agent->setFollowObject(player);
 			agent->storeFollowObject();
 
-			agent->setHomeLocation(player->getPositionX(), player->getPositionZ(), player->getPositionY(), parent);
-			agent->setNextStepPosition(player->getPositionX(), player->getPositionZ(), player->getPositionY(), parent);
+			agent->setHomeLocation(player->getPositionX(), player->getPositionZ(), player->getPositionY(), (parent != NULL && parent->isCellObject()) ? parent : NULL);
+			agent->setNextStepPosition(player->getPositionX(), player->getPositionZ(), player->getPositionY(), (parent != NULL && parent->isCellObject()) ? parent : NULL);
 			agent->clearPatrolPoints();
 
 			agent->setCreatureBitmask(CreatureFlag::PET);
@@ -212,9 +200,9 @@ public:
 		ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
 		ghost->addToActivePets(creature);
 
-		auto creatureTemplate = creature->getCreatureTemplate();
+		CreatureTemplate* creatureTemplate = creature->getCreatureTemplate();
 
-		if (creatureTemplate != nullptr)
+		if (creatureTemplate != NULL)
 			playerManager->awardExperience(player, "creaturehandler", 20 * creatureTemplate->getLevel());
 		else
 			playerManager->awardExperience(player, "creaturehandler", 20 * creature->getLevel());
@@ -224,11 +212,6 @@ public:
 	}
 
 	void resetStatus() {
-		ManagedReference<Creature*> creature = mob.get();
-
-		if (creature == nullptr)
-			return;
-
 		creature->setPvpStatusBitmask(originalMask, true);
 		if (creature->isAiAgent()) {
 			AiAgent* agent = cast<AiAgent*>(creature.get());

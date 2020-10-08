@@ -8,6 +8,7 @@
 #ifndef CREATUREATTACKDATA_H_
 #define CREATUREATTACKDATA_H_
 
+#include "engine/engine.h"
 #include "server/zone/objects/creature/commands/effect/StateEffect.h"
 #include "server/zone/objects/creature/commands/effect/DotEffect.h"
 
@@ -20,7 +21,6 @@ protected:
 	float minDamage;
 	float maxDamage;
 	int damageType;
-	int forceCost;
 	float damageMultiplier;
 	float healthDamageMultiplier;
 	float actionDamageMultiplier;
@@ -33,25 +33,20 @@ protected:
 	float actionCostMultiplier;
 	float mindCostMultiplier;
 	float forceCostMultiplier;
-	float frsLightMinDamageModifier;
-	float frsLightMaxDamageModifier;
-	float frsDarkMinDamageModifier;
-	float frsDarkMaxDamageModifier;
 
-	int range;
-	int coneRange;
-	int coneAngle;
-	int areaRange;
+    int range;
+    int coneRange;
+    int coneAngle;
+    int areaRange;
 
-	bool splashDamage;
-	bool hitIncapTarget;
+    bool splashDamage;
 
-	uint64 targetID;
+    uint64 targetID;
 
-	const VectorMap<uint8, StateEffect>* stateEffects;
-	const Vector<DotEffect>* dotEffects;
+    VectorMap<uint8, StateEffect>* stateEffects;
+    Vector<DotEffect>* dotEffects;
 
-	bool forceAttack;
+	uint8 attackType;
 	uint8 trails;
 
 	String combatSpam;
@@ -59,15 +54,15 @@ protected:
 	int stateAccuracyBonus;
 
 public:
-	CreatureAttackData(const UnicodeString & dataString, const CombatQueueCommand *base, uint64 target);
-	CreatureAttackData(const CreatureAttackData& data);
-	virtual ~CreatureAttackData() {}
+    CreatureAttackData(const UnicodeString & dataString, const CombatQueueCommand *base, uint64 target);
+    CreatureAttackData(const CreatureAttackData& data);
+    virtual ~CreatureAttackData() {}
 
-	void fillFromBase();
-	void setVariable(const String& var, const String& val);
+    void fillFromBase();
+    void setVariable(const String& var, const String& val);
 
-	const String& getCommandName() const;
-	uint32 getCommandCRC() const;
+    String getCommandName() const;
+    uint32 getCommandCRC() const;
 
 	float getActionDamageMultiplier() const {
 		return actionDamageMultiplier;
@@ -93,29 +88,30 @@ public:
 		this->mindDamageMultiplier = mindDamageMultiplier;
 	}
 
-	const CombatQueueCommand* getCommand() const {
-		return baseCommand;
-	}
+    const CombatQueueCommand* getCommand() const {
+    	return baseCommand;
+    }
 
-	float getMinDamage() const {
-		return minDamage;
-	}
+    float getMinDamage() const {
+    	return minDamage;
+    }
 
-	float getMaxDamage() const {
-		return maxDamage;
-	}
+    float getMaxDamage() const {
+    	return maxDamage;
+    }
 
-	int getDamageType() const {
-		return damageType;
-	}
+    int getDamageType() const {
+    	return damageType;
+    }
 
-	int getAccuracyBonus() const {
-		return accuracyBonus;
-	}
+    int getAccuracyBonus() const {
+    	return accuracyBonus;
+    }
 
-	float getActionCostMultiplier() const {
+    float getActionCostMultiplier() const {
 		return actionCostMultiplier;
 	}
+
 
 	void setSplashDamage(bool b) {
 		splashDamage = b;
@@ -123,10 +119,6 @@ public:
 
 	bool isSplashDamage() const {
 		return splashDamage;
-	}
-
-	bool getHitIncapTarget() const {
-		return hitIncapTarget;
 	}
 
 	int getAreaRange() const {
@@ -169,40 +161,20 @@ public:
 		return speedMultiplier;
 	}
 
-	const VectorMap<uint8, StateEffect>* getStateEffects() const {
+	VectorMap<uint8, StateEffect>* getStateEffects() const {
 		return stateEffects;
 	}
 
-	const Vector<DotEffect>* getDotEffects() const {
+	Vector<DotEffect>* getDotEffects() const {
 		return dotEffects;
 	}
 
-	bool isForceAttack() const {
-		return forceAttack;
+	uint8 getAttackType() const {
+		return attackType;
 	}
 
-	int getForceCost() const {
-		return forceCost;
-	}
-
-	float getFrsLightMinDamageModifier() const {
-		return frsLightMinDamageModifier;
-	}
-
-	float getFrsLightMaxDamageModifier() const {
-		return frsLightMaxDamageModifier;
-	}
-
-	float getFrsDarkMinDamageModifier() const {
-		return frsDarkMinDamageModifier;
-	}
-
-	float getFrsDarkMaxDamageModifier() const {
-		return frsDarkMaxDamageModifier;
-	}
-
-	void setForceAttack(bool forceAttack) {
-		this->forceAttack = forceAttack;
+	void setAttackType(uint8 attackType) {
+		this->attackType = attackType;
 	}
 
 	uint8 getTrails() const {
@@ -217,11 +189,11 @@ public:
 		this->trails = trails;
 	}
 
-	const String& getCombatSpam() const {
+	String getCombatSpam() const {
 		return combatSpam;
 	}
 
-	void setCombatSpam(const String& spam) {
+	void setCombatSpam(String spam) {
 		this->combatSpam = spam;
 	}
 
@@ -238,6 +210,7 @@ public:
 	}
 
 	bool changesDefenderPosture() const;
+
 	bool changesAttackerPosture() const;
 };
 

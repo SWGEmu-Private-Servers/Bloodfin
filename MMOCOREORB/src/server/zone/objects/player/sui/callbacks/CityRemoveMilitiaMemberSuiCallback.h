@@ -9,8 +9,7 @@
 #define CITYREMOVEMILITIAMEMBERSUICALLBACK_H_
 
 #include "engine/engine.h"
-#include "server/zone/objects/player/sui/SuiCallback.h"
-#include "server/zone/managers/city/CityManager.h"
+#include "../SuiCallback.h"
 
 namespace server {
 namespace zone {
@@ -41,12 +40,12 @@ public:
 
 		ManagedReference<CityRemoveMilitiaSession*> session = player->getActiveSession(SessionFacadeType::CITYMILITIA).castTo<CityRemoveMilitiaSession*>();
 
-		if (session == nullptr)
+		if (session == NULL)
 			return;
 
 		ManagedReference<CityRegion*> city = cityRegion.get();
 
-		if (city == nullptr || cancelPressed) {
+		if (city == NULL || cancelPressed) {
 			session->cancelSession();
 			return;
 		}

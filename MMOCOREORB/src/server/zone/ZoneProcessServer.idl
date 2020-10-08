@@ -17,13 +17,14 @@ import server.zone.managers.holocron.HolocronManager;
 import server.zone.managers.sui.SuiManager;
 import server.zone.managers.player.PlayerManager;
 import server.zone.managers.skill.SkillManager;
+import server.zone.managers.object.ObjectManager;
 import server.zone.managers.vendor.VendorManager;
 import server.zone.managers.minigames.FishingManager;
 import server.zone.managers.minigames.GamblingManager;
 import server.zone.managers.minigames.ForageManager;
 
-@dirty
 class ZoneProcessServer extends ManagedService {
+	@weak
 	transient protected ZoneServer zoneServer;
 
 	transient protected PlayerCreationManager playerCreationManager;
@@ -35,24 +36,32 @@ class ZoneProcessServer extends ManagedService {
 
 	//Static Managers
 	transient protected NameManager nameManager;
-
+	
 	transient protected HolocronManager holocronManager;
 
 	transient protected SuiManager suiManager;
-
+	
 	transient protected SkillManager professionManager;
-
+	
 	private transient FishingManager fishingManager;
 	private transient GamblingManager gamblingManager;
 	private transient ForageManager forageManager;
 
+	@weak
 	transient protected ObjectController objectController;
-
+	
+	/*CombatManager combatManager;
+	SkillManager skillManager;
+	RadialManager radialManager;
+	GroupManager groupManager;
+	LootManager lootManager;
+	*/
+	
 	public native ZoneProcessServer(ZoneServer server);
 
 	public native void initialize();
 
-	public native void stop();
+	public native void finalize();
 
 	@local
 	@dirty
@@ -60,7 +69,7 @@ class ZoneProcessServer extends ManagedService {
 		return vendorManager;
 	}
 
-	@read
+	@dirty
 	public ZoneServer getZoneServer() {
 		return zoneServer;
 	}
@@ -70,7 +79,7 @@ class ZoneProcessServer extends ManagedService {
 	public ZonePacketHandler getPacketHandler() {
 		return zonePacketHandler;
 	}
-
+	
 	@local
 	@dirty
 	public SkillManager getSkillManager() {
@@ -93,7 +102,7 @@ class ZoneProcessServer extends ManagedService {
 	public NameManager getNameManager() {
 		return nameManager;
 	}
-
+	
 	@local
 	@dirty
 	public HolocronManager getHolocronManager() {
@@ -110,12 +119,12 @@ class ZoneProcessServer extends ManagedService {
 	public SuiManager getSuiManager() {
 		return suiManager;
 	}
-
+	
 	@dirty
 	public FishingManager getFishingManager() {
 		return fishingManager;
 	}
-
+	
 	@dirty
 	public GamblingManager getGamblingManager() {
 		return gamblingManager;
@@ -125,4 +134,44 @@ class ZoneProcessServer extends ManagedService {
 	public ForageManager getForageManager() {
 		return forageManager;
 	}
+
+	/*UserManager getUserManager() {
+		return server.getUserManager();
+	}
+
+	CraftingManager getCraftingManager() {
+		return server.getCraftingManager();
+	}
+
+	ItemManager getItemManager() {
+		return server.getItemManager();
+	}
+
+	GuildManager getGuildManager() {
+		return server.getGuildManager();
+	}
+
+	BankManager getBankManager() {
+		return server.getBankManager();
+	}
+
+	MissionManager getMissionManager() {
+		return server.getMissionManager();
+	}
+
+	CombatManager getCombatManager() {
+		return combatManager;
+	}
+
+	RadialManager getRadialManager() {
+		return radialManager;
+	}
+
+	GroupManager getGroupManager() {
+		return groupManager;
+	}
+
+	LootManager getLootManager() {
+		return lootManager;
+	}*/
 }

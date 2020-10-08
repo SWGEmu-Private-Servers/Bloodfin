@@ -6,6 +6,7 @@
 #define ASSISTCOMMAND_H_
 
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/managers/objectcontroller/ObjectController.h"
 
 class AssistCommand : public QueueCommand {
 public:
@@ -25,11 +26,11 @@ public:
 
 		ManagedReference<SceneObject*> targetObject = server->getZoneServer()->getObject(target);
           
-		if (targetObject == nullptr || !targetObject->isCreatureObject() || targetObject == creature)
+		if (targetObject == NULL || !targetObject->isCreatureObject() || targetObject == creature)
 			return INVALIDTARGET;
 
 		CreatureObject *targetCreo = targetObject->asCreatureObject();
-		uint64 targetID = targetCreo->getTargetID();
+		unsigned long targetID = targetCreo->getTargetID();
           
 		if(targetID == 0)
 			return INVALIDTARGET;

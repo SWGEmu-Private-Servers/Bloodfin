@@ -17,9 +17,9 @@ public:
 	HealMindCommand(const String& name, ZoneProcessServer* server)
 		: QueueCommand(name, server) {
 		
-		mindCost = 250;
-		mindWoundCost = 250;
-		range = 5;
+		mindCost = 150;
+		mindWoundCost = 50;
+		range = 45;
 	}
 
 	void doAnimations(CreatureObject* creature, CreatureObject* creatureTarget) const {
@@ -61,7 +61,7 @@ public:
 
 	int calculateWound(int wound, int poolWounds, int poolMax) const {
 		int maxWound = poolMax - poolWounds - 1;
-		return (Math::max(0,Math::min(maxWound,wound)));
+		return (MAX(0,MIN(maxWound,wound)));
 	}
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
@@ -76,11 +76,11 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object != nullptr) {
+		if (object != NULL) {
 			if (!object->isCreatureObject()) {
 				TangibleObject* tangibleObject = dynamic_cast<TangibleObject*>(object.get());
 
-				if (tangibleObject != nullptr && tangibleObject->isAttackableBy(creature)) {
+				if (tangibleObject != NULL && tangibleObject->isAttackableBy(creature)) {
 					object = creature;
 				} else {
 					creature->sendSystemMessage("@healing:heal_mind_invalid_target"); //Target must be a player or a creature pet in order to heal mind.
@@ -107,11 +107,6 @@ public:
 			return GENERALERROR;
 		}
 
-		if (checkForArenaDuel(creatureTarget)) {
-			creature->sendSystemMessage("@jedi_spam:no_help_target"); // You are not permitted to help that target.
-			return GENERALERROR;
-		}
-
 		if (!creatureTarget->isHealableBy(creature)) {
 			creature->sendSystemMessage("@healing:pvp_no_help"); //It would be unwise to help such a patient.
 			return GENERALERROR;
@@ -135,21 +130,21 @@ public:
 			return GENERALERROR;
 		}
 
-		if(!checkDistance(creature, creatureTarget, range))
+		if (!creatureTarget->isInRange(creature, range + creatureTarget->getTemplateRadius() + creature->getTemplateRadius()))
 			return TOOFAR;
 
 		PlayerManager* playerManager = server->getPlayerManager();
 
 		if (creature != creatureTarget && !CollisionManager::checkLineOfSight(creature, creatureTarget)) {
-			creature->sendSystemMessage("@healing:no_line_of_sight"); // You cannot see your target.
+			creature->sendSystemMessage("@container_error_message:container18");
 			return GENERALERROR;
 		}
 
 		float modSkill = (float) creature->getSkillMod("combat_medic_effectiveness");
-		int healPower = (int) (System::random(500)+800) * modSkill / 100;
-
+		int healPower = (int) (System::random(800)+1000) * modSkill / 100;
+		
 		// Check BF
-		healPower = (int) (healPower * creature->calculateBFRatio());
+		healPower = (int) (healPower * (1 - creature->calculateBFRatio()) * (1 - creatureTarget->calculateBFRatio()));
 
 		int healedMind = creatureTarget->healDamage(creature, CreatureAttribute::MIND, healPower);
 
@@ -158,13 +153,13 @@ public:
 		}
 
 		sendHealMessage(creature, creatureTarget, healedMind);
-		int mindWound = (int) healedMind * .05; // 5% of mind healed in wounds
+		int mindWound = (int) healedMind * .02; // 2% of mind healed in wounds
 
 		creature->addWounds(CreatureAttribute::MIND, mindWound, true, false);
 		creature->addWounds(CreatureAttribute::FOCUS, mindWound, true, false);
 		creature->addWounds(CreatureAttribute::WILLPOWER, mindWound, true, false);
 
-		creature->addShockWounds(mindWound); // 5% of mind healed in bf
+		creature->addShockWounds(mindWound); // 2% of mind healed in bf
 
 		doAnimations(creature, creatureTarget);
 

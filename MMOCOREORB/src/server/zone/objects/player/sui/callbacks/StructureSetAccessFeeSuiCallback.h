@@ -24,10 +24,11 @@ public:
 		if (!sui->isInputBox() || cancelPressed || args->size() < 1)
 			return;
 
+		ManagedReference<SceneObject*> obj = sui->getUsingObject();
 		ManagedReference<StructureSetAccessFeeSession*> session =
 				creature->getActiveSession(SessionFacadeType::SETSTRUCTUREACCESSFEE).castTo<StructureSetAccessFeeSession*>();
 
-		if (session == nullptr)
+		if (session == NULL)
 			return;
 
 		try {

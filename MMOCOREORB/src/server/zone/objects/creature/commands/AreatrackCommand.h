@@ -5,6 +5,7 @@
 #ifndef AREATRACKCOMMAND_H_
 #define AREATRACKCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/player/sui/callbacks/AreaTrackSuiCallback.h"
 
 class AreatrackCommand : public QueueCommand {
@@ -29,19 +30,19 @@ public:
 		if(!creature->hasSkill("outdoors_ranger_novice"))
 			return GENERALERROR;
 
-		if(creature->getParent() != nullptr && creature->getParent().get()->isCellObject()) {
+		if(creature->getParent() != NULL && creature->getParent().get()->isCellObject()) {
 			creature->sendSystemMessage("@skl_use:sys_scan_inside"); // Your tracking skills only apply to outdoor environments.
 			return GENERALERROR;
 		}
 
 		CooldownTimerMap* cooldownTimerMap = creature->getCooldownTimerMap();
-		if(cooldownTimerMap == nullptr || !cooldownTimerMap->isPast("areatrack")) {
+		if(cooldownTimerMap == NULL || !cooldownTimerMap->isPast("areatrack")) {
 			creature->sendSystemMessage("@skl_use:sys_scan_already"); // You are already searching for information.
 			return GENERALERROR;
 		}
 
 		ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
-		if (ghost == nullptr || ghost->hasSuiBoxWindowType(SuiWindowType::RANGER_TRACK_OPTIONS)) {
+		if (ghost == NULL || ghost->hasSuiBoxWindowType(SuiWindowType::RANGER_TRACK_OPTIONS)) {
 			creature->sendSystemMessage("@skl_use:sys_scan_already"); // You are already searching for information.
 			return 0;
 		}

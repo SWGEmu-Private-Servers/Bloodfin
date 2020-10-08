@@ -7,8 +7,6 @@
 
 #include "server/zone/objects/scene/SceneObject.h"
 
-#include "StartMusicCommand.h"
-
 class StartBandCommand : public QueueCommand {
 public:
 
@@ -27,21 +25,21 @@ public:
 
 		ManagedReference<GroupObject*> group = creature->getGroup();
 
-		if (group == nullptr) {
+		if (group == NULL) {
 			creature->sendSystemMessage("You must be the leader of a band to use that command.");
 			return GENERALERROR;
 		}
 
-		Reference<CreatureObject*> leader = group->getLeader();
+		Reference<CreatureObject*> leader = (group->getLeader()).castTo<CreatureObject*>();
 
-		if (leader == nullptr || creature != leader) {
+		if (leader == NULL || creature != leader) {
 			creature->sendSystemMessage("You must be the band leader to start the band playing.");
 			return GENERALERROR;
 		}
 
 		ManagedReference<EntertainingSession*> session = creature->getActiveSession(SessionFacadeType::ENTERTAINING).castTo<EntertainingSession*>();
 
-		if (session != nullptr) {
+		if (session != NULL) {
 			if (session->isDancing()) {
 				session->stopDancing();
 			}
@@ -103,16 +101,16 @@ public:
 			Locker locker(group);
 
 			for (int i = 0; i < group->getGroupSize(); ++i) {
-				Reference<CreatureObject*> groupMember = group->getGroupMember(i);
-
-				if (groupMember == nullptr)
-					continue;
+				Reference<CreatureObject*> groupMember = (group->getGroupMember(i)).castTo<CreatureObject*>();
 
 				Locker clocker(groupMember, group);
 
+				if (groupMember == NULL)
+					continue;
+
 				ManagedReference<EntertainingSession*> groupMemberSession = groupMember->getActiveSession(SessionFacadeType::ENTERTAINING).castTo<EntertainingSession*>();
 
-				if (groupMemberSession != nullptr)
+				if (groupMemberSession != NULL)
 					continue;
 
 				if (!canPlayInstrument(groupMember, groupMember->getTargetID())) {
@@ -130,13 +128,13 @@ public:
 				Reference<Instrument*> instrument = groupMember->getSlottedObject("hold_r").castTo<Instrument*> ();
 				bool targetedInstrument = false;
 
-				if (instrument == nullptr) {
+				if (instrument == NULL) {
 					ManagedReference<SceneObject*> nala = server->getZoneServer()->getObject(groupMember->getTargetID());
 					instrument = cast<Instrument*> (nala.get());
 					targetedInstrument = true;
 				}
 
-				if (instrument == nullptr)
+				if (instrument == NULL)
 					continue;
 
 				Locker lockerInstr(instrument);
@@ -148,7 +146,7 @@ public:
 					instrument->setBeingUsed(true);
 				}
 
-				if (targetedInstrument && (instrument->getParent() != nullptr  || instrument->getSpawnerPlayer() != nullptr)) {
+				if (targetedInstrument && (instrument->getParent() != NULL  || instrument->getSpawnerPlayer() != NULL)) {
 					instrument->setDirection(*groupMember->getDirection());
 					instrument->teleport(groupMember->getPositionX(), groupMember->getPositionZ(), groupMember->getPositionY(), groupMember->getParentID());
 				}
@@ -201,23 +199,23 @@ public:
 
 		Reference<Instrument*> instrument = creature->getSlottedObject("hold_r").castTo<Instrument*> ();
 
-		if (instrument == nullptr) {
+		if (instrument == NULL) {
 			ManagedReference<SceneObject*> nala = server->getZoneServer()->getObject(target);
 
-			if (nala != nullptr && dynamic_cast<Instrument*> (nala.get())) {
+			if (nala != NULL && dynamic_cast<Instrument*> (nala.get())) {
 				instrument = cast<Instrument*> (nala.get());
-				ManagedReference<SceneObject*> creatureParent = creature->getParent().get();
+				ManagedReference<SceneObject*> creatureParent = creature->getParent();
 
-				if (!checkDistance(creature, nala, 3) || nala->getZone()
-						== nullptr || (creatureParent == nullptr && nullptr
+				if (creature->getDistanceTo(nala) >= 3 || nala->getZone()
+						== NULL || (creatureParent == NULL && NULL
 						!= nala->getParent().get())) {
 					creature->sendSystemMessage("@elevator_text:too_far"); // You are too far away to use that.
 
 					return false;
 				}
 
-				ManagedReference<CreatureObject*> spawnerPlayer = instrument->getSpawnerPlayer().get();
-				if (spawnerPlayer != nullptr && spawnerPlayer != creature) {
+				if (instrument->getSpawnerPlayer() != NULL
+						&& instrument->getSpawnerPlayer() != creature) {
 					creature->sendSystemMessage("You must be the owner of the instrument");
 
 					return false;

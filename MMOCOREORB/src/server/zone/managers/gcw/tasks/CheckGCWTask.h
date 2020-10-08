@@ -7,7 +7,7 @@
 
 #ifndef CHECKGCWTASK_H_
 #define CHECKGCWTASK_H_
-
+#include "engine/engine.h"
 #include "server/zone/managers/gcw/GCWManager.h"
 
 class CheckGCWTask : public Task {
@@ -16,23 +16,16 @@ class CheckGCWTask : public Task {
 public:
 	CheckGCWTask(GCWManager* manager){
 		gcwManager = manager;
-
-		setCustomTaskQueue("slowQueue");
 	}
 
 	void run() {
 		ManagedReference<GCWManager*> strongRef = gcwManager.get();
 
-		if (strongRef == nullptr){
+		if (strongRef == NULL){
 			return;
 		}
 
-		ZoneServer* server = strongRef->getZone()->getZoneServer();
-
-		if (server == nullptr || server->isServerShuttingDown())
-			return;
-
-		strongRef->performGCWTasks(false);
+		strongRef->performGCWTasks();
 
 	}
 };

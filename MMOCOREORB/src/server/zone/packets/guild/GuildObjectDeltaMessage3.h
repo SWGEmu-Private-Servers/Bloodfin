@@ -8,7 +8,8 @@
 #ifndef GUILDOBJECTDELTAMESSAGE3_H_
 #define GUILDOBJECTDELTAMESSAGE3_H_
 
-#include "server/zone/packets/DeltaMessage.h"
+#include "../DeltaMessage.h"
+
 #include "server/zone/objects/guild/GuildObject.h"
 
 class GuildObjectDeltaMessage3 : public DeltaMessage {
@@ -23,7 +24,7 @@ public:
 		startList(1, 0);
 		insertByte(0x01);
 
-		if (guild == nullptr) {
+		if (guild == NULL) {
 			insertAscii("");
 			return;
 		}
@@ -38,7 +39,7 @@ public:
 		startList(1, 0);
 		insertByte(0x00);
 
-		if (guild == nullptr) {
+		if (guild == NULL) {
 			insertAscii("");
 			return;
 		}

@@ -5,6 +5,8 @@
 #ifndef ZONEMESSAGEPROCESSORTASK_H_
 #define ZONEMESSAGEPROCESSORTASK_H_
 
+#include "engine/engine.h"
+
 #include "ZonePacketHandler.h"
 
 
@@ -22,7 +24,7 @@ public:
 
 	~ZoneMessageProcessorTask() {
 		delete message;
-		message = nullptr;
+		message = NULL;
 	}
 
 	void run() {
@@ -48,7 +50,7 @@ public:
 		}
 
 		delete message;
-		message = nullptr;
+		message = NULL;
 
 	}
 

@@ -9,35 +9,25 @@
 #define CONTAINEROBJECTSMAP_H_
 
 #include "engine/engine.h"
-#include "system/thread/atomic/AtomicTime.h"
 
 namespace server {
  namespace zone {
   namespace objects {
    namespace scene {
    	   class SceneObject;
-   	   class UnloadContainerTask;
 
    	class ContainerObjectsMap : public Variable {
    		int operationMode;
 
    		VectorMap<uint64, ManagedReference<SceneObject*> > containerObjects;
-   		AtomicReference<VectorMap<uint64, uint64>*> oids;
+   		VectorMap<uint64, uint64>* oids;
 
-   		AtomicTime lastAccess;
-
-   		ManagedWeakReference<SceneObject*> container;
-
-   		mutable ReadWriteLock* containerLock;
-
-   		Reference<UnloadContainerTask*> unloadTask;
-
+   		Mutex loadMutex;
    	public:
    		enum {NORMAL_LOAD = 0, DELAYED_LOAD };
 
    	private:
    		void copyData(const ContainerObjectsMap& c);
-   		void scheduleContainerUnload();
 
    	public:
    		ContainerObjectsMap();
@@ -54,12 +44,11 @@ namespace server {
    		void notifyLoadFromDatabase();
 
    		void loadObjects();
-   		void unloadObjects();
 
    		void removeAll();
    		void removeElementAt(int index);
 
-   		bool contains(uint64 oid) const;
+   		bool contains(uint64 oid);
    		int size();
 
    		ManagedReference<SceneObject*> get(int index);
@@ -68,52 +57,14 @@ namespace server {
    		void put(uint64 oid, SceneObject* object);
    		void drop(uint64 oid);
 
-   		void setContainer(SceneObject* obj);
-
    		void setDelayedLoadOperationMode() {
    			operationMode = DELAYED_LOAD;
    		}
 
-   		void setNormalLoadOperationMode() {
-   			operationMode = NORMAL_LOAD;
-   		}
-
-   		bool hasDelayedLoadOperationMode() const {
+   		bool hasDelayedLoadOperationMode() {
    			return operationMode == DELAYED_LOAD;
    		}
-
-   		bool isLoaded(bool readLock = true) const {
-   			if (readLock) {
-   				ReadLocker locker(containerLock);
-
-   				return operationMode == NORMAL_LOAD || oids == nullptr;
-   			} else {
-   				return operationMode == NORMAL_LOAD || oids == nullptr;
-   			}
-   		}
-
-   		const AtomicTime* getLastAccess() const {
-   			return &lastAccess;
-   		}
-
-   		ManagedWeakReference<SceneObject*> getContainer() const {
-   			return container;
-   		}
-
-   		void cancelUnloadTask();
-
-		VectorMap<uint64, uint64>* getOids() const {
-			return oids.get();
-		}
-
-		const VectorMap<uint64, ManagedReference<SceneObject*> >* getContainerObjects() const {
-			return &containerObjects;
-		}
-
-
    	};
-
-	void to_json(nlohmann::json& k, const server::zone::objects::scene::ContainerObjectsMap& map);
    }
   }
  }

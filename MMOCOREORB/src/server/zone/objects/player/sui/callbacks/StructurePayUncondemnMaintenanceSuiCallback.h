@@ -6,7 +6,7 @@
 #define STRUCTUREPAYUNCONDEMNMAINTENANCESUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
-#include "server/zone/managers/credit/CreditManager.h"
+#include "server/zone/objects/player/PlayerObject.h"
 
 class StructurePayUncondemnMaintenanceSuiCallback : public SuiCallback {
 public:
@@ -19,18 +19,16 @@ public:
 		if (!sui->isMessageBox() || cancelPressed)
 			return;
 
-		ManagedReference<SceneObject*> obj = sui->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = sui->getUsingObject();
 
-		if (obj == nullptr || !obj->isStructureObject()) {
-			creature->sendSystemMessage("@player_structure:invalid_target"); // "Your original structure target is no longer valid. Aborting..."
-			return;
+		if (obj == NULL || !obj->isStructureObject()) {
+			return; //TODO: What message should be shown here?
 		}
 
 		StructureObject* structure = cast<StructureObject*>(obj.get());
 
-		if (structure == nullptr) {
-			creature->sendSystemMessage("@player_structure:invalid_target"); // "Your original structure target is no longer valid. Aborting..."
-			return;
+		if (structure == NULL) {
+			return; //TODO: What message should be shown here?
 		}
 
 		//Creature is already locked (done in handleSuiEventNotification in SuiManager).
@@ -38,31 +36,26 @@ public:
 
 		int uncondemnCost = -structure->getSurplusMaintenance();
 
-		if (uncondemnCost < 0 || (creature->getBankCredits() < uncondemnCost)) {
-			StringIdChatParameter params("@player_structure:structure_condemned_owner_no_credits"); // "This structure has been condemned by the order of the Empire. It currently requires %DI credits to uncondemn this structure. You do not have sufficient funds in your bank account. Add sufficient funds to your account and return to regain access to this structure."
-			params.setDI(uncondemnCost);
-			creature->sendSystemMessage(params);
+		if (uncondemnCost < 0 || (creature->getBankCredits() + creature->getCashCredits() < uncondemnCost)) {
+			//TODO: add error message;
 			return;
 		}
 
-		ManagedReference<CreditObject*> creditObj = creature->getCreditObject();
-		{
-			Locker locker(creditObj);
-			structure->payMaintenance(uncondemnCost, creditObj , false);
-		}
+		structure->payMaintenance(uncondemnCost, creature, false);
+
 		//Give the player 10 minutes to pay more maintenance before sending out new mails.
 		structure->scheduleMaintenanceTask(10 * 60);
 
 		if (structure->isBuildingObject()) {
 			BuildingObject* building = cast<BuildingObject* >(structure);
 
-			if (building != nullptr) {
+			if (building != NULL) {
 				//Remove ***** Condemned Structure ***** sign name.
 				building->updateSignName(true);
 			}
 		}
 
-		StringIdChatParameter message("@player_structure:structure_uncondemned"); // Your structure has been uncondemned. The Empire thanks you for your support.
+		StringIdChatParameter message("@player_structure:structure_uncondemned");
 		creature->sendSystemMessage(message);
 	}
 };

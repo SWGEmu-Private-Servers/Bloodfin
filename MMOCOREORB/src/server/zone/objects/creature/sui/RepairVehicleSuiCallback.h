@@ -8,9 +8,12 @@
 #ifndef REPAIRVEHICLESUICALLBACK_H_
 #define REPAIRVEHICLESUICALLBACK_H_
 
+
 #include "server/zone/objects/player/sui/SuiCallback.h"
 #include "server/zone/objects/creature/VehicleObject.h"
-#include "server/zone/objects/transaction/TransactionLog.h"
+#include "server/zone/managers/planet/PlanetManager.h"
+#include "server/zone/objects/area/ActiveArea.h"
+#include "server/zone/objects/region/Region.h"
 
 class RepairVehicleSuiCallback : public SuiCallback {
 public:
@@ -26,9 +29,9 @@ public:
 
 		SuiListBox* listBox = cast<SuiListBox*>( suiBox);
 
-		ManagedReference<SceneObject*> obj = listBox->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = listBox->getUsingObject();
 
-		if (obj == nullptr || !obj->isVehicleObject())
+		if (obj == NULL || !obj->isVehicleObject())
 			return;
 
 		VehicleObject* vehicle = cast<VehicleObject*>( obj.get());
@@ -40,15 +43,12 @@ public:
 			return;
 		}
 
-		if (vehicle->isDisabled() && !player->getPlayerObject()->isPrivileged())
-			return;
-
 		int repairCost = vehicle->calculateRepairCost(player);
 		int totalFunds = player->getBankCredits();
 		int tax = 0;
 
-		ManagedReference<CityRegion*> city =vehicle->getCityRegion().get();
-		if(city != nullptr && city->getGarageTax() > 0){
+		ManagedReference<CityRegion*> city =vehicle->getCityRegion();
+		if(city != NULL && city->getGarageTax() > 0){
 			tax = repairCost * city->getGarageTax() / 100;
 			repairCost += tax;
 		}
@@ -58,10 +58,7 @@ public:
 			return;
 		}
 
-		{
-			TransactionLog trx(player, TrxCode::VEHICLEREPAIRS, repairCost);
-			player->subtractBankCredits(repairCost);
-		}
+		player->setBankCredits(totalFunds - repairCost, true);
 
 		StringIdChatParameter params("@base_player:prose_pay_success_no_target"); //You successfully make a payment of %DI credits.
 		params.setDI(repairCost);
@@ -71,10 +68,10 @@ public:
 
 		String vehicleName = vehicle->getDisplayedName();
 
-		if (vehicle->isDisabled())
-			vehicle->setDisabled(false);
+		if (vehicleName.beginsWith("(disabled)"))
+			vehicle->setCustomObjectName(vehicleName.subString(11), true);
 
-		if( city != nullptr && tax > 0){
+		if( city != NULL && tax > 0){
 
 			_lock.release();
 			Locker clocker(city, player);

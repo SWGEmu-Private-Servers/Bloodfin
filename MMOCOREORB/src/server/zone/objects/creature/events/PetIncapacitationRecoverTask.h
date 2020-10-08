@@ -2,7 +2,7 @@
 #ifndef PETINCAPACITATIONRECOVERTASK_H_
 #define PETINCAPACITATIONRECOVERTASK_H_
 
-#include "templates/params/creature/CreatureAttribute.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
 #include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/objects/intangible/PetControlDevice.h"
 
@@ -54,7 +54,7 @@ public:
 
 			CreatureObject* owner = pet->getLinkedCreature().get();
 
-			if (owner != nullptr) {
+			if (owner != NULL) {
 				pet->setFollowObject(owner);
 				pet->activateMovementEvent();
 			}
@@ -62,7 +62,7 @@ public:
 			if (autostore) {
 				PetControlDevice* device = pet->getControlDevice().get().castTo<PetControlDevice*>();
 
-				if (device != nullptr && owner != nullptr) {
+				if (device != NULL && owner != NULL) {
 					Locker clocker(owner, pet);
 					Locker locker(device);
 

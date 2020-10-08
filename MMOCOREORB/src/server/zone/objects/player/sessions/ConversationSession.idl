@@ -5,7 +5,8 @@
 package server.zone.objects.player.sessions;
 
 import engine.util.Facade;
-import server.zone.objects.creature.conversation.ConversationScreen;
+include server.zone.objects.scene.SessionFacadeType;
+import server.zone.templates.mobile.ConversationScreen;
 import server.zone.objects.creature.CreatureObject;
 
 class ConversationSession extends Facade {

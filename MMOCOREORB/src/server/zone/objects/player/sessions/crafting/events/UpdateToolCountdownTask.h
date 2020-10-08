@@ -6,26 +6,23 @@
 #ifndef UPDATETOOLCOUNTDOWNTASK_H_
 #define UPDATETOOLCOUNTDOWNTASK_H_
 
+
+#include "server/zone/packets/tangible/TangibleObjectDeltaMessage3.h"
+
 class UpdateToolCountdownTask : public Task {
-	ManagedWeakReference<TangibleObject* > craftTool;
-	ManagedWeakReference<CreatureObject* > player;
+	ManagedReference<TangibleObject* > craftingTool;
+	ManagedReference<CreatureObject* > crafter;
 	int timeLeft;
 
 public:
 	UpdateToolCountdownTask(CreatureObject* pl, TangibleObject* tool, int time) : Task() {
-		craftTool = tool;
-		player = pl;
+		craftingTool = tool;
+		crafter = pl;
 		timeLeft = time;
 	}
 
 	void run() {
 		try {
-			ManagedReference<TangibleObject* > craftingTool = craftTool.get();
-			ManagedReference<CreatureObject* > crafter = player.get();
-
-			if (craftingTool == nullptr || crafter == nullptr)
-				return;
-
 			Locker locker(crafter);
 
 			Locker clocker(craftingTool, crafter);

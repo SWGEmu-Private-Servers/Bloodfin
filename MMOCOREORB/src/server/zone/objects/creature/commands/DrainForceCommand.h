@@ -24,8 +24,10 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
-		if (creature->hasAttackDelay() || !creature->checkPostureChangeDelay())
+		if (creature->isInvisible()) {
 			return GENERALERROR;
+
+		}
 
 		if (isWearingArmor(creature)) {
 			return NOJEDIARMOR;
@@ -35,19 +37,19 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object == nullptr || !object->isPlayerCreature())
+		if (object == NULL || !object->isPlayerCreature())
 			return INVALIDTARGET;
 
 		CreatureObject* targetCreature = cast<CreatureObject*>( object.get());
 
-		if (targetCreature == nullptr || targetCreature->isDead() || (targetCreature->isIncapacitated() && !targetCreature->isFeigningDeath()) || !targetCreature->isAttackableBy(creature))
+		if (targetCreature == NULL || targetCreature->isDead() || (targetCreature->isIncapacitated() && !targetCreature->isFeigningDeath()) || !targetCreature->isAttackableBy(creature))
 			return INVALIDTARGET;
 
-		if(!checkDistance(creature, targetCreature, range))
+		if (!targetCreature->isInRange(creature, range + targetCreature->getTemplateRadius() + creature->getTemplateRadius()))
 			return TOOFAR;
 
 		if (!CollisionManager::checkLineOfSight(creature, targetCreature)) {
-			creature->sendSystemMessage("@combat_effects:cansee_fail");//You cannot see your target.
+			creature->sendSystemMessage("@container_error_message:container18");
 			return GENERALERROR;
 		}
 
@@ -56,7 +58,7 @@ public:
 		ManagedReference<PlayerObject*> targetGhost = targetCreature->getPlayerObject();
 		ManagedReference<PlayerObject*> playerGhost = creature->getPlayerObject();
 
-		if (targetGhost == nullptr || playerGhost == nullptr)
+		if (targetGhost == NULL || playerGhost == NULL)
 			return GENERALERROR;
 
 		CombatManager* manager = CombatManager::instance();
@@ -66,12 +68,7 @@ public:
 			if (forceSpace <= 0) //Cannot Force Drain if attacker can't hold any more Force.
 				return GENERALERROR;
 
-			if (playerGhost->getForcePower() < forceCost) {
-				creature->sendSystemMessage("@jedi_spam:no_force_power"); //You do not have sufficient Force power to perform that action.
-				return GENERALERROR;
-			}
-
-			int drain = System::random(maxDamage);
+			int maxDrain = minDamage; //Value set in command lua.
 
 			int targetForce = targetGhost->getForcePower();
 			if (targetForce <= 0) {
@@ -79,21 +76,18 @@ public:
 				return GENERALERROR;
 			}
 
-			int forceDrain = targetForce >= drain ? drain : targetForce; //Drain whatever Force the target has, up to max.
+			int forceDrain = targetForce >= maxDrain ? maxDrain : targetForce; //Drain whatever Force the target has, up to max.
 			if (forceDrain > forceSpace)
 				forceDrain = forceSpace; //Drain only what attacker can hold in their own Force pool.
 
-			playerGhost->setForcePower(playerGhost->getForcePower() + (forceDrain - forceCost));
+			playerGhost->setForcePower(playerGhost->getForcePower() + forceDrain);
 			targetGhost->setForcePower(targetGhost->getForcePower() - forceDrain);
 
 			uint32 animCRC = getAnimationString().hashCode();
 			creature->doCombatAnimation(targetCreature, animCRC, 0x1, 0xFF);
-			manager->broadcastCombatSpam(creature, targetCreature, nullptr, forceDrain, "cbt_spam", combatSpam, 1);
-
-			VisibilityManager::instance()->increaseVisibility(creature, visMod);
+			manager->broadcastCombatSpam(creature, targetCreature, NULL, forceDrain, "cbt_spam", combatSpam, 1);
 
 			return SUCCESS;
-
 		}
 
 		return GENERALERROR;
@@ -101,14 +95,7 @@ public:
 	}
 
 	float getCommandDuration(CreatureObject* object, const UnicodeString& arguments) const {
-		float baseDuration = defaultTime * 3.0;
-		float combatHaste = object->getSkillMod("combat_haste");
-
-		if (combatHaste > 0) {
-			return baseDuration * (1.f - (combatHaste / 100.f));
-		} else {
-			return baseDuration;
-		}
+		return defaultTime * 3.0;
 	}
 
 };

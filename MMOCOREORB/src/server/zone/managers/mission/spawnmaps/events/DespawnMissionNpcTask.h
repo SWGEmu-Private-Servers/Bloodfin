@@ -5,6 +5,7 @@
 #ifndef DESPAWNMISSIONNPCTASK_H_
 #define DESPAWNMISSIONNPCTASK_H_
 
+#include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/managers/mission/spawnmaps/NpcSpawnPoint.h"
 #include "server/zone/managers/mission/MissionManager.h"
 
@@ -16,8 +17,8 @@ namespace spawnmaps {
 namespace events {
 
 class DespawnMissionNpcTask : public Task {
-	WeakReference<MissionManager*> missionManager;
-	WeakReference<NpcSpawnPoint*> npcSpawnPoint;
+	ManagedReference<MissionManager*> missionManager;
+	Reference<NpcSpawnPoint*> npcSpawnPoint;
 
 public:
 	DespawnMissionNpcTask(MissionManager* missionManager, NpcSpawnPoint* npcSpawnPoint) {
@@ -26,12 +27,7 @@ public:
 	}
 
 	void run() {
-		auto strongReferenceSpawnPoint = npcSpawnPoint.get();
-		auto strongReferenceManager = missionManager.get();
-
-		if (strongReferenceSpawnPoint && strongReferenceManager) {
-			strongReferenceManager->despawnMissionNpc(strongReferenceSpawnPoint);
-		}
+		missionManager->despawnMissionNpc(npcSpawnPoint);
 	}
 };
 

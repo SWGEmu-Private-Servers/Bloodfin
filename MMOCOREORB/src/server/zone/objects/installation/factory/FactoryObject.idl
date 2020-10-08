@@ -4,17 +4,12 @@ import server.zone.objects.installation.InstallationObject;
 import server.zone.objects.manufactureschematic.ManufactureSchematic;
 import server.zone.objects.factorycrate.FactoryCrate;
 import server.zone.objects.tangible.TangibleObject;
+import server.zone.objects.area.ActiveArea;
 import server.zone.objects.installation.factory.FactoryHopperObserver;
-import server.zone.objects.creature.CreatureObject;
-import server.zone.objects.scene.SceneObject;
 import engine.util.Observable;
 import engine.core.ManagedObject;
 include server.zone.objects.manufactureschematic.factoryblueprint.BlueprintEntry;
-include system.util.Vector;
-include templates.SharedObjectTemplate;
-import server.zone.packets.scene.AttributeListMessage;
 
-@json
 class FactoryObject extends InstallationObject {
 	@dereferenced
 	protected Vector<int> craftingTabsSupported;
@@ -86,14 +81,14 @@ class FactoryObject extends InstallationObject {
 	public native void closeHopper(Observable observable, ManagedObject arg1);
 
 	/**
-	 * Handles inputting the schematic to the
+	 * Handles inputting the schematic to the 
 	 * factory
 	 */
 	@preLocked
 	public native void handleInsertFactorySchem(CreatureObject player, ManufactureSchematic schematic);
 
 	/**
-	 * Handles inputting the schematic to the
+	 * Handles inputting the schematic to the 
 	 * factory
 	 */
 	@preLocked
@@ -103,7 +98,7 @@ class FactoryObject extends InstallationObject {
 	public native void handleOperateToggle(CreatureObject player);
 
 	@preLocked
-	private native boolean startFactory();
+	private native boolean startFactory(); 
 
 	private native void stopFactory(final string message, final string tt, final string to, final int di);
 
@@ -116,10 +111,7 @@ class FactoryObject extends InstallationObject {
 	private native FactoryCrate locateCrateInOutputHopper(TangibleObject prototype);
 
 	@preLocked
-	private native FactoryCrate createNewFactoryCrate(TangibleObject prototype, int maxSize);
-
-	@preLocked
-	private native TangibleObject createNewUncratedItem(TangibleObject prototype);
+	private native FactoryCrate createNewFactoryCrate(TangibleObject prototype);
 
 	private native boolean populateSchematicBlueprint(ManufactureSchematic schematic);
 

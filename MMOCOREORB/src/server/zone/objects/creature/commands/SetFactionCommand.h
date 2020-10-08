@@ -33,7 +33,7 @@ public:
 
 		ManagedReference<SceneObject*> obj = server->getZoneServer()->getObject(target);
 
-		if (obj == nullptr || !obj->isTangibleObject())
+		if (obj == NULL || !obj->isTangibleObject())
 			return INVALIDTARGET;
 
 		TangibleObject* tano = cast<TangibleObject*>( obj.get());
@@ -43,9 +43,9 @@ public:
 		uint32 intFaction = tano->getFaction();
 
 		ManagedReference<CreatureObject*> pobj = cast<CreatureObject*>( obj.get());
-		ManagedReference<PlayerObject*> targetPlayerObject = nullptr;
+		ManagedReference<PlayerObject*> targetPlayerObject = NULL;
 
-		if (pobj != nullptr)
+		if (pobj != NULL)
 			targetPlayerObject = pobj->getPlayerObject();
 
 		//First, check if they passed a name with the command.
@@ -58,7 +58,10 @@ public:
 			msg << "PvPStatusbitmask = " << String::valueOf(pvpStatus) << endl;
 			msg << "Optionsbitmask = " << String::valueOf(optionsBitmask) << endl;
 			msg <<  "Faction = " << String::valueOf(intFaction) << endl;
-			msg << "Faction Status: " << String::valueOf(tano->getFactionStatus());
+
+
+			if (targetPlayerObject != NULL)
+				msg << "Faction Status: " << String::valueOf(targetPlayerObject->getFactionStatus());
 
 			creature->sendSystemMessage(msg.toString());
 			return SUCCESS;
@@ -77,7 +80,7 @@ public:
 		if (faction == "neutral") {
 			tano->setFaction(0);
 
-			if (pobj != nullptr) {
+			if (pobj != NULL) {
 				pobj->setFactionRank(0);
 			}
 		}
@@ -91,13 +94,13 @@ public:
 			String status;
 			tokenizer.getStringToken(status);
 
-			if (targetPlayerObject != nullptr) {
+			if (targetPlayerObject != NULL) {
 				if ( status == "overt") {
-					tano->setFactionStatus(FactionStatus::OVERT);
+					targetPlayerObject->setFactionStatus(FactionStatus::OVERT);
 				} else  if (status == "covert"){
-					tano->setFactionStatus(FactionStatus::COVERT);
+					targetPlayerObject->setFactionStatus(FactionStatus::COVERT);
 				} else if (status == "onleave") {
-					tano->setFactionStatus(FactionStatus::ONLEAVE);
+					targetPlayerObject->setFactionStatus(FactionStatus::ONLEAVE);
 				}
 
 			}  else {
@@ -121,16 +124,16 @@ public:
 			else if (rank > 15)
 				rank = 15;
 
-			if (pobj != nullptr)
+			if (pobj != NULL)
 				pobj->setFactionRank(rank);
 
 		} else {
-			if (pobj != nullptr && faction.hashCode() != intFaction) {
+			if (pobj != NULL && faction.hashCode() != intFaction) {
 				pobj->setFactionRank(0);
 			}
 		}
 
-		if (targetPlayerObject != nullptr) { // Cap off points to new caps
+		if (targetPlayerObject != NULL) { // Cap off points to new caps
 			targetPlayerObject->increaseFactionStanding("imperial", 0);
 			targetPlayerObject->increaseFactionStanding("rebel", 0);
 		}

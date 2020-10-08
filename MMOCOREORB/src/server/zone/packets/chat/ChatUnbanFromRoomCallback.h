@@ -36,14 +36,20 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> unbanner = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (unbanner == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* unbanner = cast<CreatureObject*>(scene.get());
+
+		if (unbanner == NULL)
 			return;
 
 		ManagedReference<ChatManager*> chatManager = server->getChatManager();
-		if (chatManager != nullptr)
+		if (chatManager != NULL)
 			chatManager->handleChatUnbanPlayer(unbanner, unbaneeName, roomPath, requestID);
+
 	}
 
 };

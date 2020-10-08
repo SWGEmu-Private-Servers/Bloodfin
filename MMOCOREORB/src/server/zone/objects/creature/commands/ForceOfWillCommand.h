@@ -5,8 +5,11 @@
 #ifndef FORCEOFWILLCOMMAND_H_
 #define FORCEOFWILLCOMMAND_H_
 
-#include "templates/params/creature/CreatureAttribute.h"
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
+
 #include "server/zone/objects/creature/buffs/Buff.h"
+#include "server/zone/objects/creature/BuffAttribute.h"
 
 class ForceOfWillCommand : public QueueCommand {
 
@@ -49,7 +52,7 @@ public:
 
 		Reference<Task*> incapTask = player->getPendingTask("incapacitationRecovery");
 
-		if (!creature->isIncapacitated() || incapTask == nullptr || !incapTask->isScheduled()) {
+		if (!creature->isIncapacitated() || incapTask == NULL || !incapTask->isScheduled()) {
 			creature->sendSystemMessage("@teraskasi:forceofwill_fail"); //You must be incapacitated to perform that command.
 			return GENERALERROR;
 		}
@@ -69,7 +72,7 @@ public:
 		//Handle our failures.
 		if (roll < 5 || roll > meditateMod) {
 			player->sendSystemMessage("@teraskasi:forceofwill_unsuccessful"); //You are unable to keep yourself centered, and become lost in unconsciousness.
-			AtomicTime nextExecutionTime;
+			Time nextExecutionTime;
 			Core::getTaskManager()->getNextExecutionTime(incapTask, nextExecutionTime);
 			player->addCooldown("tkaForceOfWill", nextExecutionTime.miliDifference()); //Disable the command until the current incapacitation is up.
 
@@ -105,8 +108,6 @@ public:
 		incapTask->cancel();
 		player->removePendingTask("incapacitationRecovery");
 		player->addCooldown("tkaForceOfWill", 3600 * 1000);
-
-		player->removeFeignedDeath();
 
 		return SUCCESS;
 	}

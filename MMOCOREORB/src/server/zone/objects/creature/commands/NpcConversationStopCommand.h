@@ -5,6 +5,8 @@
 #ifndef NPCCONVERSATIONSTOPCOMMAND_H_
 #define NPCCONVERSATIONSTOPCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class NpcConversationStopCommand : public QueueCommand {
 public:
 
@@ -30,7 +32,7 @@ public:
 		uint64 conversationCreatureOid = ghost->getConversatingCreature();
 		ManagedReference<CreatureObject*> object = (server->getZoneServer()->getObject(conversationCreatureOid)).castTo<CreatureObject*>();
 
-		if (object != nullptr) {
+		if (object != NULL) {
 
 			try {
 				Locker clocker(object, creature);

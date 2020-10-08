@@ -1,11 +1,12 @@
 
 #include "server/zone/managers/mission/DestroyMissionLairObserver.h"
-#include "templates/mobile/LairTemplate.h"
-#include "server/zone/objects/creature/ai/CreatureTemplate.h"
+#include "server/zone/templates/mobile/LairTemplate.h"
+#include "server/zone/managers/creature/HealLairObserverEvent.h"
+#include "server/zone/templates/mobile/CreatureTemplate.h"
 #include "server/zone/managers/creature/CreatureManager.h"
 #include "server/zone/managers/creature/CreatureTemplateManager.h"
+#include "server/zone/objects/creature/ai/Creature.h"
 #include "server/zone/managers/creature/LairAggroTask.h"
-#include "server/zone/objects/creature/ai/AiAgent.h"
 
 void DestroyMissionLairObserverImplementation::checkForHeal(TangibleObject* lair, TangibleObject* attacker, bool forceNewUpdate) {
 	if (getMobType() == LairTemplate::NPC)
@@ -17,7 +18,7 @@ void DestroyMissionLairObserverImplementation::checkForHeal(TangibleObject* lair
 bool DestroyMissionLairObserverImplementation::checkForNewSpawns(TangibleObject* lair, TangibleObject* attacker, bool forceSpawn) {
 	Zone* zone = lair->getZone();
 
-	if (zone == nullptr)
+	if (zone == NULL)
 		return false;
 
 	int spawnLimitAdjustment = 0;
@@ -78,14 +79,14 @@ bool DestroyMissionLairObserverImplementation::checkForNewSpawns(TangibleObject*
 		if (System::random(100) > 4)
 			return false;
 
-		const VectorMap<String, int>* mobs = lairTemplate->getBossMobiles();
+		VectorMap<String, int>* mobs = lairTemplate->getBossMobiles();
 
 		for (int i = 0; i < mobs->size(); i++) {
 			objectsToSpawn.put(mobs->elementAt(i).getKey(), mobs->elementAt(i).getValue());
 		}
 
 	} else {
-		const Vector<String>* mobiles = lairTemplate->getWeightedMobiles();
+		Vector<String>* mobiles = lairTemplate->getWeightedMobiles();
 		int amountToSpawn = 0;
 
 		if (getMobType() == LairTemplate::CREATURE) {
@@ -99,21 +100,17 @@ bool DestroyMissionLairObserverImplementation::checkForNewSpawns(TangibleObject*
 
 		for (int i = 0; i < amountToSpawn; i++) {
 			int num = System::random(mobiles->size() - 1);
-			const String& mob = mobiles->get(num);
+			String mob = mobiles->get(num);
 
-			int find = objectsToSpawn.find(mob);
-
-			if (find != -1) {
-				int& value = objectsToSpawn.elementAt(find).getValue();
-
-				++value;
+			if (objectsToSpawn.contains(mob)) {
+				int value = objectsToSpawn.get(mob);
+				objectsToSpawn.drop(mob);
+				objectsToSpawn.put(mob, value + 1);
 			} else {
 				objectsToSpawn.put(mob, 1);
 			}
 		}
 	}
-
-	uint32 lairTemplateCRC = getLairTemplateName().hashCode();
 
 	for(int i = 0; i < objectsToSpawn.size(); ++i) {
 
@@ -121,11 +118,11 @@ bool DestroyMissionLairObserverImplementation::checkForNewSpawns(TangibleObject*
 			return true;
 
 		String templateToSpawn = objectsToSpawn.elementAt(i).getKey();
-		int numberToSpawn = objectsToSpawn.elementAt(i).getValue();
+		int numberToSpawn = objectsToSpawn.get(templateToSpawn);
 
 		CreatureTemplate* creatureTemplate = CreatureTemplateManager::instance()->getTemplate(templateToSpawn);
 
-		if (creatureTemplate == nullptr)
+		if (creatureTemplate == NULL)
 			continue;
 
 		float tamingChance = creatureTemplate->getTame();
@@ -133,24 +130,24 @@ bool DestroyMissionLairObserverImplementation::checkForNewSpawns(TangibleObject*
 		CreatureManager* creatureManager = zone->getCreatureManager();
 
 		for (int j = 0; j < numberToSpawn; j++) {
-			if (lair->getZone() == nullptr)
+			if (lair->getZone() == NULL)
 				break;
 
 			float x = lair->getPositionX() + (size - System::random(size * 20) / 10.0f);
 			float y = lair->getPositionY() + (size - System::random(size * 20) / 10.0f);
 			float z = zone->getHeight(x, y);
 
-			ManagedReference<CreatureObject*> creo = nullptr;
+			ManagedReference<CreatureObject*> creo = NULL;
 
 			if (creatureManager->checkSpawnAsBaby(tamingChance, babiesSpawned, 1000)) {
 				creo = creatureManager->spawnCreatureAsBaby(templateToSpawn.hashCode(), x, z, y);
 				babiesSpawned++;
 			}
 
-			if (creo == nullptr)
+			if (creo == NULL)
 				creo = creatureManager->spawnCreatureWithAi(templateToSpawn.hashCode(), x, z, y);
 
-			if (creo == nullptr)
+			if (creo == NULL)
 				continue;
 
 			if (!creo->isAiAgent()) {
@@ -164,7 +161,6 @@ bool DestroyMissionLairObserverImplementation::checkForNewSpawns(TangibleObject*
 				ai->setHomeLocation(x, z, y);
 				ai->setRespawnTimer(0);
 				ai->setHomeObject(lair);
-				ai->setLairTemplateCRC(lairTemplateCRC);
 
 				spawnedCreatures.add(creo);
 

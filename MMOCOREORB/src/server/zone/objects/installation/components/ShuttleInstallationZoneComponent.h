@@ -10,7 +10,9 @@
 
 #include "engine/engine.h"
 
+#include "server/zone/objects/scene/components/SceneObjectComponent.h"
 #include "server/zone/objects/structure/components/StructureZoneComponent.h"
+
 
 namespace server {
 	namespace zone {
@@ -26,12 +28,14 @@ namespace server {
 using namespace server::zone::objects::scene;
 using namespace server::zone;
 
+#include "engine/util/u3d/QuadTreeEntry.h"
+
 class ShuttleInstallationZoneComponent : public StructureZoneComponent {
 
 public:
-	void notifyInsertToZone(SceneObject* sceneObject, Zone* zone) const;
-	void notifyRemoveFromZone(SceneObject* sceneObject) const;
-	void destroyObjectFromWorld(SceneObject* sceneObject, bool sendSelfDestroy) const;
+	void notifyInsertToZone(SceneObject* sceneObject, Zone* zone);
+	void notifyRemoveFromZone(SceneObject* sceneObject);
+	void destroyObjectFromWorld(SceneObject* sceneObject, bool sendSelfDestroy);
 };
 
 #endif /* SHUTTLEINSTALLATIONZONECOMPONENT_H_ */

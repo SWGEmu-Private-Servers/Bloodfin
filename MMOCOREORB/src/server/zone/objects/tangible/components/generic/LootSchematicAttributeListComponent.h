@@ -8,7 +8,7 @@
 #ifndef LOOTSCHEMATICATTIBUTELISTCOMPONENT_H_
 #define LOOTSCHEMATICATTIBUTELISTCOMPONENT_H_
 
-#include "templates/tangible/LootSchematicTemplate.h"
+#include "server/zone/templates/tangible/LootSchematicTemplate.h"
 #include "server/zone/managers/stringid/StringIdManager.h"
 
 class LootSchematicAttributeListComponent: public AttributeListComponent {
@@ -20,10 +20,10 @@ public:
 	 * @post { this object is locked, menuResponse is complete}
 	 * @param menuResponse ObjectMenuResponse that will be sent to the client
 	 */
-	void fillAttributeList(AttributeListMessage* alm, CreatureObject* creature, SceneObject* object) const {
+	void fillAttributeList(AttributeListMessage* alm, CreatureObject* creature, SceneObject* object) {
 
 		LootSchematicTemplate* schematicData = cast<LootSchematicTemplate*> (object->getObjectTemplate());
-		if (schematicData == nullptr) {
+		if (schematicData == NULL) {
 			return;
 		}
 

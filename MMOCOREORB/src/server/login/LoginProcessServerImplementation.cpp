@@ -2,6 +2,8 @@
 				Copyright <SWGEmu>
 		See file COPYING for copying conditions.*/
 
+#include "engine/engine.h"
+
 #include "server/login/LoginServer.h"
 
 #include "LoginPacketHandler.h"
@@ -11,10 +13,14 @@
 LoginProcessServerImplementation::LoginProcessServerImplementation(LoginServer* serv) {
 	server = serv;
 
-	loginPacketHandler = nullptr;
+	loginPacketHandler = NULL;
 }
 
 LoginProcessServerImplementation::~LoginProcessServerImplementation() {
+	if (loginPacketHandler != NULL) {
+		delete loginPacketHandler;
+		loginPacketHandler = NULL;
+	}
 }
 
 void LoginProcessServerImplementation::initialize() {

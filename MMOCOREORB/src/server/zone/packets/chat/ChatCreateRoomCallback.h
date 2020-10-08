@@ -29,7 +29,6 @@ public:
 		requestID = 0;
 		unknown = 0;
 
-		setCustomTaskQueue("slowQueue");
 	}
 
 	void parse(Message* message) {
@@ -43,14 +42,19 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> player = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (player == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* player = cast<CreatureObject*>(scene.get());
+
+		if (player == NULL)
 			return;
 
 		ChatManager* chatManager = server->getChatManager();
-		if (chatManager != nullptr)
-			chatManager->handleChatCreateRoom(player, permissionFlag, moderationFlag, roomPath, roomTitle, requestID);
+		chatManager->handleChatCreateRoom(player, permissionFlag, moderationFlag, roomPath, roomTitle, requestID);
+
 	}
 
 };

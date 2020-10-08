@@ -9,7 +9,7 @@
 #define CHATENTERROOMBYIDCALLBACK_H_
 
 
-#include "server/zone/packets/MessageCallback.h"
+#include "../MessageCallback.h"
 #include "server/chat/ChatManager.h"
 
 class ChatEnterRoomByIdCallback : public MessageCallback {
@@ -27,17 +27,24 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> player = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (player == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* player = cast<CreatureObject*>(scene.get());
+
+		if (player == NULL)
 			return;
 
 		ChatManager* chatManager = server->getChatManager();
-		if (chatManager != nullptr)
-			chatManager->handleChatEnterRoomById(player, roomID, requestID);
+		chatManager->handleChatEnterRoomById(player, roomID, requestID);
+
 	}
 
 };
+
+
 
 
 #endif /* CHATENTERROOMBYIDCALLBACK_H_ */

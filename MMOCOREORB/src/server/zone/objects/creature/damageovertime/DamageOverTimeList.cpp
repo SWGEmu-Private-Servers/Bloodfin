@@ -8,7 +8,7 @@
 #include "DamageOverTimeList.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/creature/commands/effect/CommandEffect.h"
-#include "templates/params/creature/CreatureAttribute.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
 
 uint64 DamageOverTimeList::activateDots(CreatureObject* victim) {
 	uint64 states = 0;
@@ -119,7 +119,7 @@ uint32 DamageOverTimeList::addDot(CreatureObject* victim,
 		return 0;
 
 	// determine chance to hit, if no hit, just return 0. potency of less than 0 can't be resisted
-	if (potency > 0 && System::random(100) >= Math::max(5.f, Math::min(potency * (80.f / (100.f + defense)), 95.f)))
+	if (potency > 0 && System::random(100) >= MAX(5.f, MIN(potency * (80.f / (100.f + defense)), 95.f)))
 		return 0;
 
 	if (pool == CreatureAttribute::UNKNOWN) {
@@ -149,7 +149,7 @@ uint32 DamageOverTimeList::addDot(CreatureObject* victim,
 
 	if (durationMod > 0) {
 		if (durationMod > 90) durationMod = 90;
-		duration = Math::max(1, (int)(duration * (1.f - (durationMod / 100.f))));
+		duration = MAX(1, (int)(duration * (1.f - (durationMod / 100.f))));
 	}
 
 	//only 1 disease per bar allowed
@@ -234,7 +234,7 @@ uint8 DamageOverTimeList::getRandomPool(uint64 dotType) {
 	return pool;
 }
 
-bool DamageOverTimeList::healState(CreatureObject* victim, uint64 dotType, float reduction, bool sendMsg) {
+bool DamageOverTimeList::healState(CreatureObject* victim, uint64 dotType, float reduction) {
 	Locker locker(&guard);
 
 	if (!hasDot())
@@ -280,8 +280,7 @@ bool DamageOverTimeList::healState(CreatureObject* victim, uint64 dotType, float
 		return true;
 	}
 
-	if (sendMsg)
-		sendDecreaseMessage(victim, dotType);
+	sendDecreaseMessage(victim, dotType);
 
 	return false;
 }
@@ -329,6 +328,7 @@ void DamageOverTimeList::clear(CreatureObject* creature) {
 
 void DamageOverTimeList::multiplyAllDOTDurations(float multiplier) {
 	Locker locker(&guard);
+	dot = false;
 
 	if(!hasDot())
 		return;

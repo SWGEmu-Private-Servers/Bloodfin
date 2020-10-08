@@ -9,6 +9,8 @@
 #define TURRETCONTROLSUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/scene/SceneObjectType.h"
 #include "server/zone/managers/gcw/GCWManager.h"
 #include "server/zone/objects/installation/components/TurretFireTask.h"
 
@@ -33,32 +35,32 @@ public:
 
 		Zone* zone = player->getZone();
 
-		if (zone == nullptr)
+		if (zone == NULL)
 			return;
 
 		GCWManager* gcwMan = zone->getGCWManager();
 
-		if (gcwMan == nullptr)
+		if (gcwMan == NULL)
 			return;
 
 		ManagedReference<TangibleObject*> turret = turretObject.get();
 
-		if (turret == nullptr)
+		if (turret == NULL)
 			return;
 
 		TurretDataComponent* turretData  = cast<TurretDataComponent*>(turret->getDataObjectComponent()->get());
 
-		if (turretData == nullptr)
+		if (turretData == NULL)
 			return;
 
 		ManagedReference<TangibleObject*> control = turretControl.get();
 
-		if (control == nullptr)
+		if (control == NULL)
 			return;
 
 		TurretControlTerminalDataComponent* controlData = cast<TurretControlTerminalDataComponent*>(control->getDataObjectComponent()->get());
 
-		if (controlData == nullptr)
+		if (controlData == NULL)
 			return;
 
 		if (!gcwMan->canUseTurret(turret, control, player)) {
@@ -76,13 +78,13 @@ public:
 		}
 
 		SuiListBox* listBox = cast<SuiListBox*>(suiBox);
-		if (listBox == nullptr)
+		if (listBox == NULL)
 			return;
 
 		uint64 targetID = listBox->getMenuObjectID(index);
 		ManagedReference<CreatureObject*> targetCreature = server->getObject(targetID).castTo<CreatureObject*>();
 
-		if (targetCreature == nullptr)
+		if (targetCreature == NULL)
 			return;
 
 		Locker clocker(turret, player);
@@ -93,7 +95,7 @@ public:
 
 		StringIdChatParameter param;
 
-		if (fireTask != nullptr && fireTask->isManualFireTask()) {
+		if (fireTask != NULL && fireTask->isManualFireTask()) {
 			if (targetCreature == turretData->getManualTarget()) {
 				param.setStringId("hq","already_attacking"); //Your selected target is already being attacked by this turret.
 				player->sendSystemMessage(param);
@@ -109,7 +111,7 @@ public:
 
 		turretData->scheduleFireTask(targetCreature, control);
 		param.setStringId("hq","attack_targets"); // "Turret is now attacking %TO.");
-		param.setTO(targetCreature->getObjectID());
+		param.setTO(targetCreature);
 		player->sendSystemMessage(param);
 
 		clocker.release();

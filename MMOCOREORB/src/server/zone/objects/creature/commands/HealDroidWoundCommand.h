@@ -40,16 +40,16 @@ public:
 			return;
 
 		StringIdChatParameter stringId("healing", "droid_repair_wound_self"); // You have repaired %TO and healed a total of %DI wounds.
-		stringId.setTO(droid->getObjectID());
+		stringId.setTO(droid);
 		stringId.setDI(woundsHealed);
 		creature->sendSystemMessage(stringId);
 
 		ManagedReference<CreatureObject*> droidOwner = droid->getLinkedCreature().get();
 
-		if (droidOwner != nullptr && droidOwner != creature) {
+		if (droidOwner != NULL && droidOwner != creature) {
 			StringIdChatParameter stringId("healing", "droid_repair_wound_other"); // %TT has repaired %TO and healed a total of %DI wounds.
-			stringId.setTT(creature->getObjectID());
-			stringId.setTO(droid->getObjectID());
+			stringId.setTT(creature);
+			stringId.setTO(droid);
 			stringId.setDI(woundsHealed);
 			droidOwner->sendSystemMessage(stringId);
 		}
@@ -61,8 +61,8 @@ public:
 			return false;
 		}
 
-		if (woundPack == nullptr) {
-			creature->sendSystemMessage("@error_message:droid_repair_no_wound_kit"); //No valid droid wound repair kit was found in your inventory.
+		if (woundPack == NULL) {
+			creature->sendSystemMessage("No valid droid reconstruction kit found.");
 			return false;
 		}
 
@@ -71,32 +71,32 @@ public:
 			creature->sendSystemMessage("@healing_response:must_be_near_droid"); //You must be in a hospital, at a campsite, or near a surgical droid to do that.
 			return false;
 		} else {
-			// are we in a cantina? we have a private medical rating so either thats from a droid or camp or hospital
+			// are we in a cantina? we have a private medical rating so either thats form a droid or camp or hospital
 			ManagedReference<SceneObject*> root = creature->getRootParent();
-			if (root != nullptr && root->isClientObject()) {
+			if (root != NULL && root->isStaticObject()) {
 				uint32 gameObjectType = root->getGameObjectType();
 				switch (gameObjectType) {
 						case SceneObjectType::RECREATIONBUILDING:
 						case SceneObjectType::HOTELBUILDING:
 						case SceneObjectType::THEATERBUILDING:
-							creature->sendSystemMessage("@error_message:droid_repair_not_valid_location"); // You must be in a city, at a camp site, or near your residence in order to use these tools.
+							creature->sendSystemMessage("@healing_response:must_be_in_hospital"); // You must be in a hospital or at a campsite to do that.
 							return false;
 				}
 			}
 		}
 
 		if (creature->isInCombat()) {
-			creature->sendSystemMessage("@error_message:droid_repair_you_in_combat"); //You cannot repair this droid while you are in combat!
+			creature->sendSystemMessage("You cannot do that while in Combat.");
 			return false;
 		}
 
 		if (droid->isInCombat()) {
-			creature->sendSystemMessage("@error_message:droid_repair_droid_in_combat"); //You cannot repair this droid while it is in combat!
+			creature->sendSystemMessage("You cannot do that while your target is in Combat.");
 			return false;
 		}
 
 		if (!droid->isHealableBy(creature)) {
-			creature->sendSystemMessage("@error_message:droid_repair_opposite_faction");  //It would be unwise to repair a droid such as this.
+			creature->sendSystemMessage("@healing:pvp_no_help");  //It would be unwise to help such a patient.
 			return false;
 		}
 
@@ -137,32 +137,31 @@ public:
 	WoundPack* findWoundPack(CreatureObject* creature) const {
 		SceneObject* inventory = creature->getSlottedObject("inventory");
 
-		if (inventory != nullptr) {
+		if (inventory != NULL) {
 			for (int i = 0; i < inventory->getContainerObjectsSize(); i++) {
 				SceneObject* object = inventory->getContainerObject(i);
 
-				if (!object->isPharmaceuticalObject())
+				if (!object->isTangibleObject())
 					continue;
 
-				PharmaceuticalObject* pharma = cast<PharmaceuticalObject*>(object);
+				TangibleObject* item = cast<TangibleObject*>( object);
 
-				if (pharma->isDroidReconstructionKit()) {
-					WoundPack* woundPack = cast<WoundPack*>(pharma);
+				if (item->isPharmaceuticalObject()) {
+					PharmaceuticalObject* pharma = cast<PharmaceuticalObject*>( item);
 
-					return woundPack;
+					if (pharma->isDroidReconstructionKit()) {
+						WoundPack* woundPack = cast<WoundPack*>( pharma);
+
+						return woundPack;
+					}
 				}
 			}
 		}
 
-		return nullptr;
+		return NULL;
 	}
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
-
-		if (!creature->hasSkill("crafting_droidengineer_novice")) {
-			creature->sendSystemMessage("@error_message:droid_repair_not_droid_engineer"); //You must be a droid engineer to use this tool kit.
-			return GENERALERROR;
-		}
 
 		int result = doCommonMedicalCommandChecks(creature);
 
@@ -171,11 +170,8 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object == nullptr) {
-			creature->sendSystemMessage("@error_message:droid_repair_no_target"); //You must target a droid pet to use these tools.
-			return GENERALERROR;
-		} else if (!object->isDroidObject()) {
-			creature->sendSystemMessage("@error_message:droid_repair_target_not_droid"); //Your target is not able to be repaired with these tools.
+		if (object == NULL || !object->isDroidObject()) {
+			creature->sendSystemMessage("Invalid Target.");
 			return GENERALERROR;
 		}
 
@@ -183,18 +179,20 @@ public:
 
 		Locker clocker(droid, creature);
 
-		if (!droid->isPet() || droid->isDead() || droid->isAttackableBy(creature))
-			return INVALIDTARGET;
+		if (!droid->isPet() || droid->isDead() || droid->isAttackableBy(creature)) {
+			creature->sendSystemMessage("Invalid Target.");
+			return GENERALERROR;
+		}
 
-		if(!checkDistance(creature, droid, range))
+		if (!creature->isInRange(droid, range + droid->getTemplateRadius() + creature->getTemplateRadius()))
 			return TOOFAR;
 
 		uint8 attribute = findAttribute(droid);
 
 		if (attribute == CreatureAttribute::UNKNOWN) {
-			StringIdChatParameter stringId("error_message", "droid_repair_no_wounds"); // It appears %TO has no wounds to repair.
-			stringId.setTO(droid->getObjectID());
-			creature->sendSystemMessage(stringId);
+			StringBuffer message;
+			message << droid->getDisplayedName() << " has no wounds to heal.";
+			creature->sendSystemMessage(message.toString());
 			return 0;
 		}
 
@@ -202,12 +200,12 @@ public:
 
 		parseModifier(arguments.toString(), objectId);
 
-		ManagedReference<WoundPack*> woundPack = nullptr;
+		ManagedReference<WoundPack*> woundPack = NULL;
 
 		if (objectId != 0) {
 			SceneObject* inventory = creature->getSlottedObject("inventory");
 
-			if (inventory != nullptr) {
+			if (inventory != NULL) {
 				woundPack = inventory->getContainerObject(objectId).castTo<WoundPack*>();
 			}
 		} else {

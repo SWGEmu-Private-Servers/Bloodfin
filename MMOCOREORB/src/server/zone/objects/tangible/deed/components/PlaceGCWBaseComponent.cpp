@@ -4,10 +4,10 @@
  *  Created on: Dec 2, 2012
  *      Author: root
  */
-
 #include "server/zone/Zone.h"
 #include "PlaceGCWBaseComponent.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/tangible/deed/Deed.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/structure/StructureObject.h"
 #include "server/zone/objects/building/BuildingObject.h"
@@ -15,22 +15,22 @@
 #include "server/zone/managers/gcw/GCWManager.h"
 #include "server/zone/managers/structure/StructureManager.h"
 
-int PlaceGCWBaseComponent::placeStructure(StructureDeed* deed, CreatureObject* creature, float x, float y, int angle) const {
+int PlaceGCWBaseComponent::placeStructure(StructureDeed* deed, CreatureObject* creature, float x, float y, int angle) {
 
 	PlayerObject* ghost = creature->getPlayerObject();
 
-	if (ghost == nullptr)
+	if (ghost == NULL)
 		return 1;
 
 	Zone* zone = creature->getZone();
 
-	if (zone == nullptr)
+	if (zone == NULL)
 		return 1;
 
 	//Check the gcwmanager to make sure more are allowed on this planet
 	GCWManager* gcwMan = zone->getGCWManager();
 
-	if (gcwMan == nullptr)
+	if (gcwMan == NULL)
 		return 1;
 
 	if (gcwMan->isPlanetCapped()) {
@@ -51,20 +51,20 @@ int PlaceGCWBaseComponent::placeStructure(StructureDeed* deed, CreatureObject* c
 	return 0;
 }
 
-int PlaceGCWBaseComponent::notifyStructurePlaced(StructureDeed* deed, CreatureObject* creature, StructureObject* structure) const {
+int PlaceGCWBaseComponent::notifyStructurePlaced(StructureDeed* deed, CreatureObject* creature, StructureObject* structure) {
 	PlaceStructureComponent::notifyStructurePlaced(deed, creature, structure);
 
 	Zone* zone = creature->getZone();
 
-	if (zone == nullptr)
+	if (zone == NULL)
 		return 1;
 
 	BuildingObject* buildingObject = cast<BuildingObject*>(structure);
 
-	if (buildingObject != nullptr && buildingObject->isGCWBase()) {
+	if (buildingObject != NULL && buildingObject->isGCWBase()) {
 		GCWManager* gcwManager = zone->getGCWManager();
 
-		if (gcwManager != nullptr) {
+		if (gcwManager != NULL) {
 			gcwManager->registerGCWBase(buildingObject, true);
 
 			int baseCount = gcwManager->getBaseCount(creature);

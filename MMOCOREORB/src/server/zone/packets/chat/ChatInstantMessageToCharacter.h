@@ -5,7 +5,12 @@
 #ifndef CHATINSTANTMESSAGETOCHARACTER_H_
 #define CHATINSTANTMESSAGETOCHARACTER_H_
 
-#include "server/zone/packets/MessageCallback.h"
+#include "engine/engine.h"
+
+#include "server/zone/ZoneServer.h"
+
+#include "../MessageCallback.h"
+
 #include "server/chat/ChatManager.h"
 
 namespace server {
@@ -40,38 +45,40 @@ public:
 	}
 	
 	void run() {
-		ChatManager* chatManager = server->getChatManager();
+		ZoneServer* zoneServer = server->getZoneServer();
+		ChatManager* chatManager = zoneServer->getChatManager();
 
 		chatManager->handleChatInstantMessageToCharacter(this);
 	}
 
-	inline const String& getName() const {
+	inline String& getName() {
 		return name;
 	}
 
-	inline const String& getGalaxy() const {
+	inline String& getGalaxy() {
 		return galaxy;
 	}
 
-	inline const String& getGame() const {
+	inline String& getGame() {
 		return game;
 	}
 
-	inline const UnicodeString& getMessage() const {
+	inline UnicodeString& getMessage() {
 		return message;
 	}
 
-	inline int getSequence() const {
+	inline int getSequence() {
 		return sequence;
 	}
 
 };
 
+
 }
 }
 }
+
 }
 
 using namespace server::zone::packets::chat;
-
 #endif /*CHATINSTANTMESSAGETOCHARACTER_H_*/

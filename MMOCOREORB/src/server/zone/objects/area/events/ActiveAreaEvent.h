@@ -15,7 +15,6 @@
  */
 
 #include "server/zone/objects/area/ActiveArea.h"
-#include "server/zone/Zone.h"
 
 namespace server {
  namespace zone {
@@ -27,8 +26,8 @@ namespace server {
    class ActiveAreaEvent : public Task {
 	   uint32 eventType;
 
-	   ManagedWeakReference<ActiveArea*> activeArea;
-	   ManagedWeakReference<SceneObject*> sceneObject;
+	   ManagedReference<ActiveArea*> area;
+	   ManagedReference<SceneObject*> object;
 
    public:
 	   const static int ENTEREVENT = 1;
@@ -36,12 +35,29 @@ namespace server {
 
    public:
 	   ActiveAreaEvent(ActiveArea* ar, SceneObject* obj, uint32 eventt) {
-		   activeArea = ar;
+		   area = ar;
 		   eventType = eventt;
-		   sceneObject = obj;
+		   object = obj;
 	   }
 
-	   void run();
+	   void run() {
+		   Locker clocker(object);
+
+		   Locker locker(area, object);
+
+		   switch (eventType) {
+		   case ENTEREVENT:
+			   area->notifyEnter(object);
+			   break;
+
+		   case EXITEVENT:
+			   area->notifyExit(object);
+			   break;
+
+		   default:
+			   break;
+		   }
+	   }
 
    };
     }

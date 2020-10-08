@@ -4,9 +4,12 @@
 
 package server.zone.objects.player.sui.colorbox;
 
+import engine.lua.LuaObject;
+import server.zone.objects.scene.SceneObject;
 import server.zone.objects.creature.CreatureObject;
 import engine.service.proto.BaseMessage;
 import server.zone.objects.player.sui.SuiBox;
+include server.zone.packets.ui.SuiCreatePageMessage;
 
 class SuiColorBox extends SuiBox {
 
@@ -16,7 +19,6 @@ class SuiColorBox extends SuiBox {
 		super(player, windowType, SuiBox.COLORPICKER);
 	}
 
-	@local
 	public native BaseMessage generateMessage();
 
 	public string getColorPalette() {

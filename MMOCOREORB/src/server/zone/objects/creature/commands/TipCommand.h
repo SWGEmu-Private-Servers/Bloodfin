@@ -7,8 +7,7 @@
 
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
-#include "server/zone/objects/player/sui/callbacks/TipCommandSuiCallback.h"
-#include "server/zone/objects/transaction/TransactionLog.h"
+#include "../../player/sui/callbacks/TipCommandSuiCallback.h"
 
 class TipCommand: public QueueCommand {
 private:
@@ -17,7 +16,7 @@ private:
 			int amount) const {
 
 		// Target player must be in range (I think it's likely to assume this is the maximum targeting range, 190m)
-		if (!checkDistance(player, targetPlayer, 190)) {
+		if (!player->isInRange(targetPlayer, 190)) {
 			StringIdChatParameter ptr("base_player", "prose_tip_range"); // You are too far away to tip %TT with cash. You can send a wire transfer instead.
 			ptr.setTT(targetPlayer->getCreatureName());
 			player->sendSystemMessage(ptr);
@@ -29,7 +28,7 @@ private:
 		if (amount > cash) {
 			StringIdChatParameter ptnsfc("base_player", "prose_tip_nsf_cash"); // You lack the cash funds to tip %DI credits to %TT.
 			ptnsfc.setDI(amount);
-			ptnsfc.setTT(targetPlayer->getObjectID());
+			ptnsfc.setTT(targetPlayer);
 			player->sendSystemMessage(ptnsfc);
 			return GENERALERROR;
 		}
@@ -37,21 +36,19 @@ private:
 		// We have a target, who is on-line, in range, with sufficient funds.
 		// Lock target player to prevent simultaneous tips to not register correctly.
 
+		player->subtractCashCredits(amount);
+
 		Locker clocker(targetPlayer, player);
-		{
-			TransactionLog trx(player, targetPlayer, TrxCode::PLAYERTIP, amount, true);
-			player->subtractCashCredits(amount);
-			targetPlayer->addCashCredits(amount, true);
-		}
+		targetPlayer->addCashCredits(amount, false); // FIXME: param notifyClient does nothing atm. in CreatureObject.idl:632
 
 		StringIdChatParameter tiptarget("base_player", "prose_tip_pass_target"); // %TT tips you %DI credits.
 		tiptarget.setDI(amount);
-		tiptarget.setTT(player->getCreatureName());
+		tiptarget.setTT(player);
 		targetPlayer->sendSystemMessage(tiptarget);
 
 		StringIdChatParameter tipself("base_player", "prose_tip_pass_self"); // You successfully tip %DI credits to %TT.
 		tipself.setDI(amount);
-		tipself.setTT(targetPlayer->getCreatureName());
+		tipself.setTT(targetPlayer);
 		player->sendSystemMessage(tipself);
 
 		return SUCCESS;
@@ -59,12 +56,6 @@ private:
 
 	int performBankTip(CreatureObject* player, CreatureObject* targetPlayer,
 			int amount) const {
-
-		ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
-		if (ghost == nullptr) {
-			player->sendSystemMessage("@base_player:tip_error"); // There was an error processing your /tip request. Please try again.
-			return GENERALERROR;
-		}
 
 		// Player must have sufficient bank funds
 		int cash = player->getBankCredits();
@@ -86,6 +77,12 @@ private:
 		confirmbox->setPromptText("@base_player:tip_wire_prompt"); // A surcharge of 5% will be added to your requested bank-to-bank transfer amount. Would you like to continue?
 		confirmbox->setCancelButton(true, "@no");
 		confirmbox->setOkButton(true, "@yes");
+
+		ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
+		if (ghost == NULL) {
+			player->sendSystemMessage("@base_player:tip_error"); // There was an error processing your /tip request. Please try again.
+			return GENERALERROR;
+		}
 
 		ghost->addSuiBox(confirmbox);
 		player->sendMessage(confirmbox->generateMessage());
@@ -109,7 +106,7 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
-		ManagedReference<CreatureObject*> targetPlayer = nullptr;
+		ManagedReference<CreatureObject*> targetPlayer = NULL;
 		int amount = 0;
 		bool isBank = false;
 
@@ -138,7 +135,7 @@ public:
 				if(amount == 0)
 					throw NumberFormatException();
 
-				if (targetPlayer == nullptr) {
+				if (targetPlayer == NULL) {
 					StringIdChatParameter ptip("base_player", "prose_tip_invalid_param"); // /TIP: invalid amount ("%TO") parameter.
 					ptip.setTO(amountOrPlayer);
 					creature->sendSystemMessage(ptip);
@@ -157,16 +154,18 @@ public:
 			syntaxError = true;
 		}
 
-		if (!syntaxError && targetPlayer == nullptr) { // No target argument, check look-at target
+		if (!syntaxError && targetPlayer == NULL) { // No target argument, check look-at target
 			ManagedReference<SceneObject*> object =
 					server->getZoneServer()->getObject(target);
 
-			if (object != nullptr && object->isPlayerCreature()) {
-				targetPlayer = object->asCreatureObject();
-			} else if (object != nullptr) {
+			if (object != NULL && object->isCreatureObject()
+					&& (cast<CreatureObject*>(object.get()))->getPlayerObject()
+							!= NULL) {
+				targetPlayer = cast<CreatureObject*>( object.get());
+			} else if (object != NULL) {
 				StringIdChatParameter ptip("base_player",
 						"prose_tip_invalid_param"); // /TIP: invalid amount ("%TO") parameter.
-				ptip.setTO(object->getObjectID());
+				ptip.setTO(object);
 				creature->sendSystemMessage(ptip);
 				return INVALIDPARAMETERS;
 			} else {

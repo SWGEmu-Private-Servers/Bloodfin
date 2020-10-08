@@ -10,6 +10,7 @@
 
 #include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
 
 #include "system/thread/atomic/AtomicInteger.h"
@@ -53,7 +54,7 @@ public:
 #ifdef AI_DEBUG
 		ManagedReference<AiAgent*> strongRef = creature.get();
 
-		if (strongRef == nullptr)
+		if (strongRef == NULL)
 			return;
 
 		for (int i = 0; i < callsToList.size(); i++) {
@@ -111,7 +112,7 @@ public:
 	void outputTimes(CreatureObject* caller) {
 		ManagedReference<AiAgent*> strongRef = creature.get();
 
-		if (strongRef == nullptr)
+		if (strongRef == NULL)
 			return;
 
 		ManagedReference<SuiMessageBox*> list = new SuiMessageBox(caller, 0);

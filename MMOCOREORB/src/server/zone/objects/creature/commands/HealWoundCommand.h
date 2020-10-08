@@ -5,13 +5,15 @@
 #ifndef HEALWOUNDCOMMAND_H_
 #define HEALWOUNDCOMMAND_H_
 
-#include "server/zone/objects/building/BuildingObject.h"
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/tangible/pharmaceutical/WoundPack.h"
+#include "server/zone/objects/tangible/pharmaceutical/RangedStimPack.h"
 #include "server/zone/ZoneServer.h"
 #include "server/zone/managers/player/PlayerManager.h"
 #include "server/zone/objects/creature/events/InjuryTreatmentTask.h"
+#include "server/zone/objects/creature/buffs/Buff.h"
 #include "server/zone/objects/creature/buffs/DelayedBuff.h"
+#include "server/zone/packets/object/CombatAction.h"
 #include "server/zone/managers/collision/CollisionManager.h"
 
 class HealWoundCommand : public QueueCommand {
@@ -34,7 +36,7 @@ public:
 		if (creature->hasBuff(BuffCRC::FOOD_HEAL_RECOVERY)) {
 			DelayedBuff* buff = cast<DelayedBuff*>( creature->getBuff(BuffCRC::FOOD_HEAL_RECOVERY));
 
-			if (buff != nullptr) {
+			if (buff != NULL) {
 				float percent = buff->getSkillModifierValue("heal_recovery");
 
 				delay = round(delay * (100.0f - percent) / 100.0f);
@@ -107,7 +109,7 @@ public:
 			return false;
 		}
 
-		if (woundPack == nullptr) {
+		if (woundPack == NULL) {
 			creature->sendSystemMessage("@healing_response:healing_response_60"); //No valid medicine found.
 			return false;
 		}
@@ -119,7 +121,7 @@ public:
 		} else {
 			// are we in a cantina? we have a private medical rating so either thats form a droid or camp or hospital
 			ManagedReference<SceneObject*> root = creature->getRootParent();
-			if (root != nullptr && root->isClientObject()) {
+			if (root != NULL && root->isStaticObject()) {
 				uint32 gameObjectType = root->getGameObjectType();
 				switch (gameObjectType) {
 						case SceneObjectType::RECREATIONBUILDING:
@@ -131,18 +133,15 @@ public:
 			}
 		}
 
+		// TODO add check that you're not in a cantina with droid bonus
+
 		if (creature->isInCombat()) {
-			creature->sendSystemMessage("You cannot heal your own wounds while still in Combat.");
+			creature->sendSystemMessage("You cannot do that while in Combat.");
 			return false;
 		}
 
 		if (creatureTarget->isInCombat()) {
-			creature->sendSystemMessage("You cannot heal your target's wounds while they are in Combat.");
-			return false;
-		}
-
-		if (creature != creatureTarget && checkForArenaDuel(creatureTarget)) {
-			creature->sendSystemMessage("@jedi_spam:no_help_target"); // You are not permitted to help that target.
+			creature->sendSystemMessage("You cannot do that while your target is in Combat.");
 			return false;
 		}
 
@@ -157,7 +156,7 @@ public:
 		}
 
 		if (creature != creatureTarget && !CollisionManager::checkLineOfSight(creature, creatureTarget)) {
-			creature->sendSystemMessage("@healing:no_line_of_sight"); // You cannot see your target.
+			creature->sendSystemMessage("@container_error_message:container18");
 			return false;
 		}
 
@@ -200,25 +199,29 @@ public:
 
 		int medicineUse = creature->getSkillMod("healing_ability");
 
-		if (inventory != nullptr) {
+		if (inventory != NULL) {
 			for (int i = 0; i < inventory->getContainerObjectsSize(); i++) {
 				SceneObject* object = inventory->getContainerObject(i);
 
-				if (!object->isPharmaceuticalObject())
+				if (!object->isTangibleObject())
 					continue;
 
-				PharmaceuticalObject* pharma = cast<PharmaceuticalObject*>(object);
+				TangibleObject* item = cast<TangibleObject*>( object);
 
-				if (pharma->isWoundPack()) {
-					WoundPack* woundPack = cast<WoundPack*>(pharma);
+				if (item->isPharmaceuticalObject()) {
+					PharmaceuticalObject* pharma = cast<PharmaceuticalObject*>( item);
 
-					if (woundPack->getMedicineUseRequired() <= medicineUse && woundPack->getAttribute() == attribute)
-						return woundPack;
+					if (pharma->isWoundPack()) {
+						WoundPack* woundPack = cast<WoundPack*>( pharma);
+
+						if (woundPack->getMedicineUseRequired() <= medicineUse && woundPack->getAttribute() == attribute)
+							return woundPack;
+					}
 				}
 			}
 		}
 
-		return nullptr;
+		return NULL;
 	}
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
@@ -230,11 +233,11 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object != nullptr) {
+		if (object != NULL) {
 			if (!object->isCreatureObject()) {
 				TangibleObject* tangibleObject = dynamic_cast<TangibleObject*>(object.get());
 
-				if (tangibleObject != nullptr && tangibleObject->isAttackableBy(creature)) {
+				if (tangibleObject != NULL && tangibleObject->isAttackableBy(creature)) {
 					object = creature;
 				} else {
 					creature->sendSystemMessage("Target must be a player or a creature pet in order to heal wound.");
@@ -252,52 +255,24 @@ public:
 		if ((creatureTarget->isAiAgent() && !creatureTarget->isPet()) || creatureTarget->isDroidObject() || creatureTarget->isVehicleObject() || creatureTarget->isDead() || creatureTarget->isRidingMount() || creatureTarget->isAttackableBy(creature))
 			creatureTarget = creature;
 
-		if(!checkDistance(creature, creatureTarget, range))
+		if (!creature->isInRange(creatureTarget, range + creatureTarget->getTemplateRadius() + creature->getTemplateRadius()))
 			return TOOFAR;
-
-		if (creature->isPlayerCreature() && creatureTarget->getParentID() != 0 && creature->getParentID() != creatureTarget->getParentID()) {
-			Reference<CellObject*> targetCell = creatureTarget->getParent().get().castTo<CellObject*>();
-
-				if (targetCell != nullptr) {
-					if (!creatureTarget->isPlayerCreature()) {
-						auto perms = targetCell->getContainerPermissions();
-
-						if (!perms->hasInheritPermissionsFromParent()) {
-							if (!targetCell->checkContainerPermission(creature, ContainerPermissions::WALKIN)) {
-								creature->sendSystemMessage("@combat_effects:cansee_fail"); // You cannot see your target.
-								return GENERALERROR;
-							}
-						}
-					}
-
-					ManagedReference<SceneObject*> parentSceneObject = targetCell->getParent().get();
-
-					if (parentSceneObject != nullptr) {
-						BuildingObject* buildingObject = parentSceneObject->asBuildingObject();
-
-						if (buildingObject != nullptr && !buildingObject->isAllowedEntry(creature)) {
-							creature->sendSystemMessage("@combat_effects:cansee_fail"); // You cannot see your target.
-							return GENERALERROR;
-						}
-					}
-				}
-		}
 
 		uint8 attribute = CreatureAttribute::UNKNOWN;
 		uint64 objectId = 0;
 
 		parseModifier(arguments.toString(), attribute, objectId);
 
-		ManagedReference<WoundPack*> woundPack = nullptr;
+		ManagedReference<WoundPack*> woundPack = NULL;
 
 		if (objectId != 0) {
 			SceneObject* inventory = creature->getSlottedObject("inventory");
 
-			if (inventory != nullptr) {
+			if (inventory != NULL) {
 				woundPack = inventory->getContainerObject(objectId).castTo<WoundPack*>();
 			}
 
-			if (woundPack == nullptr) {
+			if (woundPack == NULL) {
 				creature->sendSystemMessage("@healing_response:healing_response_66"); // That item does not heal wounds.
 				return false;
 			}
@@ -315,7 +290,7 @@ public:
 		} else {
 			int searchAttribute = -1;
 
-			while (woundPack == nullptr) {
+			while (woundPack == NULL) {
 				searchAttribute += 1;
 				searchAttribute = findAttribute(creatureTarget, searchAttribute);
 

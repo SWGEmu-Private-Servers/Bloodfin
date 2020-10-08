@@ -8,9 +8,9 @@
 #ifndef LAIRAGGROTASK_H_
 #define LAIRAGGROTASK_H_
 
+#include "engine/engine.h"
 #include "server/zone/managers/creature/LairObserver.h"
 #include "server/zone/objects/tangible/TangibleObject.h"
-
 class LairAggroTask : public Task {
 
 	bool all;
@@ -30,14 +30,14 @@ public:
 	void run() {
 		ManagedReference<TangibleObject*> strongRef = lair.get();
 
-		if (strongRef == nullptr)
+		if (strongRef == NULL)
 			return;
 
 
 		ManagedReference<LairObserver*> strongObserver = observer.get();
 		ManagedReference<TangibleObject*> strongAttackerRef = attacker.get();
 
-		if (strongObserver == nullptr)
+		if (strongObserver == NULL)
 			return;
 
 		Locker locker(strongRef);
@@ -45,5 +45,6 @@ public:
 		strongObserver->doAggro(strongRef, strongAttackerRef, all);
 	}
 };
+
 
 #endif /* LAIRAGGROTASK_H_ */

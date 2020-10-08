@@ -1,15 +1,19 @@
+#include "engine/engine.h"
+
+#include "zone/Zone.h"
+
 #include "PlayerCreature.h"
-#include "client/zone/Zone.h"
-#include "server/zone/packets/object/ObjectControllerMessage.h"
+#include "../../../../server/zone/packets/object/ObjectControllerMessage.h"
+
 
 PlayerCreature::PlayerCreature(LuaObject* templateData) : CreatureObject(templateData) {
 	setLoggingName("PlayerCreature");
 
-	follow = nullptr;
+	follow = NULL;
 }
 
 void PlayerCreature::updatePosition(float x, float z, float y) {
-	if (client == nullptr)
+	if (client == NULL)
 		return;
 
 	setPosition(x, z, y);
@@ -43,7 +47,7 @@ void PlayerCreature::activatePositionUpdate() {
 		 << getPositionZ() << ", " << getPositionY() << ")\n";*/
 
 	/*ZoneClient * client = zone->getZoneClient ( );
-	if  ( client != nullptr ) {
+	if  ( client != NULL ) {
 		Message * dataupd = new DataTransformMessage ( this );
 		client->sendMessage ( dataupd );
 

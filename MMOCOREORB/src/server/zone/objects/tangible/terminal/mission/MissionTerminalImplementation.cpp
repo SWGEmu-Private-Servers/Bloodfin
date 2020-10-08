@@ -7,18 +7,21 @@
 
 #include "server/zone/objects/tangible/terminal/mission/MissionTerminal.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/packets/scene/AttributeListMessage.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/region/CityRegion.h"
 #include "server/zone/managers/city/CityManager.h"
 #include "server/zone/managers/city/CityRemoveAmenityTask.h"
+
 #include "server/zone/objects/player/sessions/SlicingSession.h"
 
 void MissionTerminalImplementation::fillObjectMenuResponse(ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	TerminalImplementation::fillObjectMenuResponse(menuResponse, player);
 
-	ManagedReference<CityRegion*> city = player->getCityRegion().get();
+	ManagedReference<CityRegion*> city = player->getCityRegion();
 
-	if (city != nullptr && city->isMayor(player->getObjectID()) && getParent().get() == nullptr) {
+	if (city != NULL && city->isMayor(player->getObjectID()) && getParent().get() == NULL) {
 
 		menuResponse->addRadialMenuItem(72, 3, "@city/city:mt_remove"); // Remove
 
@@ -31,13 +34,13 @@ void MissionTerminalImplementation::fillObjectMenuResponse(ObjectMenuResponse* m
 }
 
 int MissionTerminalImplementation::handleObjectMenuSelect(CreatureObject* player, byte selectedID) {
-	ManagedReference<CityRegion*> city = player->getCityRegion().get();
+	ManagedReference<CityRegion*> city = player->getCityRegion();
 
 	if (selectedID == 69 && player->hasSkill("combat_smuggler_slicing_01")) {
 		if (isBountyTerminal())
 			return 0;
 
-		if (city != nullptr && !city->isClientRegion() && city->isBanned(player->getObjectID())) {
+		if (city != NULL && !city->isClientRegion() && city->isBanned(player->getObjectID())) {
 			player->sendSystemMessage("@city/city:banned_services"); // You are banned from using this city's services.
 			return 0;
 		}
@@ -63,7 +66,7 @@ int MissionTerminalImplementation::handleObjectMenuSelect(CreatureObject* player
 
 	} else if (selectedID == 72) {
 
-		if (city != nullptr && city->isMayor(player->getObjectID())) {
+		if (city != NULL && city->isMayor(player->getObjectID())) {
 			CityRemoveAmenityTask* task = new CityRemoveAmenityTask(_this.getReferenceUnsafeStaticCast(), city);
 			task->execute();
 

@@ -9,6 +9,7 @@
 #define NAMEVENDORCALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/objects/player/sui/inputbox/SuiInputBox.h"
 #include "server/zone/objects/player/sessions/vendor/CreateVendorSession.h"
 
 class NameVendorSuiCallback : public SuiCallback {
@@ -29,7 +30,7 @@ public:
 		ManagedReference<Facade*> facade = player->getActiveSession(SessionFacadeType::CREATEVENDOR);
 		ManagedReference<CreateVendorSession*> session = dynamic_cast<CreateVendorSession*>(facade.get());
 
-		if (session == nullptr)
+		if (session == NULL)
 			return;
 
 		if (cancelPressed) {

@@ -8,10 +8,7 @@
 #ifndef LOGINSESSION_H_
 #define LOGINSESSION_H_
 
-#include "system/lang.h"
-#include "engine/log/Logger.h"
-
-class LoginClient;
+#include "engine/engine.h"
 
 class LoginSession : public Mutex, public Runnable, public Logger, public Object {
 	Condition sessionFinalized;
@@ -25,8 +22,6 @@ class LoginSession : public Mutex, public Runnable, public Logger, public Object
 	int instance;
 
 	class LoginClientThread* loginThread;
-
-	Reference<LoginClient*> login;
 
 public:
 	LoginSession(int instance);

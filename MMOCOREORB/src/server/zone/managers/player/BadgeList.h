@@ -1,12 +1,13 @@
 #ifndef _H_BADGELIST_
 #define _H_BADGELIST_
 
+#include "engine/engine.h"
 #include "server/zone/objects/player/badges/Badge.h"
 
-class BadgeList : public Singleton<BadgeList>, public Logger, public Object {
+class BadgeList : public Singleton<BadgeList>, Logger, public Object {
 	// idx to Badge
 	VectorMap<unsigned int, const Badge*> badges;
-
+	
 	// Name to badge
 	HashTable<String, const Badge*> names;
 
@@ -22,24 +23,24 @@ public:
 
 	/*
 	 * Get a badge by name
-         * returns nullptr if the name wasn't found
+         * returns NULL if the name wasn't found
 	 */
-	inline const Badge* get(const String& name) const {
+	inline const Badge* get(const String& name) {
 		return names.get(name);
 	}
 
 	/*
          * Get a badge by index
-	 * return nullptre if the name wasn't found
+	 * return NULLe if the name wasn't found
 	 */
-	inline const Badge* get(unsigned int idx) const {
+	inline const Badge* get(unsigned int idx) {
 		return badges.get(idx);
 	}
 
 	/*
 	 * Returns the (idx, Badge*) vector map
 	 */
-	inline const VectorMap<unsigned int, const Badge*>* getMap() const {
+	inline VectorMap<unsigned int, const Badge*>* getMap() {
 		return &badges;
 	}
 

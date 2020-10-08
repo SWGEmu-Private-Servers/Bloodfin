@@ -27,13 +27,11 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
-		/*
 		creature->info("transfer item weapon");
 
 		StringBuffer infoMsg;
 		infoMsg << "target: 0x" << hex << target << " arguments" << arguments.toString();
 		creature->info(infoMsg.toString());
-		*/
 
 		StringTokenizer tokenizer(arguments.toString());
 
@@ -45,23 +43,23 @@ public:
 
 		ManagedReference<TradeSession*> tradeContainer = creature->getActiveSession(SessionFacadeType::TRADE).castTo<TradeSession*>();
 
-		if (tradeContainer != nullptr) {
+		if (tradeContainer != NULL) {
 			server->getZoneServer()->getPlayerManager()->handleAbortTradeMessage(creature);
 		}
 
 		ManagedReference<SceneObject*> objectToTransfer = server->getZoneServer()->getObject(target);
 
-		if (objectToTransfer == nullptr) {
-			creature->error("objectToTransfer nullptr in transferItemWeapon command");
+		if (objectToTransfer == NULL) {
+			creature->error("objectToTransfer NULL in transferItemWeapon command");
 			return GENERALERROR;
 		}
 
 		if (!objectToTransfer->checkContainerPermission(creature, ContainerPermissions::MOVECONTAINER))
 			return GENERALERROR;
 
-		ManagedReference<SceneObject*> objectsParent = objectToTransfer->getParent().get();
+		ManagedReference<SceneObject*> objectsParent = objectToTransfer->getParent();
 
-		if (objectsParent == nullptr)
+		if (objectsParent == NULL)
 			return GENERALERROR;
 
 		if (!objectsParent->checkContainerPermission(creature, ContainerPermissions::MOVEOUT))
@@ -77,8 +75,8 @@ public:
 
 		ManagedReference<SceneObject*> destinationObject = server->getZoneServer()->getObject(destinationID);
 
-		if (destinationObject == nullptr) {
-			creature->error("destinationObject nullptr in tansferItemWeapon command");
+		if (destinationObject == NULL) {
+			creature->error("destinationObject NULL in tansferItemWeapon command");
 			return GENERALERROR;
 		}
 
@@ -88,10 +86,10 @@ public:
 		}
 
 		if (transferType == 4) {
-			ManagedReference<SceneObject*> parent = objectToTransfer->getParent().get();
+			ManagedReference<SceneObject*> parent = objectToTransfer->getParent();
 
-			if (parent == nullptr) {
-				creature->error("objectToTransfer parent is nullptr in transferItemWeapon command");
+			if (parent == NULL) {
+				creature->error("objectToTransfer parent is NULL in transferItemWeapon command");
 				return GENERALERROR;
 			}
 
@@ -150,7 +148,7 @@ public:
 							creature->removeBuff(STRING_HASHCODE("centerofbeing"));
 
 						ManagedReference<PlayerManager*> playerManager = creature->getZoneServer()->getPlayerManager();
-						if (playerManager != nullptr) {
+						if (playerManager != NULL) {
 							creature->setLevel(playerManager->calculatePlayerLevel(creature));
 						}
 					}

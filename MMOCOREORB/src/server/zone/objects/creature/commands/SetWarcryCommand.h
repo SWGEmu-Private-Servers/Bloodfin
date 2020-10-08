@@ -5,6 +5,8 @@
 #ifndef SETWARCRYCOMMAND_H_
 #define SETWARCRYCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class SetWarcryCommand : public QueueCommand {
 public:
 
@@ -46,11 +48,7 @@ public:
 			player->sendSystemMessage("Your Warcry message can only be up to 128 characters long.");
 			return GENERALERROR;
 		}
-
-		ZoneProcessServer* zps = player->getZoneProcessServer();
-		NameManager* nameManager = zps->getNameManager();
-
-		if (nameManager->isProfane(message)){
+		if (NameManager::instance()->isProfane(message)){
 			player->sendSystemMessage("Your Warcry message has failed the profanity filter.");
 			return GENERALERROR;
 		}

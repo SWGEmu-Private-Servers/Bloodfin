@@ -7,12 +7,11 @@
 
 #ifndef GROUPLOOTTASK_H_
 #define GROUPLOOTTASK_H_
-
+#include "engine/engine.h"
 #include "server/chat/StringIdChatParameter.h"
 #include "server/zone/objects/group/GroupObject.h"
 #include "server/zone/managers/group/GroupManager.h"
 #include "server/zone/objects/player/sessions/LootLotterySession.h"
-#include "server/zone/objects/transaction/TransactionLog.h"
 
 class GroupLootTask : public Task {
 	ManagedReference<GroupObject*> group;
@@ -30,7 +29,7 @@ public:
 	}
 
 	void run() {
-		if (group == nullptr || player == nullptr || corpse == nullptr)
+		if (group == NULL || player == NULL || corpse == NULL)
 			return;
 
 		Locker clocker(corpse);
@@ -38,7 +37,7 @@ public:
 
 		//Get the corpse's inventory.
 		SceneObject* lootContainer = corpse->getSlottedObject("inventory");
-		if (lootContainer == nullptr)
+		if (lootContainer == NULL)
 			return;
 
 		switch (group->getLootRule()) {
@@ -61,7 +60,7 @@ public:
 			//Stop player looting corpse if lottery in progress, otherwise open corpse to player.
 			if (corpse->containsActiveSession(SessionFacadeType::LOOTLOTTERY)) {
 				ManagedReference<LootLotterySession*> session = cast<LootLotterySession*>(corpse->getActiveSession(SessionFacadeType::LOOTLOTTERY).get());
-				if (session == nullptr) {
+				if (session == NULL) {
 					corpse->dropActiveSession(SessionFacadeType::LOOTLOTTERY);
 				} else if (!session->isLotteryFinished()) {
 					StringIdChatParameter msg("group","still_waiting"); //"Still waiting for your group members..."
@@ -112,14 +111,7 @@ public:
 			gclocker.release();
 			Locker lootlocker(player, corpse);
 			corpse->notifyObservers(ObserverEventType::LOOTCREATURE, player, 0);
-
-			if (lootContainer->getContainerObjectsSize() < 1) {
-				StringIdChatParameter msg("group","corpse_empty"); //"This corpse has no items in its inventory."
-				player->sendSystemMessage(msg);
-				return;
-			} else {
-				lootContainer->openContainerTo(player);
-			}
+			lootContainer->openContainerTo(player);
 		}
 
 	}
@@ -143,14 +135,14 @@ public:
 		//Determine eligible group members to give credits.
 		Vector<CreatureObject*> payees;
 		for (int i = 0; i < group->getGroupSize(); ++i) {
-			ManagedReference<CreatureObject*> object = group->getGroupMember(i);
-			if (object == nullptr || !object->isPlayerCreature())
+			ManagedReference<SceneObject*> object = group->getGroupMember(i);
+			if (object == NULL || !object->isPlayerCreature())
 				continue;
 
-			if (!object->isInRange(corpse, 128.f))
+			ManagedReference<CreatureObject*> member = cast<CreatureObject*>(object.get());
+			if (member == NULL || !member->isInRange(corpse, 128.f))
 				continue;
-
-			payees.add(object);
+			payees.add(member);
 		}
 
 		if (payees.size() == 0)
@@ -159,7 +151,7 @@ public:
 		//Send initial system message to the looter.
 		StringIdChatParameter lootSelf("base_player", "prose_coin_loot"); //"You loot %DI credits from %TT."
 		lootSelf.setDI(lootCredits);
-		lootSelf.setTT(corpse->getObjectID());
+		lootSelf.setTT(corpse);
 		player->sendSystemMessage(lootSelf);
 
 		//Send initial system message to everyone in group except the looter.
@@ -195,14 +187,7 @@ public:
 
 			Locker plocker(payee, corpse);
 
-			{
-				TransactionLog trx(corpse, payee, TrxCode::NPCLOOTCLAIM, payout, true);
-				trx.addState("srcDisplayedName", corpse->getDisplayedName());
-				trx.addState("groupSize", group->getGroupSize());
-				trx.addState("inRangeSize", payees.size());
-				payee->addCashCredits(payout, true);
-				corpse->subtractCashCredits(Math::min(payout, corpse->getCashCredits()));
-			}
+			payee->addCashCredits(payout, true);
 
 			//Send credit split system message.
 			if (payee == player) {
@@ -217,17 +202,14 @@ public:
 			}
 		}
 
-		// Refund unclaimed credits (if any)
-		if (corpse->getCashCredits() > 0) {
-			TransactionLog trx(corpse, TrxCode::NPCLOOT, corpse->getCashCredits(), true);
-			corpse->clearCashCredits();
-		}
+		corpse->setCashCredits(0);
+
 	}
 
 	bool membersInRange() {
 		for (int i = 0; i < group->getGroupSize(); ++i) {
-			ManagedReference<CreatureObject*> member = group->getGroupMember(i);
-			if (member == nullptr || !member->isPlayerCreature())
+			ManagedReference<SceneObject*> member = group->getGroupMember(i);
+			if (member == NULL || !member->isPlayerCreature())
 				continue;
 
 			if (member != player && member->isInRange(corpse, 128.f))
@@ -238,5 +220,6 @@ public:
 	}
 
 };
+
 
 #endif /* GROUPLOOTTASK_H_ */

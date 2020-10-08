@@ -4,18 +4,18 @@
 
 package server.zone.objects.staticobject;
 
+import engine.lua.LuaObject;
 import server.zone.objects.scene.SceneObject;
-include templates.SharedObjectTemplate;
-import server.zone.CloseObjectsVector;
+import server.zone.Zone;
+import server.zone.templates.SharedObjectTemplate;
 
-@json
 class StaticObject extends SceneObject {
 	public StaticObject() {
 		Logger.setLoggingName("StaticObject");
 		Logger.setLogging(false);
 		Logger.setGlobalLogging(true);
 	}
-
+	
 	/**
 	 * Reads and sets the template data from a SharedObjectTemplate LuaObject
 	 * @pre { templateData is a valid pointer }
@@ -26,16 +26,7 @@ class StaticObject extends SceneObject {
 	public void loadTemplateData(SharedObjectTemplate templateData) {
 		super.loadTemplateData(templateData);
 	}
-
+	
 	@dirty
 	public native void sendBaselinesTo(SceneObject player);
-
-	@dirty
-	@local
-	public native abstract StaticObject asStaticObject();
-
-	@dirty
-	public boolean isStaticObjectClass() {
-		return true;
-	}
 }

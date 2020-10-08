@@ -8,7 +8,8 @@
 #ifndef PLAYERMONEYREQUEST_H_
 #define PLAYERMONEYREQUEST_H_
 
-#include "server/zone/packets/MessageCallback.h"
+#include "../MessageCallback.h"
+#include "server/zone/packets/player/PlayerObjectDeltaMessage9.h"
 #include "PlayerMoneyResponseMessage.h"
 
 class PlayerMoneyRequestMessageCallback : public MessageCallback {
@@ -22,9 +23,14 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> player = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (player == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* player = cast<CreatureObject*>(scene.get());
+
+		if (player == NULL)
 			return;
 
 		PlayerMoneyResponseMessage* reply = new  PlayerMoneyResponseMessage(player);

@@ -10,6 +10,7 @@
 
 #include "engine/engine.h"
 #include "BlueprintEntry.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
 #include "server/zone/objects/installation/factory/FactoryObject.h"
 
 class FactoryBlueprint  : public Serializable  {
@@ -43,8 +44,6 @@ public:
 	void addSerializableVariables();
 
 	void print();
-
-	friend void to_json(nlohmann::json& j, const FactoryBlueprint& p);
 };
 
 #endif /* FACTORYBLUEPRINT_H_ */

@@ -5,6 +5,8 @@
 #ifndef FIREHEAVYWEAPONCOMMAND_H_
 #define FIREHEAVYWEAPONCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class FireHeavyWeaponCommand : public CombatQueueCommand {
 public:
 
@@ -28,14 +30,14 @@ public:
 
 			uint64 weaponID = tokenizer.getLongToken();
 			Reference<WeaponObject*> weapon = server->getZoneServer()->getObject(weaponID).castTo<WeaponObject*>();
-			if (weapon == nullptr || !weapon->isHeavyWeapon())
+			if (weapon == NULL || !weapon->isHeavyWeapon())
 				return INVALIDPARAMETERS;
 
 			if (!weapon->isASubChildOf(creature))
 				return GENERALERROR;
 
 			ManagedReference<TangibleObject*> targetObject = server->getZoneServer()->getObject(target).castTo<TangibleObject*>();
-			if (targetObject == nullptr)
+			if (targetObject == NULL)
 				return GENERALERROR;
 
 			if (!(targetObject->isAttackableBy(creature)))
@@ -43,12 +45,12 @@ public:
 
 			SharedObjectTemplate* templateData = TemplateManager::instance()->getTemplate(weapon->getServerObjectCRC());
 
-			if (templateData == nullptr)
+			if (templateData == NULL)
 				return GENERALERROR;
 
 			SharedWeaponObjectTemplate* weaponData = cast<SharedWeaponObjectTemplate*>(templateData);
 
-			if (weaponData == nullptr)
+			if (weaponData == NULL)
 				return GENERALERROR;
 
 			UnicodeString args = "combatSpam=" + weaponData->getCombatSpam() + ";";
@@ -73,14 +75,17 @@ public:
 	}
 
 	String getAnimation(TangibleObject* attacker, TangibleObject* defender, WeaponObject* weapon, uint8 hitLocation, int damage) const {
+		if (weapon == NULL) {
+			warning("Null weapon in FireHeavyWeapon::getAnimation");
+			return "";
+		}
 		SharedWeaponObjectTemplate* weaponData = cast<SharedWeaponObjectTemplate*>(weapon->getObjectTemplate());
-
-		if (weaponData == nullptr) {
+		if (weaponData == NULL) {
 			warning("Null weaponData in FireHeavyWeapon::getAnimation");
 			return "";
 		}
 
-		return "fire_heavy_" + weaponData->getAnimationType() + getIntensity(weapon->getMaxDamage() / 2.0f, damage);
+		return "fire_heavy_" + weaponData->getAnimationType() + getIntensity(weapon->getMaxDamage()/2.0f, damage);
 	}
 
 	float getCommandDuration(CreatureObject *object, const UnicodeString& arguments) const {
@@ -88,7 +93,7 @@ public:
 		uint64 weaponID = tokenizer.getLongToken();
 		ManagedReference<WeaponObject*> weapon = server->getZoneServer()->getObject(weaponID).castTo<WeaponObject*>();
 
-		if (weapon != nullptr)
+		if (weapon != NULL)
 			return CombatManager::instance()->calculateWeaponAttackSpeed(object, weapon, speedMultiplier);
 		else
 			return defaultTime * speedMultiplier;

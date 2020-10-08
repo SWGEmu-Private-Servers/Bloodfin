@@ -11,74 +11,71 @@
 #include "server/zone/packets/cell/CellObjectMessage6.h"
 #include "server/zone/packets/cell/UpdateCellPermissionsMessage.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/Zone.h"
+#include "server/zone/objects/scene/components/ContainerComponent.h"
 
 void CellObjectImplementation::initializeTransientMembers() {
 	SceneObjectImplementation::initializeTransientMembers();
 
 	setLoggingName("CellObject");
-
-	if (isClientObject()) {
-		containerObjects.setNormalLoadOperationMode();
-		containerObjects.cancelUnloadTask();
-	}
 }
 
 void CellObjectImplementation::loadTemplateData(SharedObjectTemplate* templateData) {
 	SceneObjectImplementation::loadTemplateData(templateData);
 
-	containerObjects.setDelayedLoadOperationMode();
+	//containerVolumeLimit = 0xFFFFFFFF;
+
+	//containerType = 2;
 }
 
 void CellObjectImplementation::notifyLoadFromDatabase() {
+	// objects are added to the container twice because if insertToZone() called while the objects are loaded into the map
+
+	//temproary fix
+
+	//info("CellObjectImplementation::notifyLoadFromDatabase()", true);
+
+
+	Vector<ManagedReference<SceneObject*> > tempObjects;
+
+	for (int j = 0; j < getContainerObjectsSize(); ++j) {
+		SceneObject* containerObject = getContainerObject(j);
+
+		tempObjects.add(containerObject);
+	}
+
+	containerObjects.removeAll();
+
+	for (int i = 0; i < tempObjects.size(); ++i) {
+		SceneObject* obj = tempObjects.get(i);
+
+		putInContainer(obj, obj->getObjectID());
+	}
+
+
 	SceneObjectImplementation::notifyLoadFromDatabase();
-
-	//Rebuild count to account for transient creos
-	//TODO: modify server shutdown to despawn transient mobs before final db save
-	if (!isClientObject() && (!containerObjects.hasDelayedLoadOperationMode() || hasForceLoadObject())) {
-		containerObjects.setDelayedLoadOperationMode();
-		forceLoadObjectCount.set(0);
-
-		for (int j = 0; j < getContainerObjectsSize(); ++j) {
-			SceneObject* child = getContainerObject(j);
-
-			if (child->isCreatureObject() || child->isVendor() || child->getPlanetMapCategoryCRC() != 0 || child->getPlanetMapSubCategoryCRC() != 0)
-				forceLoadObjectCount.increment();
-		}
-	}
 }
 
-void CellObjectImplementation::onContainerLoaded() {
-	SceneObjectImplementation::onContainerLoaded();
+void CellObjectImplementation::sendContainerObjectsTo(SceneObject* player) {
+	//SceneObjectImplementation::sendContainerObjectsTo(player);
+	//info("sending cell containers", true);
+	/*BuildingObject* building = dynamic_cast<BuildingObject*>(parent.get());
+	bool publicStructure = (building != NULL) ? building->isPublicStructure() : true;
 
-	ManagedReference<BuildingObject*> building = parent.get().castTo<BuildingObject*>();
 
-	if (building == nullptr)
-		return;
-
-	Locker locker(building);
 
 	for (int j = 0; j < getContainerObjectsSize(); ++j) {
-		SceneObject* child = getContainerObject(j);
+		SceneObject* containerObject = getContainerObject(j);
 
-		building->notifyObjectInsertedToChild(child, asSceneObject(), nullptr);
-	}
+		if ((containerObject->isCreatureObject() && publicStructure) || player == containerObject)
+			containerObject->sendTo(player, true);
+	}*/
 }
 
-void CellObjectImplementation::onBuildingInsertedToZone(BuildingObject* building) {
-	if (!isContainerLoaded())
-		return;
-
-	for (int j = 0; j < getContainerObjectsSize(); ++j) {
-		SceneObject* child = getContainerObject(j);
-
-		building->notifyObjectInsertedToZone(child);
-	}
-}
-
-void CellObjectImplementation::sendContainerObjectsTo(SceneObject* player, bool forceLoad) {
-
-}
+/*void CellObjectImplementation::sendTo(SceneObject* player, bool doClose) {
+	SceneObjectImplementation::sendTo(player, true);
+}*/
 
 void CellObjectImplementation::sendBaselinesTo(SceneObject* player) {
 	BaseMessage* cellMsg3 = new CellObjectMessage3(getObjectID(), cellNumber);
@@ -91,7 +88,7 @@ void CellObjectImplementation::sendBaselinesTo(SceneObject* player) {
 
 	ManagedReference<SceneObject*> strongParent = getParent().get();
 
-	if (player->isCreatureObject() && strongParent != nullptr && strongParent->isBuildingObject()) {
+	if (player->isCreatureObject() && strongParent != NULL && strongParent->isBuildingObject()) {
 		CreatureObject* creature = player->asCreatureObject();
 
 		allowEntry = strongParent->asBuildingObject()->isAllowedEntry(creature);
@@ -104,7 +101,7 @@ void CellObjectImplementation::sendBaselinesTo(SceneObject* player) {
 int CellObjectImplementation::canAddObject(SceneObject* object, int containmentType, String& errorDescription) {
 	ManagedReference<SceneObject*> strongParent = getParent().get();
 
-	if (strongParent != nullptr && strongParent->isBuildingObject()) {
+	if (strongParent != NULL && strongParent->isBuildingObject()) {
 		BuildingObject* building = strongParent->asBuildingObject();
 
 		int count = 1;
@@ -129,50 +126,37 @@ bool CellObjectImplementation::transferObject(SceneObject* object, int containme
 
 	Zone* zone = getZone();
 
-	Locker* locker = nullptr;
+	Locker* locker = NULL;
 
-	if (zone != nullptr) {
+	if (zone != NULL) {
 //		locker = new Locker(zone);
 	}
 
 	bool ret = false;
 
-	ManagedReference<SceneObject*> oldParent = object->getParent().get();
+	ManagedReference<SceneObject*> oldParent = object->getParent();
 
 	try {
 		ret = SceneObjectImplementation::transferObject(object, containmentType, notifyClient, allowOverflow, notifyRoot);
 
-		if (zone != nullptr && object->isTangibleObject()) {
+		if (zone != NULL && object->isTangibleObject()) {
 			TangibleObject* tano = cast<TangibleObject*>(object);
 			zone->updateActiveAreas(tano);
 		}
-
-		if (object->isCreatureObject() || object->isVendor() || object->getPlanetMapCategoryCRC() != 0 || object->getPlanetMapSubCategoryCRC() != 0)
-			forceLoadObjectCount.increment();
-
 	} catch (...) {
 
 	}
 
-	if (oldParent == nullptr) {
+	if (oldParent == NULL) {
 		ManagedReference<BuildingObject*> building = parent.get().castTo<BuildingObject*>();
 		CreatureObject* creo = object->asCreatureObject();
 
-		if (building != nullptr && creo != nullptr)
+		if (building != NULL && creo != NULL)
 			building->onEnter(creo);
 	}
 
-	if (locker != nullptr)
+	if (locker != NULL)
 		delete locker;
-
-	return ret;
-}
-
-bool CellObjectImplementation::removeObject(SceneObject* object, SceneObject* destination, bool notifyClient) {
-	bool ret = SceneObjectImplementation::removeObject(object, destination, notifyClient);
-
-	if (object->isCreatureObject() || object->isVendor() || object->getPlanetMapCategoryCRC() != 0 || object->getPlanetMapSubCategoryCRC() != 0)
-		forceLoadObjectCount.decrement();
 
 	return ret;
 }
@@ -182,9 +166,11 @@ int CellObjectImplementation::getCurrentNumberOfPlayerItems() {
 
 	ManagedReference<SceneObject*> strongParent = getParent().get();
 
-	if (strongParent != nullptr) {
+	if (strongParent != NULL) {
 		for (int j = 0; j < getContainerObjectsSize(); ++j) {
+			ReadLocker rlocker(getContainerLock());
 			ManagedReference<SceneObject*> containerObject = getContainerObject(j);
+			rlocker.release();
 
 			if (!strongParent->containsChildObject(containerObject) && !containerObject->isCreatureObject() && !containerObject->isVendor()) {
 
@@ -202,13 +188,15 @@ int CellObjectImplementation::getCurrentNumberOfPlayerItems() {
 void CellObjectImplementation::destroyAllPlayerItems() {
 	ManagedReference<SceneObject*> strongParent = getParent().get();
 
-	if (strongParent == nullptr)
+	if (strongParent == NULL)
 		return;
 
 	int containerSize = getContainerObjectsSize();
 
 	for (int j = containerSize - 1; j >= 0; --j) {
+		ReadLocker rlocker(getContainerLock());
 		ManagedReference<SceneObject*> containerObject = getContainerObject(j);
+		rlocker.release();
 
 		if (strongParent->containsChildObject(containerObject))
 			continue;
@@ -219,6 +207,9 @@ void CellObjectImplementation::destroyAllPlayerItems() {
 		Locker locker(containerObject);
 
 		containerObject->destroyObjectFromWorld(true);
+		//containerObject->broadcastDestroy(containerObject, false);
+		//removeObject(containerObject, false);
+
 		containerObject->destroyObjectFromDatabase(true);
 	}
 }

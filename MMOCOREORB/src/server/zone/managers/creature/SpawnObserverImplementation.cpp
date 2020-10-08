@@ -8,7 +8,7 @@ void SpawnObserverImplementation::despawnSpawns() {
 	for (int i = 0; i < spawnedCreatures.size(); ++i) {
 		ManagedReference<CreatureObject*> obj = spawnedCreatures.get(i);
 
-		if (obj != nullptr && obj->isAiAgent()) {
+		if (obj != NULL && obj->isAiAgent()) {
 			AiAgent* aiObj = cast<AiAgent*>(obj.get());
 			agents.add(aiObj);
 		}
@@ -16,13 +16,13 @@ void SpawnObserverImplementation::despawnSpawns() {
 
 	spawnedCreatures.removeAll();
 
-	Core::getTaskManager()->executeTask([=] () {
-		for (int i = 0; i < agents.size(); ++i) {
-			AiAgent* agent = agents.get(i);
+	EXECUTE_TASK_1(agents, {
+			for (int i = 0; i < agents_p.size(); ++i) {
+				AiAgent* agent = agents_p.get(i);
 
-			Locker locker(agent);
+				Locker locker(agent);
 
-			agent->setDespawnOnNoPlayerInRange(true);
-		}
-	}, "DespawnSpawnsLambda");
+				agent->setDespawnOnNoPlayerInRange(true);
+			}
+	});
 }

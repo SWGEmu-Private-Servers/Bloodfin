@@ -9,9 +9,9 @@
 
 #include "LoginMessageProcessorTask.h"
 
-#include "conf/ConfigManager.h"
-#include "server/login/account/Account.h"
+#include "server/conf/ConfigManager.h"
 #include "server/login/account/AccountManager.h"
+#include "server/login/account/Account.h"
 
 #include "LoginHandler.h"
 
@@ -20,7 +20,7 @@
 LoginServerImplementation::LoginServerImplementation(ConfigManager* configMan) :
 		ManagedServiceImplementation(), Logger("LoginServer") {
 
-	phandler = nullptr;
+	phandler = NULL;
 
 	datagramService = new DatagramServiceThread("LoginDatagramService");
 	datagramService->setLogging(false);
@@ -31,17 +31,20 @@ LoginServerImplementation::LoginServerImplementation(ConfigManager* configMan) :
 
 	configManager = configMan;
 
-	processor = nullptr;
+	processor = NULL;
 
-	accountManager = nullptr;
+	enumClusterMessage = NULL;
+	clusterStatusMessage = NULL;
+
+	accountManager = NULL;
 
 	setLogging(false);
 }
 
 void LoginServerImplementation::initializeTransientMembers() {
-	phandler = nullptr;
+	phandler = NULL;
 
-	processor = nullptr;
+	processor = NULL;
 
 	ManagedObjectImplementation::initializeTransientMembers();
 }
@@ -57,6 +60,8 @@ void LoginServerImplementation::initialize() {
 
 	//taskManager->setLogging(false);
 
+	populateGalaxyList();
+
 	return;
 }
 
@@ -67,6 +72,7 @@ void LoginServerImplementation::startManagers() {
 	accountManager = new AccountManager(_this.getReferenceUnsafeStaticCast());
 	accountManager->setAutoRegistrationEnabled(configManager->getAutoReg());
 	accountManager->setRequiredVersion(configManager->getLoginRequiredVersion());
+	accountManager->setMaxOnlineCharacters(configManager->getZoneOnlineCharactersPerAccount());
 	accountManager->setDBSecret(configManager->getDBSecret());
 }
 
@@ -77,17 +83,11 @@ void LoginServerImplementation::start(int p, int mconn) {
 }
 
 void LoginServerImplementation::stop() {
-	shutdown();
-
 	datagramService->stop();
-	datagramService = nullptr;
 }
 
 void LoginServerImplementation::shutdown() {
 	stopManagers();
-	loginHandler = nullptr;
-	phandler = nullptr;
-	processor = nullptr;
 
 	printInfo();
 
@@ -95,8 +95,7 @@ void LoginServerImplementation::shutdown() {
 }
 
 void LoginServerImplementation::stopManagers() {
-	accountManager = nullptr;
-	configManager = nullptr;
+	accountManager = NULL;
 
 	info("managers stopped", true);
 }
@@ -117,29 +116,32 @@ LoginClient* LoginServerImplementation::createConnection(Socket* sock, SocketAdd
 }
 
 void LoginServerImplementation::handleMessage(LoginClient* client, Packet* message) {
-	if (phandler == nullptr)
+	if (phandler == NULL)
 		return;
 
 	BaseClientProxy* session = cast<BaseClientProxy*>(client->getSession());
 
 	try {
-		if (session != nullptr && session->isAvailable())
+		if (session != NULL && session->isAvailable())
 			phandler->handlePacket(session, message);
 
 	} catch (PacketIndexOutOfBoundsException& e) {
 		System::out << e.getMessage();
 
+		error("bad packet from " + session->getIPAddress());
 		error("incorrect packet - " + message->toStringData());
 	} catch (Exception& e) {
+		error("bad packet from " + session->getIPAddress());
 		error(e.getMessage());
 	}
 }
 
 void LoginServerImplementation::processMessage(Message* message) {
-	debug() << "processing message " << *message;
+	//info("processing message " + message->toStringData());
 
 	Reference<Task*> task = new LoginMessageProcessorTask(message, processor->getPacketHandler());
-	task->execute();
+
+	Core::getTaskManager()->executeTask(task);
 }
 
 LoginClient* LoginServerImplementation::getLoginClient(ServiceClient* session) {
@@ -148,12 +150,9 @@ LoginClient* LoginServerImplementation::getLoginClient(ServiceClient* session) {
 
 bool LoginServerImplementation::handleError(ServiceClient* client, Exception& e) {
 	BaseClientProxy* bclient = cast<BaseClientProxy*>(client);
+	bclient->setError();
 
-	if (bclient != nullptr) {
-		bclient->setError();
-
-		bclient->disconnect();
-	}
+	bclient->disconnect();
 
 	return true;
 }
@@ -161,40 +160,49 @@ bool LoginServerImplementation::handleError(ServiceClient* client, Exception& e)
 void LoginServerImplementation::printInfo() {
 	lock();
 
-	info(true) << "MessageQueue - size = " << datagramService->getMessageQueue()->size();
+	StringBuffer msg;
+	msg << "MessageQueue - size = " << datagramService->getMessageQueue()->size();
+	info(msg, true);
 
 	unlock();
 }
 
-LoginEnumCluster* LoginServerImplementation::getLoginEnumClusterMessage(Account* account) {
-	auto galaxies = GalaxyList(account->getUsername());
+void LoginServerImplementation::populateGalaxyList() {
+	//Populate the galaxies list for the login server.
+	GalaxyList galaxies;
 	uint32 galaxyCount = galaxies.size();
 
-	auto msg = new LoginEnumCluster(galaxyCount);
-
-	while (galaxies.next()) {
-		msg->addGalaxy(galaxies.getID(), galaxies.getName());
+	//In case we want to add the functionality to update the lists while the server is running...
+	if (enumClusterMessage != NULL) {
+		delete enumClusterMessage;
+		enumClusterMessage = NULL;
 	}
 
-	msg->finish();
+	if (clusterStatusMessage != NULL) {
+		delete enumClusterMessage;
+		enumClusterMessage = NULL;
+	}
 
-	return msg;
+	enumClusterMessage = new LoginEnumCluster(galaxyCount);
+	clusterStatusMessage = new LoginClusterStatus(galaxyCount);
+
+    while (galaxies.next()) {
+    	uint32 galaxyID = galaxies.getGalaxyID();
+
+    	String name;
+    	galaxies.getGalaxyName(name);
+
+    	enumClusterMessage->addGalaxy(galaxyID, name);
+
+		String address;
+    	galaxies.getGalaxyAddress(address);
+
+    	clusterStatusMessage->addGalaxy(galaxyID, address, galaxies.getGalaxyPort(), galaxies.getGalaxyPingPort());
+    }
+
+    enumClusterMessage->finish();
 }
 
-LoginClusterStatus* LoginServerImplementation::getLoginClusterStatusMessage(Account* account) {
-	auto galaxies = GalaxyList(account->getUsername());
-	uint32 galaxyCount = galaxies.size();
-
-	auto msg = new LoginClusterStatus(galaxyCount);
-
-	while (galaxies.next()) {
-		msg->addGalaxy(
-			galaxies.getID(),
-			galaxies.getAddress(),
-			galaxies.getRandomPort(),
-			galaxies.getPingPort()
-		);
-	}
-
-	return msg;
+Account* LoginServerImplementation::getAccount(unsigned int accountID) {
+	return accountManager->getAccount(accountID);
 }

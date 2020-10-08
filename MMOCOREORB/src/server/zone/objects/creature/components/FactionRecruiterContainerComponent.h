@@ -7,9 +7,9 @@
 class FactionRecruiterContainerComponent: public ContainerComponent {
 public:
 
-	int canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) const;
+	int canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription);
 
-	bool transferObject(SceneObject* sceneObject, SceneObject* object, int containmentType, bool notifyClient = false, bool allowOverflow = false, bool notifyRoot = true) const;
+	bool transferObject(SceneObject* sceneObject, SceneObject* object, int containmentType, bool notifyClient = false, bool allowOverflow = false, bool notifyRoot = true);
 
 };
 

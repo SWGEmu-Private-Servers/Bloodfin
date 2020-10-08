@@ -2,6 +2,7 @@
 #ifndef CITYREMOVEAMENITYTASK_H_
 #define CITYREMOVEAMENITYTASK_H_
 
+#include "engine/engine.h"
 #include "server/zone/objects/region/CityRegion.h"
 #include "server/zone/objects/scene/SceneObject.h"
 
@@ -16,7 +17,7 @@ public:
 	}
 
 	void run() {
-		if (city == nullptr || amenity == nullptr)
+		if (city == NULL || amenity == NULL)
 			return;
 
 		Locker locker(city);

@@ -16,37 +16,30 @@ class GuildMailTask : public Task {
 public:
 	GuildMailTask(const String& subject, StringIdChatParameter& body,
 		GuildObject* guild) : guild(guild), body(body), subject(subject) {
-
-		setCustomTaskQueue("slowQueue");
 	}
 
 	void run() {
-		Vector<uint64> members;
-
 		Locker locker(guild);
 
 		GuildMemberList* memberList = guild->getGuildMemberList();
 
-		if (memberList == nullptr)
+		if (memberList == NULL)
 			return;
 
 		for (int i = 0; i < memberList->size(); ++i) {
 			GuildMemberInfo* gmi = &memberList->get(i);
 
-			if (gmi == nullptr)
+			if (gmi == NULL)
 				continue;
 
-			members.add(gmi->getPlayerID());
-		}
+			ManagedReference<SceneObject*> obj = guild->getZoneServer()->getObject(gmi->getPlayerID());
 
-		auto guildName = guild->getGuildName();
+			if (obj == NULL || !obj->isPlayerCreature())
+				continue;
 
-		locker.release();
+			CreatureObject* recipient = cast<CreatureObject*>( obj.get());
 
-		for (const auto& memberID : members) {
-			auto firstName = guild->getZoneServer()->getPlayerManager()->getPlayerName(memberID);
-
-			guild->getZoneServer()->getChatManager()->sendMail(guildName, subject, body, firstName);
+			guild->getZoneServer()->getChatManager()->sendMail(guild->getGuildName(), subject, body, recipient->getFirstName());
 		}
 	}
 };

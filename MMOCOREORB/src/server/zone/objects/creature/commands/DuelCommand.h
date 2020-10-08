@@ -28,10 +28,10 @@ public:
 
 		ManagedReference<SceneObject*> targetObject = server->getZoneServer()->getObject(target);
 
-		if (targetObject == nullptr || !targetObject->isPlayerCreature() || targetObject == creature)
+		if (targetObject == NULL || !targetObject->isPlayerCreature() || targetObject == creature)
 			return INVALIDTARGET;
 
-		if(!checkDistance(creature, targetObject, 25.0f))
+		if (!targetObject->isInRange(creature, 25))
 			return TOOFAR;
 
 		CombatManager* combatManager = CombatManager::instance();

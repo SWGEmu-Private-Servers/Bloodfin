@@ -6,7 +6,9 @@
 #ifndef MANUFACTURESCHEMATICOBJECTDELTAMESSAGE3_H_
 #define MANUFACTURESCHEMATICOBJECTDELTAMESSAGE3_H_
 
-#include "server/zone/packets/DeltaMessage.h"
+#include "../BaseLineMessage.h"
+
+#include "server/zone/objects/draftschematic/DraftSchematic.h"
 
 class ManufactureSchematicObjectDeltaMessage3 : public DeltaMessage {
 public:

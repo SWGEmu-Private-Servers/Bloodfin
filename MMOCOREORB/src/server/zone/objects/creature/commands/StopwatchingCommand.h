@@ -5,6 +5,8 @@
 #ifndef STOPWATCHINGCOMMAND_H_
 #define STOPWATCHINGCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/player/sessions/EntertainingSession.h"
 #include "server/zone/managers/player/PlayerManager.h"
 
 class StopwatchingCommand : public QueueCommand {
@@ -28,7 +30,7 @@ public:
 
 		ManagedReference<PlayerManager*> playerManager = server->getPlayerManager();
 
-		if (playerManager != nullptr)
+		if (playerManager != NULL)
 			playerManager->stopWatch(creature, target);
 
 		return SUCCESS;

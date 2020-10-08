@@ -8,7 +8,7 @@
 #ifndef GETAUCTIONDETAILSCALLBACK
 #define GETAUCTIONDETAILSCALLBACK
 
-#include "server/zone/packets/MessageCallback.h"
+#include "../MessageCallback.h"
 #include "server/zone/managers/auction/AuctionManager.h"
 
 
@@ -26,17 +26,21 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> player = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (player == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* player = cast<CreatureObject*>(scene.get());
+
+		if (player == NULL)
 			return;
 
 		AuctionManager* auctionManager = server->getZoneServer()->getAuctionManager();
-
-		if (auctionManager != nullptr)
-			auctionManager->getItemAttributes(player, objectid);
+		auctionManager->getItemAttributes(player, objectid);
 	}
 
 };
 
 #endif
+

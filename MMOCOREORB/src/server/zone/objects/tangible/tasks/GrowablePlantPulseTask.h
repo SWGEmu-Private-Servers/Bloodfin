@@ -1,8 +1,8 @@
 #ifndef GROWABLEPLANTPULSETASK_H_
 #define GROWABLEPLANTPULSETASK_H_
 
+#include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/tangible/misc/PlantObject.h"
-#include "server/zone/ZoneServer.h"
 
 namespace server {
 namespace zone {
@@ -21,10 +21,7 @@ public:
 	void run() {
 		ManagedReference<PlantObject*> strongRef = plant.get();
 
-		if (strongRef == nullptr)
-			return;
-
-		if (strongRef->getSize() == 0)
+		if (strongRef == NULL)
 			return;
 
 		if (strongRef->getZoneServer()->isServerLoading()) {
@@ -34,10 +31,12 @@ public:
 
 		Locker locker(strongRef);
 
+		Time currentTime;
+
 		Time* lastPulse = strongRef->getLastPulse();
 
 		// Cycles handles multiple pulses if server was offline during task trigger
-		int cycles = lastPulse->miliDifference() / (PlantObject::PULSERATE * 1000);
+		int cycles = (currentTime.getMiliTime() - lastPulse->getMiliTime()) / (PlantObject::PULSERATE * 1000);
 
 		if (cycles < 1)
 			cycles = 1;
@@ -45,12 +44,12 @@ public:
 			cycles = 10;
 
 		ManagedReference<SceneObject*> rootParent = strongRef->getRootParent();
-		ManagedReference<SceneObject*> parent = strongRef->getParent().get();
+		ManagedReference<SceneObject*> parent = strongRef->getParent();
 
 		strongRef->updateLastPulse();
 
-		if (parent == nullptr || rootParent == nullptr || !rootParent->isBuildingObject() || !parent->isCellObject()) {
-			reschedule(PlantObject::PULSERATE * 1000);
+		if (parent == NULL || rootParent == NULL || !rootParent->isBuildingObject() || !parent->isCellObject()) {
+			this->reschedule(PlantObject::PULSERATE * 1000);
 			return;
 		}
 
@@ -58,7 +57,7 @@ public:
 		int nutrientDiff = abs(strongRef->getNutrientLevel() - strongRef->getIdealNutrientLevel());
 
 		if (waterDiff < 20 && nutrientDiff < 20) {
-			int healthUpdate = (((50 - (waterDiff + nutrientDiff)) * (strongRef->getWaterQuality() + strongRef->getNutrientQuality()) / 2000) / 5) * cycles;
+			int healthUpdate = (((40 - (waterDiff + nutrientDiff)) * (strongRef->getWaterQuality() + strongRef->getNutrientQuality()) / 2000) / 5) * cycles;
 
 			if (healthUpdate < 1)
 				healthUpdate = 1;
@@ -134,7 +133,7 @@ public:
 			}
 		}
 
-		reschedule(PlantObject::PULSERATE * 1000);
+		this->reschedule(PlantObject::PULSERATE * 1000);
 	}
 };
 

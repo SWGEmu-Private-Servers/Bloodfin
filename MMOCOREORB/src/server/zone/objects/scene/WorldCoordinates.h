@@ -9,8 +9,6 @@
 #define WORLDCOORDINATES_H_
 
 #include "engine/engine.h"
-#include "engine/util/json_utils.h"
-
 #include "server/zone/objects/cell/CellObject.h"
 
 namespace server {
@@ -29,13 +27,13 @@ class WorldCoordinates : public Object {
 protected:
 	Vector3 point;
 
-	ManagedReference<CellObject*> cell;
+	ManagedReference<SceneObject*> cell;
 
 public:
 	WorldCoordinates();
 	WorldCoordinates(const WorldCoordinates& c);
 	WorldCoordinates(SceneObject* obj);
-	WorldCoordinates(const Vector3& position, CellObject* cell);
+	WorldCoordinates(const Vector3& position, SceneObject* cell);
 
 #ifdef CXX11_COMPILER
 	WorldCoordinates(WorldCoordinates&& c) : Object(), point(c.point), cell(std::move(c.cell)) {
@@ -61,11 +59,6 @@ public:
 		return (point == c.point) && (cell == c.cell);
 	}
 
-	friend void to_json(nlohmann::json& j, const WorldCoordinates& c) {
-		j["point"] = c.point;
-		j["cell"] = c.cell;
-	}
-
 	bool toBinaryStream(ObjectOutputStream* stream);
 	bool parseFromBinaryStream(ObjectInputStream* stream);
 
@@ -73,7 +66,7 @@ public:
 
 	Vector3 getWorldPosition() const;
 
-	inline void setCell(CellObject* obj) {
+	inline void setCell(SceneObject* obj) {
 		cell = obj;
 	}
 
@@ -93,15 +86,11 @@ public:
 		point.setZ(z);
 	}
 
-	inline const Vector3& getPoint() const {
+	inline Vector3 getPoint() const {
 		return point;
 	}
 
-	inline Vector3 getPoint() {
-		return point;
-	}
-
-	inline CellObject* getCell() const {
+	inline SceneObject* getCell() const {
 		return cell;
 	}
 
@@ -117,10 +106,11 @@ public:
 		return point.getZ();
 	}
 
-	inline String toString() const {
+	inline String toString() {
 		StringBuffer sb;
 		sb << point.toString();
-		sb << " in " << String::valueOf(cell != nullptr ? cell->getCellNumber() : 0) << ".";
+		CellObject* thisCell = cast<CellObject*>(cell.get());
+		sb << " in " << String::valueOf(thisCell != NULL ? thisCell->getCellNumber() : 0) << ".";
 		return sb.toString();
 	}
 };

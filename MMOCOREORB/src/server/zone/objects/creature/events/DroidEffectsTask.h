@@ -7,6 +7,7 @@
 
 #include "server/zone/objects/creature/ai/DroidObject.h"
 #include "server/zone/objects/tangible/components/droid/DroidEffectsModuleDataComponent.h"
+#include "server/zone/objects/group/GroupObject.h"
 
 namespace server {
 namespace zone {
@@ -16,7 +17,7 @@ namespace events {
 
 class DroidEffectsTask : public Task, public Logger {
 
-	Reference<DroidEffectsModuleDataComponent*> module;
+	ManagedReference<DroidEffectsModuleDataComponent*> module;
 
 public:
 	DroidEffectsTask(DroidEffectsModuleDataComponent* module) : Task() {
@@ -25,7 +26,7 @@ public:
 
 	void run() {
 
-		if( module == nullptr || module->getDroidObject() == nullptr ){
+		if( module == NULL || module->getDroidObject() == NULL ){
 			return;
 		}
 
@@ -40,10 +41,10 @@ public:
 		}
 
 		// Check if droid is spawned
-		if( droid->getLocalZone() == nullptr ){  // Not outdoors
+		if( droid->getLocalZone() == NULL ){  // Not outdoors
 
-			ManagedReference<SceneObject*> parent = droid->getParent().get();
-			if( parent == nullptr || !parent->isCellObject() ){ // Not indoors either
+			ManagedWeakReference<SceneObject*> parent = droid->getParent();
+			if( parent == NULL || !parent.get()->isCellObject() ){ // Not indoors either
 				droid->removePendingTask("droid_effects");
 				return;
 			}
@@ -68,11 +69,11 @@ public:
 
 		// Reschedule task if next effect is valid
 		uint64 delay = (uint64)module->getCurrentDelay() * 1000;
-		if (delay > 0 && module->nextEffect()) {
+		if( delay > 0 && module->nextEffect() ){
 			reschedule( delay );
-		} else {
-			droid->removePendingTask("droid_effects");
 		}
+
+		droid->removePendingTask("droid_effects");
 
 	}
 

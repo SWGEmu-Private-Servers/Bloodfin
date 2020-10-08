@@ -8,6 +8,7 @@
 #ifndef VENDORMANAGER_H_
 #define VENDORMANAGER_H_
 
+#include "engine/engine.h"
 #include "VendorSelectionNode.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/managers/name/NameManager.h"
@@ -51,7 +52,7 @@ public:
 
 	void promptRenameVendorTo(CreatureObject* player, TangibleObject* vendor);
 
-	void destroyVendor(TangibleObject* vendor);
+	void destroyVendor(SceneObject* vendor);
 
 	void sendRegisterVendorTo(CreatureObject* player, TangibleObject* vendor);
 

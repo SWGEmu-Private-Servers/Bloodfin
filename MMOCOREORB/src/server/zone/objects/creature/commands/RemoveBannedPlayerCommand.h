@@ -5,6 +5,8 @@
 #ifndef REMOVEBANNEDPLAYERCOMMAND_H_
 #define REMOVEBANNEDPLAYERCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class RemoveBannedPlayerCommand : public QueueCommand {
 public:
 
@@ -23,11 +25,11 @@ public:
 
 		ManagedReference<PlayerObject*> adminGhost = creature->getPlayerObject();
 
-		if (adminGhost == nullptr)
+		if (adminGhost == NULL)
 			return GENERALERROR;
 
-		ManagedReference<CreatureObject*> targetCreature = nullptr;
-		ManagedReference<PlayerObject*> ghost = nullptr;
+		ManagedReference<CreatureObject*> targetCreature = NULL;
+		ManagedReference<PlayerObject*> ghost = NULL;
 		ManagedReference<PlayerManager*> playerManager = server->getPlayerManager();
 
 		StringTokenizer args(arguments.toString());
@@ -45,12 +47,12 @@ public:
 
 		}
 
-		if (targetCreature == nullptr || !targetCreature->isPlayerCreature())
+		if (targetCreature == NULL || !targetCreature->isPlayerCreature())
 			return INVALIDTARGET;
 
 		ghost = targetCreature->getPlayerObject();
 
-		if (ghost == nullptr) {
+		if (ghost == NULL) {
 			creature->sendSystemMessage("Player Ghost not found");
 			return SUCCESS;
 		}
@@ -63,25 +65,18 @@ public:
 			banReason << reason << " ";
 		}
 
-		if (banReason.toString().isEmpty()) {
+		if(banReason.toString().isEmpty()) {
 			creature->sendSystemMessage("You must provide a reason for unbanning");
 			return GENERALERROR;
 		}
 
-		ManagedReference<Account*> account = ghost->getAccount();
-		if (account == nullptr) {
-			creature->sendSystemMessage("Account is nullptr");
+		ManagedReference<Account*> account = playerManager->getAccount(ghost->getAccountID());
+		if(account == NULL) {
+			creature->sendSystemMessage("Account is NULL");
 			return GENERALERROR;
 		}
 
-		Locker alocker(account);
-
-		const CharacterListEntry* entry = account->getCharacterBan(server->getZoneServer()->getGalaxyID(), targetCreature->getFirstName());
-
-		if (entry == nullptr) {
-			creature->sendSystemMessage("Error getting CharacterListEntry");
-			return GENERALERROR;
-		}
+		CharacterListEntry* entry = account->getCharacterBan(server->getZoneServer()->getGalaxyID(), targetCreature->getFirstName());
 
 		StringBuffer reason;
 		reason << entry->getBanAdmin() << "=" << entry->getBanReason() << "|" << banReason.toString();

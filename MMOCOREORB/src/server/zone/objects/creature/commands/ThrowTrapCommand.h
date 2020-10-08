@@ -5,8 +5,9 @@
 #ifndef THROWTRAPCOMMAND_H_
 #define THROWTRAPCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/events/ThrowTrapTask.h"
-#include "templates/tangible/TrapTemplate.h"
+#include "server/zone/templates/tangible/TrapTemplate.h"
 
 class ThrowTrapCommand: public CombatQueueCommand {
 public:
@@ -25,6 +26,11 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+
+		}
+
 		int skillLevel = creature->getSkillMod("trapping");
 		if (skillLevel < 1 || !creature->hasSkill("outdoors_scout_novice")) {
 			creature->sendSystemMessage("@trap/trap:trap_no_skill");
@@ -42,7 +48,7 @@ public:
 			ManagedReference<TangibleObject*> trap =
 					server->getZoneServer()->getObject(trapId).castTo<TangibleObject*>();
 
-			if (trap == nullptr)
+			if (trap == NULL)
 				return INVALIDPARAMETERS;
 
 			if (!trap->isTrapObject())
@@ -54,7 +60,7 @@ public:
 			ManagedReference<CreatureObject*> targetCreature =
 					server->getZoneServer()->getObject(target).castTo<CreatureObject*>();
 
-			if (targetCreature == nullptr || !targetCreature->isCreature()) {
+			if (targetCreature == NULL || !targetCreature->isCreature()) {
 				creature->sendSystemMessage("@trap/trap:sys_creatures_only");
 				return GENERALERROR;
 			}
@@ -67,19 +73,19 @@ public:
 			SharedObjectTemplate* templateData =
 					TemplateManager::instance()->getTemplate(
 							trap->getServerObjectCRC());
-			if (templateData == nullptr) {
+			if (templateData == NULL) {
 				error("No template for: " + String::valueOf(trap->getServerObjectCRC()));
 				return GENERALERROR;
 			}
 
 			TrapTemplate* trapData = cast<TrapTemplate*> (templateData);
-			if (trapData == nullptr) {
+			if (trapData == NULL) {
 				error("No TrapTemplate for: " + String::valueOf(trap->getServerObjectCRC()));
 				return GENERALERROR;
 			}
 
 			/// Check Range
-			if(!checkDistance(creature, targetCreature, trapData->getMaxRange()))
+			if(creature->getDistanceTo(targetCreature) > trapData->getMaxRange())
 			{
 				StringIdChatParameter tooFar("cmd_err", "target_range_prose");
 				tooFar.setTO("Throw Trap");
@@ -104,9 +110,9 @@ public:
 			}
 
 			int targetDefense = targetCreature->getSkillMod(trapData->getDefenseMod());
-			const Time* cooldown = creature->getCooldownTime("throwtrap");
-			if((cooldown != nullptr && !cooldown->isPast()) ||
-					creature->getPendingTask("throwtrap") != nullptr) {
+			Time* cooldown = creature->getCooldownTime("throwtrap");
+			if((cooldown != NULL && !cooldown->isPast()) ||
+					creature->getPendingTask("throwtrap") != NULL) {
 				creature->sendSystemMessage("@trap/trap:sys_not_ready");
 				return GENERALERROR;
 			}
@@ -133,7 +139,7 @@ public:
 			trap->decreaseUseCount();
 
 			StringIdChatParameter message;
-			ManagedReference<Buff*> buff = nullptr;
+			ManagedReference<Buff*> buff = NULL;
 			int damage = 0;
 
 			if (hit) {
@@ -147,7 +153,7 @@ public:
 				if(state != 0)
 					buff->addState(state);
 
-				const auto skillMods = trapData->getSkillMods();
+				VectorMap<String, int>* skillMods = trapData->getSkillMods();
 				for(int i = 0; i < skillMods->size(); ++i) {
 					buff->setSkillModifier(skillMods->elementAt(i).getKey(), skillMods->get(i));
 				}

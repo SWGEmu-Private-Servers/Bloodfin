@@ -5,6 +5,7 @@
 #ifndef FORCETHROW2COMMAND_H_
 #define FORCETHROW2COMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "ForcePowersQueueCommand.h"
 
 class ForceThrow2Command : public ForcePowersQueueCommand {
@@ -22,6 +23,10 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
 
 		if (isWearingArmor(creature)) {
 			return NOJEDIARMOR;

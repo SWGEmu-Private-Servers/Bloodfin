@@ -9,22 +9,21 @@
 #define COMBATQUEUECOMMAND_H_
 
 #include"server/zone/ZoneServer.h"
+#include "server/zone/Zone.h"
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/managers/combat/CombatManager.h"
+#include "server/zone/managers/player/PlayerManager.h"
 #include "server/zone/objects/player/PlayerObject.h"
-#include "server/zone/objects/building/BuildingObject.h"
-#include "server/zone/objects/cell/CellObject.h"
 #include "server/zone/managers/combat/CreatureAttackData.h"
 #include "server/zone/managers/collision/CollisionManager.h"
-#include "templates/params/creature/CreatureAttribute.h"
-#include "templates/params/creature/CreatureState.h"
-#include "templates/params/creature/CreatureFlag.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
+#include "server/zone/objects/creature/CreatureState.h"
 #include "server/zone/objects/creature/commands/effect/StateEffect.h"
 #include "server/zone/objects/creature/commands/effect/DotEffect.h"
 #include "server/zone/objects/creature/commands/effect/CommandEffect.h"
 #include "server/zone/packets/object/CombatSpam.h"
 #include "QueueCommand.h"
-#include "server/zone/objects/player/FactionStatus.h"
+#include "server/zone/managers/collision/PathFinderManager.h"
 
 class CombatQueueCommand : public QueueCommand {
 protected:
@@ -43,12 +42,6 @@ protected:
 	float forceCostMultiplier;
 	float forceCost;
 	int visMod;
-	float frsLightForceCostModifier;
-	float frsDarkForceCostModifier;
-	float frsLightMinDamageModifier;
-	float frsLightMaxDamageModifier;
-	float frsDarkMinDamageModifier;
-	float frsDarkMaxDamageModifier;
 
 	int coneRange;
 	int range;
@@ -69,7 +62,7 @@ protected:
 	VectorMap<uint8, StateEffect> stateEffects;
 	Vector<DotEffect> dotEffects;
 
-	bool forceAttack;
+	uint8 attackType;
 	uint8 trails;
 	uint8 animType;
 
@@ -94,13 +87,6 @@ public:
 		healthCostMultiplier = 1;
 		actionCostMultiplier = 1;
 		mindCostMultiplier = 1;
-
-		frsLightForceCostModifier = 0;
-		frsDarkForceCostModifier = 0;
-		frsLightMinDamageModifier = 0;
-		frsLightMaxDamageModifier = 0;
-		frsDarkMinDamageModifier = 0;
-		frsDarkMaxDamageModifier = 0;
 
 		// Force Power is only set in Jedi-skills.
 		forceCostMultiplier = 0;
@@ -128,34 +114,23 @@ public:
 		animType = GENERATE_NONE;
 
 
-		forceAttack = false;
+		attackType = CombatManager::WEAPONATTACK;
 		trails = CombatManager::DEFAULTTRAIL;
 
-		weaponType = SharedWeaponObjectTemplate::ANYWEAPON;
+		weaponType = CombatManager::ANYWEAPON;
 	}
 
-	void onFail(uint32 actioncntr, CreatureObject* creature, uint32 errorNumber) const {
-		// evidence shows that this has a custom OOR message.
-		if (errorNumber == TOOFAR) {
-			creature->sendSystemMessage("@error_message:target_out_of_range"); //Your target is out of range for this action.
-			CombatSpam* spam = new CombatSpam(creature, nullptr, creature, nullptr, 0, "cbt_spam", "out_of_range", 10); // That target is out of range. (red)
-			creature->sendMessage(spam);
-			QueueCommand::onFail(actioncntr, creature, GENERALERROR);
-		} else {
-			QueueCommand::onFail(actioncntr, creature, errorNumber);
-		}
-	}
-
-	int doCombatAction(CreatureObject* creature, const uint64& target, const UnicodeString& arguments = "", ManagedReference<WeaponObject*> weapon = nullptr) const {
+	int doCombatAction(CreatureObject* creature, const uint64& target, const UnicodeString& arguments = "", ManagedReference<WeaponObject*> weapon = NULL) const {
 		ManagedReference<SceneObject*> targetObject = server->getZoneServer()->getObject(target);
+		PlayerManager* playerManager = server->getPlayerManager();
 
-		if (targetObject == nullptr || !targetObject->isTangibleObject() || targetObject == creature)
+		if (targetObject == NULL || !targetObject->isTangibleObject() || targetObject == creature)
 			return INVALIDTARGET;
 
-		float rangeToCheck = range;
+		float checkRange = range;
 
-		if (weapon == nullptr) {
-			if(creature->getWeapon() == nullptr) {
+		if (weapon == NULL) {
+			if(creature->getWeapon() == NULL) {
 				return GENERALERROR;
 			}
 			else {
@@ -166,16 +141,16 @@ public:
 		if (!(getWeaponType() & weapon->getWeaponBitmask()))
 			return INVALIDWEAPON;
 
-		if (rangeToCheck == -1)
-			rangeToCheck = (float) Math::max(10, weapon->getMaxRange());
+		if (checkRange == -1)
+			checkRange = MAX(10.f, weapon->getMaxRange());
 
 		if (creature->isDead() || (creature->isPet() && creature->isIncapacitated()))
 			return INVALIDLOCOMOTION;
 
-		if (creature->isPlayerCreature()) {
+		if (creature->isPlayerCreature()){
 			PlayerObject* ghost = creature->getPlayerObject();
 
-			if (ghost != nullptr) {
+			if (ghost != NULL) {
 				if (ghost->isOnLoadScreen())
 					ghost->setOnLoadScreen(false);
 
@@ -184,27 +159,36 @@ public:
 
 				ManagedReference<TangibleObject*> targetTano = targetObject.castTo<TangibleObject*>();
 
-				if (targetTano != nullptr && creature->getFaction() != 0 && targetTano->getFaction() != 0 && targetTano->getFaction() != creature->getFaction() && creature->getFactionStatus() != FactionStatus::OVERT) {
+				if (targetTano != NULL && creature->getFaction() != 0 && targetTano->getFaction() != 0 && targetTano->getFaction() != creature->getFaction() && ghost->getFactionStatus() != FactionStatus::OVERT) {
 					if (targetTano->isCreatureObject()) {
 						ManagedReference<CreatureObject*> targetCreature = targetObject.castTo<CreatureObject*>();
 
-						if (targetCreature != nullptr) {
+						if (targetCreature != NULL) {
 							if (targetCreature->isPlayerCreature()) {
-								if (!CombatManager::instance()->areInDuel(creature, targetCreature) && !targetCreature->hasBountyMissionFor(creature) && !creature->hasBountyMissionFor(targetCreature) && targetCreature->getFactionStatus() == FactionStatus::OVERT)
-									ghost->doFieldFactionChange(FactionStatus::OVERT);
+								if (!CombatManager::instance()->areInDuel(creature, targetCreature)) {
+									PlayerObject* targetGhost = targetCreature->getPlayerObject();
+
+									if (targetGhost != NULL && targetGhost->getFactionStatus() == FactionStatus::OVERT) {
+										ghost->doFieldFactionChange(FactionStatus::OVERT);
+									}
+								}
 							} else if (targetCreature->isPet()) {
 								ManagedReference<CreatureObject*> targetOwner = targetCreature->getLinkedCreature().get();
 
-								if (targetOwner != nullptr && !creature->hasBountyMissionFor(targetOwner) && !targetOwner->hasBountyMissionFor(creature) && !CombatManager::instance()->areInDuel(creature, targetOwner) && targetOwner->getFactionStatus() == FactionStatus::OVERT) {
+								if (targetOwner != NULL && !CombatManager::instance()->areInDuel(creature, targetOwner)) {
+									PlayerObject* targetGhost = targetOwner->getPlayerObject();
+
+									if (targetGhost != NULL && targetGhost->getFactionStatus() == FactionStatus::OVERT) {
 										ghost->doFieldFactionChange(FactionStatus::OVERT);
+									}
 								}
 							} else {
-								if (creature->getFactionStatus() == FactionStatus::ONLEAVE)
+								if (ghost->getFactionStatus() == FactionStatus::ONLEAVE)
 									ghost->doFieldFactionChange(FactionStatus::COVERT);
 							}
 						}
 					} else {
-						if (creature->getFactionStatus() == FactionStatus::ONLEAVE && !(targetTano->getPvpStatusBitmask() & CreatureFlag::OVERT))
+						if (ghost->getFactionStatus() == FactionStatus::ONLEAVE && !(targetTano->getPvpStatusBitmask() & CreatureFlag::OVERT))
 							ghost->doFieldFactionChange(FactionStatus::COVERT);
 						else if ((targetTano->getPvpStatusBitmask() & CreatureFlag::OVERT))
 							ghost->doFieldFactionChange(FactionStatus::OVERT);
@@ -219,39 +203,26 @@ public:
 		if (creature->isProne() && (weapon->isMeleeWeapon() || poolsToDamage == 0))
 			return NOPRONE;
 
-		if (!checkDistance(creature, targetObject, rangeToCheck))
+		if (!targetObject->isInRange(creature, checkRange + targetObject->getTemplateRadius() + creature->getTemplateRadius()))
 			return TOOFAR;
 
-		if (weapon->isRangedWeapon() && creature->isProne() && checkDistance(targetObject, creature, 7))
+		if (weapon->isRangedWeapon() && creature->isProne() && targetObject->isInRange(creature, 7 + targetObject->getTemplateRadius() + creature->getTemplateRadius()))
 			return TOOCLOSE;
 
 		if (!CollisionManager::checkLineOfSight(creature, targetObject)) {
-			creature->sendSystemMessage("@cbt_spam:los_fail"); // "You lost sight of your target."
+			creature->sendSystemMessage("@container_error_message:container18");
 			return GENERALERROR;
 		}
 
-		if (creature->isPlayerCreature() && targetObject->getParentID() != 0 && creature->getParentID() != targetObject->getParentID()) {
-			Reference<CellObject*> targetCell = targetObject->getParent().get().castTo<CellObject*>();
+		if (creature->isPlayerCreature() && !targetObject->isPlayerCreature() && targetObject->getParentID() != 0 && creature->getParentID() != targetObject->getParentID()) {
+			Reference<CellObject*> targetCell = targetObject->getParent().castTo<CellObject*>();
 
-			if (targetCell != nullptr) {
-				if (!targetObject->isPlayerCreature()) {
-					auto perms = targetCell->getContainerPermissions();
+			if (targetCell != NULL) {
+				ContainerPermissions* perms = targetCell->getContainerPermissions();
 
-					if (!perms->hasInheritPermissionsFromParent()) {
-						if (!targetCell->checkContainerPermission(creature, ContainerPermissions::WALKIN)) {
-							creature->sendSystemMessage("@combat_effects:cansee_fail"); // You cannot see your target.
-							return GENERALERROR;
-						}
-					}
-				}
-
-				ManagedReference<SceneObject*> parentSceneObject = targetCell->getParent().get();
-
-				if (parentSceneObject != nullptr) {
-					BuildingObject* buildingObject = parentSceneObject->asBuildingObject();
-
-					if (buildingObject != nullptr && !buildingObject->isAllowedEntry(creature)) {
-						creature->sendSystemMessage("@combat_effects:cansee_fail"); // You cannot see your target.
+				if (!perms->hasInheritPermissionsFromParent()) {
+					if (!targetCell->checkContainerPermission(creature, ContainerPermissions::WALKIN)) {
+						creature->sendSystemMessage("@container_error_message:container18");
 						return GENERALERROR;
 					}
 				}
@@ -259,6 +230,30 @@ public:
 		}
 
 		CombatManager* combatManager = CombatManager::instance();
+
+		bool shouldTef = false;
+
+		if (creature->isPlayerCreature() && targetObject->isPlayerCreature()) {
+			if (!combatManager->areInDuel(creature, targetObject.castTo<CreatureObject*>())) {
+				shouldTef = true;
+			}
+		} else if (creature->isPet() && targetObject->isPlayerCreature()) {
+			ManagedReference<CreatureObject*> owner = creature->getLinkedCreature().get();
+
+			if (owner != NULL && owner->isPlayerCreature()) {
+				if (!combatManager->areInDuel(owner, targetObject.castTo<CreatureObject*>())) {
+					shouldTef = true;
+				}
+			}
+		} else if (creature->isPlayerCreature() && (targetObject->isPet() || targetObject->isVehicleObject())) {
+			ManagedReference<CreatureObject*> targetOwner = targetObject.castTo<CreatureObject*>()->getLinkedCreature().get();
+
+			if (targetOwner != NULL && targetOwner->isPlayerCreature()) {
+				if (!combatManager->areInDuel(creature, targetOwner)) {
+					shouldTef = true;
+				}
+			}
+		}
 
 		try {
 			int res = combatManager->doCombatAction(creature, weapon, cast<TangibleObject*>(targetObject.get()), CreatureAttackData(arguments, this, target));
@@ -281,6 +276,26 @@ public:
 		// only clear aiming states if command was successful
 		creature->removeStateBuff(CreatureState::AIMING);
 		creature->removeBuff(STRING_HASHCODE("steadyaim"));
+
+		// Update PvP TEF Duration
+		if (shouldTef && creature->isPlayerCreature()) {
+			PlayerObject* ghost = creature->getPlayerObject().get();
+
+			if (ghost != NULL) {
+				ghost->updateLastPvpCombatActionTimestamp();
+			}
+		} else if (shouldTef && creature->isPet()) {
+			ManagedReference<CreatureObject*> owner = creature->getLinkedCreature().get();
+
+			if (owner != NULL && owner->isPlayerCreature()) {
+				PlayerObject* ownerGhost = owner->getPlayerObject().get();
+
+				if (ownerGhost != NULL) {
+					Locker olocker(owner, creature);
+					ownerGhost->updateLastPvpCombatActionTimestamp();
+				}
+			}
+		}
 
 		return SUCCESS;
 	}
@@ -309,7 +324,7 @@ public:
 		return range;
 	}
 
-	inline const String& getAccuracySkillMod() const {
+	inline String getAccuracySkillMod() const {
 		return accuracySkillMod;
 	}
 
@@ -405,7 +420,7 @@ public:
 		this->areaRange = i;
 	}
 
-	void setEffectString(const String& s) {
+	void setEffectString(String s) {
 		this->effectString = s;
 	}
 
@@ -425,7 +440,7 @@ public:
 		return animType;
 	}
 
-	const String& getAnimationString() const {
+	String getAnimationString() const {
 		return animation;
 	}
 
@@ -437,71 +452,67 @@ public:
 	}
 
 	String getDefaultAttackAnimation(TangibleObject* attacker, WeaponObject* weapon, uint8 hitLocation, int damage) const {
-		enum lateralLocations {LEFT, CENTER, RIGHT};
-		static const char* headLocations[] =  {"attack_high_left", "attack_high_center", "attack_high_right"};
-		static const char* chestLocations[] = {"attack_mid_left", "attack_mid_center", "attack_mid_right"};
-		static const char* legLocations[] = {"attack_low_left", "attack_low_center", "attack_low_right"};
+			enum lateralLocations {LEFT, CENTER, RIGHT};
+			static const char* headLocations[] =  {"attack_high_left", "attack_high_center", "attack_high_right"};
+			static const char* chestLocations[] = {"attack_mid_left", "attack_mid_center", "attack_mid_right"};
+			static const char* legLocations[] = {"attack_low_left", "attack_low_center", "attack_low_right"};
 
-		static const char* rangedAttacks[] = {"fire_1_single", "fire_3_single", "fire_5_single"};
+			static const char* rangedAttacks[] = {"fire_1_single", "fire_3_single", "fire_5_single"};
 
-		String intensity = getIntensity(((uint32)weapon->getMaxDamage()) >> 2, damage);
-		StringBuffer buffer;
+			String intensity = getIntensity((weapon != NULL ? (((uint32)weapon->getMaxDamage()) >> 2) : 0), damage);
+			StringBuffer buffer;
+			if(!attacker->isCreature()) {
+				if(weapon->isRangedWeapon()) {
 
-		if (attacker->isDroidObject()) {
-			return "droid_attack" + intensity;
-		} else if (!attacker->isCreature()) {
-			if (weapon->isRangedWeapon()) {
+					buffer << rangedAttacks[System::random(2)];
 
-				buffer << rangedAttacks[System::random(2)];
+					buffer << intensity;
 
-				buffer << intensity;
+					if(hitLocation == CombatManager::HIT_HEAD)
+						buffer << "_face";
 
-				if (hitLocation == CombatManager::HIT_HEAD)
-					buffer << "_face";
+				} else {
+					if(hitLocation == 0)
+						hitLocation = System::random(5)+1;
 
-			} else {
-				if (hitLocation == 0)
-					hitLocation = System::random(5) + 1;
+					switch(hitLocation) {
+					case CombatManager::HIT_BODY:
+						buffer << chestLocations[CENTER];
+						break;
+					case CombatManager::HIT_LARM:
+						buffer << chestLocations[RIGHT];
+						break;
+					case CombatManager::HIT_RARM:
+						buffer << chestLocations[LEFT]; // these are purposely backwards - It's mirrored
+						break;
+					case CombatManager::HIT_LLEG:
+						buffer << legLocations[System::random(1)+1];
+						break;
+					case CombatManager::HIT_RLEG:
+						buffer << legLocations[System::random(1)];
+						break;
+					case CombatManager::HIT_HEAD:
+						buffer << headLocations[System::random(2)];
+						break;
+					}
 
-				switch(hitLocation) {
-				case CombatManager::HIT_BODY:
-					buffer << chestLocations[CENTER];
-					break;
-				case CombatManager::HIT_LARM:
-					buffer << chestLocations[RIGHT];
-					break;
-				case CombatManager::HIT_RARM:
-					buffer << chestLocations[LEFT]; // these are purposely backwards - It's mirrored
-					break;
-				case CombatManager::HIT_LLEG:
-					buffer << legLocations[System::random(1) + 1];
-					break;
-				case CombatManager::HIT_RLEG:
-					buffer << legLocations[System::random(1)];
-					break;
-				case CombatManager::HIT_HEAD:
-					buffer << headLocations[System::random(2)];
-					break;
+					buffer << intensity;
+
+					// TODO: Actually sequence these
+					buffer << "_" << String::valueOf(System::random(3));
 				}
-
-				buffer << intensity;
-
-				// TODO: Actually sequence these
-				buffer << "_" << String::valueOf(System::random(3));
+			} else {
+				if (attacker->getGameObjectType() == SceneObjectType::DROIDCREATURE || attacker->getGameObjectType() == SceneObjectType::PROBOTCREATURE)
+					return "droid_attack" + intensity;
+				else if (weapon->isRangedWeapon())
+					return "creature_attack_ranged" + intensity;
+				else
+					return "creature_attack" + intensity;
 			}
-		} else {
-			if (attacker->getGameObjectType() == SceneObjectType::DROIDCREATURE || attacker->getGameObjectType() == SceneObjectType::PROBOTCREATURE)
-				return "droid_attack" + intensity;
-			else if (weapon->isRangedWeapon())
-				return "creature_attack_ranged" + intensity;
-			else
-				return "creature_attack" + intensity;
+
+			//info("Generated Attack Animation- " + buffer.toString(), true);
+			return buffer.toString();
 		}
-
-		debug() << "Generated Attack Animation- " << buffer;
-
-		return buffer.toString();
-	}
 
 	inline String generateAnimation(uint8 hitLocation, int weaponThreshold, int damage) const {
 		String anim = animation;
@@ -513,32 +524,33 @@ public:
 		case GENERATE_INTENSITY:
 			anim += getIntensity(weaponThreshold, damage);
 
-			if (animType == GENERATE_INTENSITY)
+			if(animType == GENERATE_INTENSITY)
 				return anim;
 
-			if (hitLocation == CombatManager::HIT_HEAD)
+			if(hitLocation == CombatManager::HIT_HEAD)
 				anim += "_face";
 
 			return anim;
 		}
-
-		debug() << "Generated Attack Animation- " << anim;
-
+		//info("Generated Attack Animation- " + anim, true);
 		return anim;
 	}
-
 	virtual String getAnimation(TangibleObject* attacker, TangibleObject* defender, WeaponObject* weapon, uint8 hitLocation, int damage) const {
-		if (animation.isEmpty())
+
+		if(animation.isEmpty())
 			return getDefaultAttackAnimation(attacker, weapon, hitLocation, damage);
 
-		return generateAnimation(hitLocation, ((uint32)weapon->getMaxDamage()) >> 2, damage);
+		return generateAnimation(hitLocation, (weapon != NULL ? (((uint32)weapon->getMaxDamage()) >> 2) : 0), damage);
+
 	}
 
-	inline const String& getEffectString() const {
+
+
+	inline String getEffectString() const {
 		return effectString;
 	}
 
-	inline const String& getCombatSpam() const {
+	inline String getCombatSpam() const {
 		return combatSpam;
 	}
 
@@ -546,19 +558,19 @@ public:
 		return poolsToDamage;
 	}
 
-	inline const VectorMap<uint8, StateEffect>* getStateEffects() const {
-		return &stateEffects;
+	inline VectorMap<uint8, StateEffect>* getStateEffects() const {
+		return &(const_cast<CombatQueueCommand*>(this)->stateEffects);
 	}
 
-	inline const Vector<DotEffect>* getDotEffects() const {
-		return &dotEffects;
+	inline Vector<DotEffect>* getDotEffects() const {
+		return &(const_cast<CombatQueueCommand*>(this)->dotEffects);
 	}
 
-	void setAnimationString(const String& anim) {
+	void setAnimationString(String anim) {
 		this->animation = anim;
 	}
 
-	void setCombatSpam(const String& combatSpam) {
+	void setCombatSpam(String combatSpam) {
 		this->combatSpam = combatSpam;
 	}
 
@@ -574,11 +586,11 @@ public:
 		stateEffects.put(stateEffect.getEffectType(), stateEffect);
 	}
 
-	const StateEffect& getStateEffect(uint8 type) const {
+	StateEffect getStateEffect(uint8 type) const {
 		return const_cast<CombatQueueCommand*>(this)->stateEffects.get(type);
 	}
 
-	void setDotEffects(const Vector<DotEffect>& dotEffects) {
+	void setDotEffects(Vector<DotEffect> dotEffects) {
 		this->dotEffects = dotEffects;
 	}
 
@@ -606,7 +618,7 @@ public:
 		this->damageType = dm;
 	}
 
-	void addDotEffect(const DotEffect& dotEffect) {
+	void addDotEffect(DotEffect dotEffect) {
 		dotEffects.add(dotEffect);
 	}
 
@@ -618,15 +630,15 @@ public:
 		this->range = i;
 	}
 
-	void setAccuracySkillMod(const String& acc) {
+	void setAccuracySkillMod(String acc) {
 		this->accuracySkillMod = acc;
 	}
 
-	bool hasCombatSpam() const {
+	bool hasCombatSpam() {
 		return !combatSpam.isEmpty();
 	}
 
-	bool isCombatCommand() const {
+	bool isCombatCommand() {
 		return true;
 	}
 
@@ -638,7 +650,7 @@ public:
 	virtual void applyEffect(CreatureObject* attacker, CreatureObject* defender, uint8 effectType, uint32 mod) const {
 		CombatManager* combatManager = CombatManager::instance();
 		StateEffect effect = getStateEffect(effectType);
-		Reference<Buff*> buff = nullptr;
+		Reference<Buff*> buff = NULL;
 
 		Vector<String> defenseMods = effect.getDefenderStateDefenseModifiers();
 		float targetDefense = 0.f;
@@ -647,7 +659,7 @@ public:
 
 		targetDefense -= mod;
 
-		uint32 duration = (uint32) Math::max(5.f, effect.getStateLength()*(1.f-targetDefense/120.f));
+		uint32 duration = MAX(5, effect.getStateLength()*(1.f-targetDefense/120.f));
 
 		switch (effectType) {
 		case CommandEffect::BLIND:
@@ -783,7 +795,7 @@ public:
 
 	//Override for special cases (skills like Taunt that don't have 5 result strings)
 	virtual void sendAttackCombatSpam(TangibleObject* attacker, TangibleObject* defender, int attackResult, int damage, const CreatureAttackData& data) const {
-		if (attacker == nullptr || defender == nullptr)
+		if (attacker == NULL || defender == NULL)
 			return;
 
 		String stringName = data.getCombatSpam();
@@ -811,16 +823,16 @@ public:
 			break;
 		}
 
-		CombatManager::instance()->broadcastCombatSpam(attacker, defender, nullptr, damage, "cbt_spam", stringName, color);
+		CombatManager::instance()->broadcastCombatSpam(attacker, defender, NULL, damage, "cbt_spam", stringName, color);
 
 	}
 
-	bool isForceAttack() const {
-		return forceAttack;
+	uint8 getAttackType() const {
+		return attackType;
 	}
 
-	void setForceAttack(bool forceAttack) {
-		this->forceAttack = forceAttack;
+	void setAttackType(uint8 attackType) {
+		this->attackType = attackType;
 	}
 
 	uint8 getTrails() const {
@@ -851,42 +863,6 @@ public:
 		return visMod;
 	}
 
-	void setFrsLightForceCostModifier(float val) {
-		frsLightForceCostModifier = val;
-	}
-
-	void setFrsDarkForceCostModifier(float val) {
-		frsDarkForceCostModifier = val;
-	}
-
-	void setFrsLightMinDamageModifier(float val) {
-		frsLightMinDamageModifier = val;
-	}
-	void setFrsLightMaxDamageModifier(float val) {
-		frsLightMaxDamageModifier = val;
-	}
-	void setFrsDarkMinDamageModifier(float val) {
-		frsDarkMinDamageModifier = val;
-	}
-	void setFrsDarkMaxDamageModifier(float val) {
-		frsDarkMaxDamageModifier = val;
-	}
-
-	inline float getFrsLightMinDamageModifier() const {
-		return frsLightMinDamageModifier;
-	}
-
-	inline float getFrsLightMaxDamageModifier() const {
-		return frsLightMaxDamageModifier;
-	}
-
-	inline float getFrsDarkMinDamageModifier() const {
-		return frsDarkMinDamageModifier;
-	}
-
-	inline float getFrsDarkMaxDamageModifier() const {
-		return frsDarkMaxDamageModifier;
-	}
 };
 
 #endif /* COMBATQUEUECOMMAND_H_ */

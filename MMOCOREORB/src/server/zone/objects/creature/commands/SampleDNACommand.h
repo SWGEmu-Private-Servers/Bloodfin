@@ -40,7 +40,7 @@ public:
 			return GENERALERROR;
 		}
 
-		if (object == nullptr) {
+		if (object == NULL) {
 			player->sendSystemMessage("@bio_engineer:harvest_dna_need_target"); // You need to target the creature you wish to take a DNA sample from.
 			return INVALIDTARGET;
 		}
@@ -59,13 +59,13 @@ public:
 			return GENERALERROR;
 		}
 
-		if (cr == nullptr || !cr->isAttackableBy(player)){
+		if (cr == NULL || !cr->isAttackableBy(player)){
 			player->sendSystemMessage("@bio_engineer:harvest_dna_invalid_target"); // You cannot sample DNA from that target.
 			return INVALIDTARGET;
 		}
 
 		// Sample DNa is a 16M max range
-		if (!checkDistance(object, creature, 16.0f)){
+		if (!object->isInRange(creature, 16.0f + object->getTemplateRadius() + creature->getTemplateRadius())){
 			player->sendSystemMessage("@bio_engineer:harvest_dna_out_of_range"); // Your target is too far away to be able to sample from.
 			return TOOFAR;
 		}
@@ -95,7 +95,7 @@ public:
 
 		if (cr->canCollectDna(player)) {
 
-			if (cr->getZone() == nullptr){
+			if (cr->getZone() == NULL){
 				return GENERALERROR;
 			}
 

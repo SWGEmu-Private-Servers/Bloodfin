@@ -5,7 +5,7 @@
 #ifndef SHIPOBJECTMESSAGE3_H_
 #define SHIPOBJECTMESSAGE3_H_
 
-#include "server/zone/packets/tangible/TangibleObjectMessage3.h"
+#include "../../packets/tangible/TangibleObjectMessage3.h"
 #include "server/zone/objects/ship/ShipObject.h"
 
 class ShipObjectMessage3 : public TangibleObjectMessage3 {
@@ -53,7 +53,7 @@ public:
 
 		insertDummyList(0x2);
 
-		insertFloat(301.f); //front shield max
+		insertFloat(302.f); //front shield max
 		insertFloat(302.f); // back shield max
 
 		setSize();

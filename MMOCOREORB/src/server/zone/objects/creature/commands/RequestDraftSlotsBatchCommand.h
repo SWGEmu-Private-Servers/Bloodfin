@@ -5,6 +5,7 @@
 #ifndef REQUESTDRAFTSLOTSBATCHCOMMAND_H_
 #define REQUESTDRAFTSLOTSBATCHCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/managers/crafting/CraftingManager.h"
 
 class RequestDraftSlotsBatchCommand : public QueueCommand {
@@ -30,7 +31,7 @@ public:
 
 		ManagedReference<CraftingManager* > craftingManager = creature->getZoneServer()->getCraftingManager();
 
-		if(craftingManager == nullptr || !creature->isPlayerCreature())
+		if(craftingManager == NULL || !creature->isPlayerCreature())
 			return GENERALERROR;
 
 		StringTokenizer tokenizer(arguments.toString());

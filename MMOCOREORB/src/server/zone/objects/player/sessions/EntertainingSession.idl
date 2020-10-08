@@ -4,17 +4,22 @@
 
 package server.zone.objects.player.sessions;
 
+include engine.core.ManagedObject;
+
 import engine.log.Logger;
+import engine.core.ManagedReference;
 import engine.util.Facade;
+import system.lang.ref.Reference;
+import engine.core.Task;
 import system.util.SortedVector;
-include system.util.Vector;
+include server.zone.objects.player.EntertainingData;
 include server.zone.objects.player.EntertainingDataMap;
 import server.zone.objects.creature.CreatureObject;
+import server.zone.objects.tangible.TangibleObject;
 import server.zone.objects.tangible.Instrument;
 import server.zone.objects.player.events.EntertainingSessionTask;
 import server.zone.objects.player.EntertainingObserver;
-
-include system.lang.Time;
+import server.zone.objects.tangible.Instrument;
 
 class EntertainingSession extends Facade {
 	@weakReference
@@ -41,10 +46,8 @@ class EntertainingSession extends Facade {
 	protected boolean playingMusic;
 	
 	protected int flourishXp;
-	protected int oldFlourishXp;
 	protected int healingXp;
 	protected int flourishCount;
-	protected int applauseCount;
 	protected boolean acceptingBandFlourishes;
 	protected boolean targetInstrument;
 	protected Instrument externalInstrument;
@@ -53,10 +56,8 @@ class EntertainingSession extends Facade {
 		entertainer = ent;
 		
 		flourishXp = 0;
-		oldFlourishXp = 0;
 		healingXp = 0;
 		flourishCount = 0;
-		applauseCount = 0;
 		
 		observer = null;
 		
@@ -209,18 +210,4 @@ class EntertainingSession extends Facade {
 	public native void increaseEntertainerBuff(CreatureObject patron);
 	
 	public native void awardEntertainerExperience();
-	
-	@local
-	@dereferenced
-	public native Vector<unsigned long> getAudience();
-	
-	public native int getBandAudienceSize();
-	
-	public void incrementApplauseCount() {
-		applauseCount++;
-	}
-	
-	public int getApplauseCount() {
-		return applauseCount;
-	}
 }

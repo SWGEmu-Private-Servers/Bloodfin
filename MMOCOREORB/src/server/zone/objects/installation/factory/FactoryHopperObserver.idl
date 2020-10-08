@@ -11,33 +11,31 @@ import engine.core.ManagedReference;
 import engine.util.Facade;
 import system.lang.ref.Reference;
 import engine.core.Task;
+import engine.util.Observer;
+import engine.util.Observable;
+include server.zone.objects.scene.ObserverEventType;
+import server.zone.objects.installation.factory.FactoryObject;
 
-include engine.util.Observer;
-include engine.util.Observable;
-include templates.params.ObserverEventType;
-include server.zone.objects.installation.factory.FactoryObject;
-
-@json
 class FactoryHopperObserver extends Observer {
 	@weakReference
 	protected FactoryObject factory;
-
+	
 	public FactoryHopperObserver(FactoryObject fact) {
 		factory = fact;
 	}
 
 	public int notifyObserverEvent(unsigned int eventType, Observable observable, ManagedObject arg1, long arg2) {
-		FactoryObject strongRef = factory;
-
-		if (!strongRef)
+		
+		if(factory == null)
 			return 0;
-
-		if (eventType == ObserverEventType.OPENCONTAINER) {
-			strongRef.openHopper(observable, arg1);
+		
+		if(eventType == ObserverEventType.OPENCONTAINER) {
+			factory.openHopper(observable, arg1);
 		} else if(eventType == ObserverEventType.CLOSECONTAINER) {
-			strongRef.closeHopper(observable, arg1);
+			factory.closeHopper(observable, arg1);
 		}
-
+		
 		return 0;
 	}
+	
 }

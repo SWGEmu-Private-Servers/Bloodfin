@@ -32,9 +32,9 @@ public:
 
 		ManagedReference<GuildManager*> guildManager = server->getGuildManager();
 
-		ManagedReference<SceneObject*> obj = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = suiBox->getUsingObject();
 
-		if (obj == nullptr || !obj->isTerminal())
+		if (obj == NULL || !obj->isTerminal())
 			return;
 
 		Terminal* terminal = cast<Terminal*>( obj.get());

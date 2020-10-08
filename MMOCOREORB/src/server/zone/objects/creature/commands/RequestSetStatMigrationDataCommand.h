@@ -5,6 +5,8 @@
 #ifndef REQUESTSETSTATMIGRATIONDATACOMMAND_H_
 #define REQUESTSETSTATMIGRATIONDATACOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/player/Races.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/sessions/MigrateStatsSession.h"
 #include "server/zone/managers/player/creation/PlayerCreationManager.h"
@@ -47,7 +49,7 @@ public:
 		ManagedReference<Facade*> facade = creature->getActiveSession(SessionFacadeType::MIGRATESTATS);
 		ManagedReference<MigrateStatsSession*> session = dynamic_cast<MigrateStatsSession*>(facade.get());
 
-		if (session == nullptr) {
+		if (session == NULL) {
 			return GENERALERROR;
 		}
 
@@ -85,7 +87,7 @@ public:
 		//Player is in the tutorial zone and is allowed to migrate stats.
 		Zone* zone = creature->getZone();
 
-		if (zone != nullptr && zone->getZoneName() == "tutorial")
+		if (zone != NULL && zone->getZoneName() == "tutorial")
 			session->migrateStats();
 
 

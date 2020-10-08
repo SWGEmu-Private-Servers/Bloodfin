@@ -5,6 +5,7 @@
 #ifndef GETPLAYERIDCOMMAND_H_
 #define GETPLAYERIDCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/managers/player/PlayerManager.h"
 
 class GetPlayerIdCommand : public QueueCommand {
@@ -23,7 +24,7 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
-		ManagedReference<CreatureObject* > targetCreature = nullptr;
+		ManagedReference<CreatureObject* > targetCreature = NULL;
 
 		StringTokenizer args(arguments.toString());
 
@@ -40,7 +41,7 @@ public:
 
 		}
 
-		if(targetCreature == nullptr || !targetCreature->isPlayerCreature())
+		if(targetCreature == NULL || !targetCreature->isPlayerCreature())
 			return INVALIDTARGET;
 
 		creature->sendSystemMessage("PlayerId for " + targetCreature->getFirstName()

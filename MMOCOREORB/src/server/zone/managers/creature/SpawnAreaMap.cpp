@@ -7,7 +7,11 @@
 
 #include "SpawnAreaMap.h"
 #include "server/zone/Zone.h"
-#include "server/zone/managers/object/ObjectManager.h"
+#include "server/zone/managers/creature/CreatureManager.h"
+#include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/creature/ai/AiAgent.h"
+#include "server/zone/objects/creature/junkdealer/JunkdealerCreature.h"
+#include "server/conf/ConfigManager.h"
 #include "server/zone/objects/area/areashapes/CircularAreaShape.h"
 #include "server/zone/objects/area/areashapes/RectangularAreaShape.h"
 #include "server/zone/objects/area/areashapes/RingAreaShape.h"
@@ -21,7 +25,44 @@ void SpawnAreaMap::loadMap(Zone* z) {
 	lua->init();
 
 	try {
-		loadRegions();
+		lua->runFile("scripts/managers/spawn_manager/" + planetName + ".lua");
+
+		LuaObject obj = lua->getGlobalObject(planetName + "_regions");
+
+		if (obj.isValidTable()) {
+			info("loading spawn areas...", true);
+
+			lua_State* s = obj.getLuaState();
+
+			for (int i = 1; i <= obj.getTableSize(); ++i) {
+				lua_rawgeti(s, -1, i);
+				LuaObject areaObj(s);
+
+				if (areaObj.isValidTable()) {
+					readAreaObject(areaObj);
+				}
+
+				areaObj.pop();
+			}
+		}
+
+		obj.pop();
+
+		for (int i = 0; i < size(); ++i) {
+			SpawnArea* area = get(i);
+
+			Locker locker(area);
+
+			for (int j = 0; j < noSpawnAreas.size(); ++j) {
+				SpawnArea* notHere = noSpawnAreas.get(j);
+
+				if (area->intersectsWith(notHere)) {
+					area->addNoSpawnArea(notHere);
+				}
+			}
+		}
+
+		loadStaticSpawns();
 	} catch (Exception& e) {
 		error(e.getMessage());
 	}
@@ -29,48 +70,111 @@ void SpawnAreaMap::loadMap(Zone* z) {
 	lua->deinit();
 
 	delete lua;
-	lua = nullptr;
+	lua = NULL;
 }
 
-void SpawnAreaMap::loadRegions() {
+void SpawnAreaMap::loadStaticSpawns() {
 	String planetName = zone->getZoneName();
 
-	lua->runFile("scripts/managers/spawn_manager/" + planetName + "_regions.lua");
+	LuaObject obj = lua->getGlobalObject(planetName + "_static_spawns");
 
-	LuaObject obj = lua->getGlobalObject(planetName + "_regions");
+	if (!obj.isValidTable()) {
+		obj.pop();
+		return;
+	}
 
-	if (obj.isValidTable()) {
-		info("loading spawn areas...", true);
+	int count = 0;
+	int max = obj.getTableSize();
 
-		lua_State* s = obj.getLuaState();
+	for (int i = 1; i <= obj.getTableSize(); ++i) {
+		lua_rawgeti(obj.getLuaState(), -1, i);
+		LuaObject spawn(obj.getLuaState());
 
-		for (int i = 1; i <= obj.getTableSize(); ++i) {
-			lua_rawgeti(s, -1, i);
-			LuaObject areaObj(s);
+		if (spawn.isValidTable()) {
+			CreatureManager* creatureManager = zone->getCreatureManager();
 
-			if (areaObj.isValidTable()) {
-				readAreaObject(areaObj);
+			String name = obj.getStringAt(1);
+			uint32 respawn = obj.getIntAt(2);
+			float x = obj.getFloatAt(3);
+			float z = obj.getFloatAt(4);
+			float y = obj.getFloatAt(5);
+			float heading = obj.getFloatAt(6);
+			uint64 parentID = obj.getLongAt(7);
+			String moodString;
+			UnicodeString customName;
+			String aiString;
+			int junkDealerBuyingType =0;
+			int junkDealerConversationType =0;
+			if (obj.getTableSize() > 7)
+				moodString = obj.getStringAt(8);
+
+			if (obj.getTableSize() > 8)
+				customName = obj.getStringAt(9);
+
+			if (obj.getTableSize() > 9)
+				aiString = obj.getStringAt(10);
+
+			if (obj.getTableSize() > 10)
+				junkDealerBuyingType = obj.getIntAt(11);
+
+			if (obj.getTableSize() > 11)
+				junkDealerConversationType = obj.getIntAt(12);
+
+			if (parentID == 0)
+				z = zone->getHeight(x, y);
+
+			ManagedReference<CreatureObject*> creatureObject = creatureManager->spawnCreature(name.hashCode(), 0, x, z, y, parentID);
+
+			if (creatureObject != NULL) {
+				Locker objLocker(creatureObject);
+
+				creatureObject->setDirection(Math::deg2rad(heading));
+				
+				if (creatureObject->isJunkDealer()){
+					cast<JunkdealerCreature*>(creatureObject.get())->setJunkDealerConversationType(junkDealerConversationType);
+					cast<JunkdealerCreature*>(creatureObject.get())->setJunkDealerBuyerType(junkDealerBuyingType);
+				}
+				if (!moodString.isEmpty()) {
+					creatureObject->setMoodString(moodString);
+
+					//TODO: remove after fixing commoners
+					if (moodString == "conversation" || moodString == "calm") {
+						creatureObject->setPvpStatusBitmask(0);
+						creatureObject->setCloseObjects(NULL);
+					}
+				}
+
+				if (!customName.isEmpty())
+					creatureObject->setCustomObjectName(customName, true);
+
+				if (creatureObject->isAiAgent()) {
+					AiAgent* ai = cast<AiAgent*>( creatureObject.get());
+					ai->setRespawnTimer(respawn);
+					if (!aiString.isEmpty()) {
+						ai->activateLoad(aiString);
+					}
+				}
+			} else {
+				StringBuffer msg;
+				msg << "could not spawn mobile: " + name;
+				error(msg.toString());
 			}
-
-			areaObj.pop();
 		}
+
+		spawn.pop();
+
+		if (ConfigManager::instance()->isProgressMonitorActivated())
+			printf("\r\tLoading static spawns: [%d] / [%d]\t", ++count, max);
 	}
 
 	obj.pop();
 
-	for (int i = 0; i < size(); ++i) {
-		SpawnArea* area = get(i);
 
-		Locker locker(area);
+	//--{"mobile", x, z, y, degrees heading, parentID}
 
-		for (int j = 0; j < noSpawnAreas.size(); ++j) {
-			SpawnArea* notHere = noSpawnAreas.get(j);
 
-			if (area->intersectsWith(notHere)) {
-				area->addNoSpawnArea(notHere);
-			}
-		}
-	}
+
+	//spawnCreature(uint32 templateCRC, uint32 objectCRC, float x, float z, float y, uint64 parentID)
 }
 
 void SpawnAreaMap::readAreaObject(LuaObject& areaObj) {
@@ -83,63 +187,37 @@ void SpawnAreaMap::readAreaObject(LuaObject& areaObj) {
 		return;
 
 	float radius = 0;
-	float x2 = 0;
-	float y2 = 0;
+	float width = 0;
+	float height = 0;
 	float innerRadius = 0;
 	float outerRadius = 0;
 
-	LuaObject areaShapeObject = areaObj.getObjectAt(4);
-	if (!areaShapeObject.isValidTable()) {
-		error("Invalid area shape table for spawn region " + name);
-		return;
-	}
+    LuaObject areaShapeObject = areaObj.getObjectAt(4);
+    if (areaShapeObject.isValidTable()) {
+        if (areaShapeObject.getIntAt(1) == 1) {
+            radius = areaShapeObject.getFloatAt(2);
+        } else if (areaShapeObject.getIntAt(1) == 2) {
+            width = areaShapeObject.getFloatAt(2);
+            height = areaShapeObject.getFloatAt(3);
+        } else if (areaShapeObject.getIntAt(1) == 3) {
+        	innerRadius = areaShapeObject.getFloatAt(2);
+        	outerRadius = areaShapeObject.getFloatAt(3);
+        }
+        areaShapeObject.pop();
+    } else {
+    	areaShapeObject.pop();
+        radius = areaObj.getFloatAt(4);
+        width = 0;
+        height = 0;
+    }
 
-	int areaType = areaShapeObject.getIntAt(1);
-
-	if (areaType == CIRCLE) {
-		radius = areaShapeObject.getFloatAt(2);
-
-		if (radius <= 0 && !(tier & WORLDSPAWNAREA)) {
-			error("Invalid radius of " + String::valueOf(radius) + " must be > 0 for circular spawn region " + name);
-			return;
-		}
-	} else if (areaType == RECTANGLE) {
-		x2 = areaShapeObject.getFloatAt(2);
-		y2 = areaShapeObject.getFloatAt(3);
-		int rectWidth = x2 - x;
-		int rectHeight = y2 - y;
-
-		if (!(tier & WORLDSPAWNAREA) && (rectWidth <= 0 || rectHeight <= 0)) {
-			error("Invalid corner coordinates for rectangular spawn region " + name + ", total height: " + String::valueOf(rectHeight) + ", total width: " + String::valueOf(rectWidth));
-			return;
-		}
-	} else if (areaType == RING) {
-		innerRadius = areaShapeObject.getFloatAt(2);
-		outerRadius = areaShapeObject.getFloatAt(3);
-
-		if (!(tier & WORLDSPAWNAREA)) {
-			if (innerRadius <= 0) {
-				error("Invalid inner radius of " + String::valueOf(innerRadius) + " must be > 0 for ring spawn region " + name);
-				return;
-			} else if (outerRadius <= 0) {
-				error("Invalid outer radius of " + String::valueOf(outerRadius) + " must be > 0 for ring spawn region " + name);
-				return;
-			}
-		}
-	} else {
-		error("Invalid area type of " + String::valueOf(areaType) + " for spawn region " + name);
-		return;
-	}
-
-	areaShapeObject.pop();
-
-	if (radius == 0 && x2 == 0 && y2 == 0 && innerRadius == 0 && outerRadius == 0)
+	if (radius == 0 && width == 0 && height == 0 && innerRadius == 0 && outerRadius == 0)
 		return;
 
 	static const uint32 crc = STRING_HASHCODE("object/spawn_area.iff");
 
 	ManagedReference<SpawnArea*> area = dynamic_cast<SpawnArea*>(ObjectManager::instance()->createObject(crc, 0, "spawnareas"));
-	if (area == nullptr)
+	if (area == NULL)
 		return;
 
 	Locker objLocker(area);
@@ -148,36 +226,34 @@ void SpawnAreaMap::readAreaObject(LuaObject& areaObj) {
 
 	area->setObjectName(nameID, false);
 
-	if (areaType == RECTANGLE) {
+	if (height > 0 && width > 0) {
 		ManagedReference<RectangularAreaShape*> rectangularAreaShape = new RectangularAreaShape();
 		Locker shapeLocker(rectangularAreaShape);
-		rectangularAreaShape->setDimensions(x, y, x2, y2);
-		float centerX = x + ((x2 - x) / 2);
-		float centerY = y + ((y2 - y) / 2);
-		rectangularAreaShape->setAreaCenter(centerX, centerY);
+		rectangularAreaShape->setAreaCenter(x, y);
+		rectangularAreaShape->setDimensions(height, width);
 		area->setAreaShape(rectangularAreaShape);
-	} else if (areaType == CIRCLE) {
+	} else if (radius > 0) {
 		ManagedReference<CircularAreaShape*> circularAreaShape = new CircularAreaShape();
 		Locker shapeLocker(circularAreaShape);
 		circularAreaShape->setAreaCenter(x, y);
-
-		if (radius > 0)
-			circularAreaShape->setRadius(radius);
-		else
-			circularAreaShape->setRadius(zone->getBoundingRadius());
-
+		circularAreaShape->setRadius(radius);
 		area->setAreaShape(circularAreaShape);
-	} else if (areaType == RING) {
+	} else if (innerRadius > 0 && outerRadius > 0) {
 		ManagedReference<RingAreaShape*> ringAreaShape = new RingAreaShape();
 		Locker shapeLocker(ringAreaShape);
 		ringAreaShape->setAreaCenter(x, y);
 		ringAreaShape->setInnerRadius(innerRadius);
 		ringAreaShape->setOuterRadius(outerRadius);
 		area->setAreaShape(ringAreaShape);
+	} else {
+		ManagedReference<CircularAreaShape*> circularAreaShape = new CircularAreaShape();
+		Locker shapeLocker(circularAreaShape);
+		circularAreaShape->setAreaCenter(x, y);
+		circularAreaShape->setRadius(zone->getBoundingRadius());
+		area->setAreaShape(circularAreaShape);
 	}
 
 	area->setTier(tier);
-	area->initializePosition(x, 0, y);
 
 	if (tier & SPAWNAREA) {
 		area->setMaxSpawnLimit(areaObj.getIntAt(7));
@@ -219,20 +295,4 @@ void SpawnAreaMap::readAreaObject(LuaObject& areaObj) {
 		area->setNoBuildArea(true);
 	}
 
-}
-
-void SpawnAreaMap::unloadMap() {
-	noSpawnAreas.removeAll();
-	worldSpawnAreas.removeAll();
-
-	for (int i = 0; i < size(); i++) {
-		SpawnArea* area = get(i);
-
-		if (area != nullptr) {
-			Locker locker(area);
-			area->destroyObjectFromWorld(false);
-		}
-	}
-
-	removeAll();
 }

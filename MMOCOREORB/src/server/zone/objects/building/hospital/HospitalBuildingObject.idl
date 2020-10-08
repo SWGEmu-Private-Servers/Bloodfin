@@ -5,14 +5,19 @@
 package server.zone.objects.building.hospital;
 
 import server.zone.objects.building.BuildingObject;
+import engine.lua.LuaObject;
+import server.zone.Zone;
+import server.zone.objects.cell.CellObject;
+include server.zone.templates.tangible.HospitalBuildingObjectTemplate;
+include server.zone.managers.skill.SkillModManager;
 
-@json
+
 class HospitalBuildingObject extends BuildingObject {
 
 	public HospitalBuildingObject() {
 		Logger.setLoggingName("HospitalBuildingObject");
 	}
-
+	
 	@dirty
 	public boolean isHospitalBuildingObject() {
 		return true;

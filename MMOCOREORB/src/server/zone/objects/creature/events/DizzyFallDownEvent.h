@@ -27,22 +27,20 @@ public:
 	void run() {
 		Locker locker(creature);
 
-		if (creature->isDead()) {
-			creature->clearDizzyEvent();
-			return;
-		}
+		// Small chance to stand up while dizzy...
+		int rand = System::random(100);
+		int chance = 5; // Percent.
 
-		if (creature->isDizzied()) {
+		if (creature->isDizzied() && (100 - rand >= chance)) {
 			if (creature->isRidingMount()) {
 				creature->updateCooldownTimer("mount_dismount", 0);
 				creature->dismount();
 			}
-
-			if (!creature->isKnockedDown())
-				creature->setPosture(CreaturePosture::KNOCKEDDOWN);
-
+			creature->setPosture(CreaturePosture::KNOCKEDDOWN);
+			creature->updateKnockdownRecovery();
+//			creature->updateLastKnockdown();
 			creature->sendSystemMessage("@cbt_spam:dizzy_fall_down_single");
-			creature->sendStateCombatSpam("cbt_spam", "dizzy_fall_down", 11);
+//			creature->sendStateCombatSpam("cbt_spam", "dizzy_fall_down", 11);
 		}
 
 		creature->clearDizzyEvent();

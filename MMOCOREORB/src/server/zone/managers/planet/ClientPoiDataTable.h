@@ -8,8 +8,9 @@
 #ifndef CLIENTPOIDATATABLE_H_
 #define CLIENTPOIDATATABLE_H_
 
-#include "templates/datatables/DataTableIff.h"
-#include "templates/datatables/DataTableRow.h"
+#include "engine/engine.h"
+#include "server/zone/templates/datatables/DataTableIff.h"
+#include "server/zone/templates/datatables/DataTableRow.h"
 
 class PoiData : public Object {
 protected:

@@ -11,6 +11,8 @@
 #ifndef LOGOUTCOMMAND_H_
 #define LOGOUTCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class LogoutCommand : public QueueCommand {
 public:
 
@@ -26,6 +28,8 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		// TODO: Check if eligible for logout here??
 
 		return SUCCESS;
 	}

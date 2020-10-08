@@ -9,7 +9,7 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/creature/ai/Creature.h"
 #include "server/zone/objects/tangible/components/droid/DroidHarvestModuleDataComponent.h"
-#include "server/zone/managers/creature/CreatureManager.h"
+#include "server/zone/objects/group/GroupObject.h"
 
 namespace server {
 namespace zone {
@@ -19,7 +19,7 @@ namespace events {
 
 class DroidHarvestTask : public Task {
 
-	Reference<DroidHarvestModuleDataComponent*> module;
+	ManagedReference<DroidHarvestModuleDataComponent*> module;
 
 public:
 	DroidHarvestTask(DroidHarvestModuleDataComponent* module) : Task() {
@@ -29,28 +29,25 @@ public:
 	void run() {
 		// ReVamp: This should always run while the droid is active. auto harvest should just auto add targets to the module.
 		// droid command should just add a single target id, and this re-scheduling task should just pick it up.
-		if( module == nullptr){
+		if( module == NULL){
 			return;
 		}
 
-		Reference<DroidObject*> droid = module->getDroidObject();
-
-		if (droid == nullptr) {
+		DroidObject* droid = module->getDroidObject();
+		if (droid == NULL) {
 			return;
 		}
-
 		Locker droidLock(droid);
 		droid->removePendingTask( "droid_harvest" );
-
 		ManagedReference<CreatureObject*> owner = droid->getLinkedCreature().get();
-		if (owner == nullptr) {
+		if (owner == NULL) {
 			return;
 		}
 		// Check if droid is spawned
-		if( droid->getLocalZone() == nullptr ){  // Not outdoors
+		if( droid->getLocalZone() == NULL ){  // Not outdoors
 
-			ManagedReference<SceneObject*> parent = droid->getParent().get();
-			if( parent == nullptr || !parent->isCellObject() ){ // Not indoors either
+			ManagedWeakReference<SceneObject*> parent = droid->getParent();
+			if( parent == NULL || !parent.get()->isCellObject() ){ // Not indoors either
 				droid->removePendingTask("droid_harvest");
 				return;
 			}
@@ -95,38 +92,33 @@ public:
 			}
 			// end re-do
 			Reference<CreatureObject*> target = droid->getZoneServer()->getObject(droidTarget, true).castTo<CreatureObject*>();
-			if (target == nullptr) {
+			if (target == NULL) {
 				reschedule(1000);
 				return;
 			}
 
 			Creature* cr = cast<Creature*>(target.get());
-			if (cr == nullptr) {
+			if (cr == NULL) {
 				reschedule(1000);
 				return;
 			}
-
 			if (!target->isInRange(droid,64.0f)) {
 				reschedule(1000);
 				return;
 			}
-
 			if (!target->isInRange(droid,7.0f + target->getTemplateRadius() + droid->getTemplateRadius())) { // this should run the droid to the target for harvesting
-				Locker ownerLocker(owner, droid);
-
 				module->addHarvestTarget(droidTarget,true);
 				droid->setTargetObject(target);
 				droid->storeFollowObject(); // calling store here as a tthe end of a task we reset the follow object
-				droid->activateInterrupt(owner, ObserverEventType::STARTCOMBAT);
+				droid->activateInterrupt(owner,ObserverEventType::STARTCOMBAT);
 				reschedule(1000); // wait 5 seconds for the droid to get there before checking again.
-
 				return;
 			}
 			// droid should be in rnge now.
 			int harvestInterest = module->getHarvestInterest();
 			int bonus = module->getHarvestPower();
 			// we have all the info we need form the droid for now.
-			Locker tpLock(target, droid);
+			Locker tpLock(target,droid);
 
 			Vector<int> types;
 			int type = 0;
@@ -179,7 +171,6 @@ public:
 				if(!cr->getBoneType().isEmpty()) {
 					types.add(236);
 				}
-
 				if(types.size() > 0)
 					type = types.get(System::random(types.size() -1));
 			}
@@ -191,7 +182,6 @@ public:
 				reschedule(1000);
 				return;
 			}
-
 			if (cr->getDnaState() == CreatureManager::DNADEATH) {
 				owner->sendSystemMessage("@pet/droid_modules:no_resources_to_harvest");
 				droid->setFollowObject(owner);
@@ -199,17 +189,17 @@ public:
 				reschedule(1000);
 				return;
 			}
+			tpLock.release();
+			Locker clock(target,droid);
 
 			Zone* zone = cr->getZone();
 
-			if (zone != nullptr) {
+			if (zone != NULL) {
 				ManagedReference<CreatureManager*> manager = zone->getCreatureManager();
 				manager->droidHarvest(cr, droid, type,bonus);
 			}
-
 			droid->setFollowObject(owner);
 			droid->storeFollowObject();
-
 			if (module->hasMoreTargets()) {
 				reschedule(10); // we have mroe targets just recheck it
 			} else {

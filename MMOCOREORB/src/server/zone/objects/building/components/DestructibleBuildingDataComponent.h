@@ -7,11 +7,11 @@
 
 #ifndef DESTRUCTIBLEBUILDINGDATACOMPONENT_H_
 #define DESTRUCTIBLEBUILDINGDATACOMPONENT_H_
-
 #include "engine/engine.h"
 #include "server/zone/objects/building/components/BuildingDataComponent.h"
 #include "system/util/Vector.h"
-#include "server/zone/objects/scene/SceneObject.h"
+#include "system/util/VectorMap.h"
+#include "system/util/HashTable.h"
 
 class DestructibleBuildingDataComponent : public BuildingDataComponent, public Logger {
 
@@ -33,14 +33,12 @@ private:
 
 	Time lastVulnerableTime; // serialized
 	Time nextVulnerableTime; // serialized
-	Time vulnerabilityEndTime; //serialized
+	Time vulnerabilityEndTime; //se rialized
 	Time placementTime; // serialized
 	Time lastResetTime; // serialized
 	int uplinkBand; // secret code used to jam the uplink
 	bool activeDefenses;
 	bool defenseAddedThisVuln;
-	bool terminalsSpawned;
-	Vector<ManagedReference<SceneObject*> > baseTerminals;
 
 public:
 	const static int INVULNERABLE = 0;
@@ -61,7 +59,6 @@ public:
 
 		activeDefenses = true;
 		terminalDamaged = false;
-		terminalsSpawned = false;
 
 		uplinkBand = 0;
 		inRepair = false;
@@ -71,8 +68,6 @@ public:
 	virtual ~DestructibleBuildingDataComponent() {
 
 	}
-
-	void writeJSON(nlohmann::json& j) const;
 
 	bool toBinaryStream(ObjectOutputStream* stream);
 
@@ -102,7 +97,7 @@ public:
 		return vulnerabilityEndTime;
 	}
 
-	Time getPlacementTime() {
+	Time getPlacmenetTime() {
 		return placementTime;
 	}
 
@@ -124,15 +119,15 @@ public:
 
 	void setState(int state);
 
-	void setLastVulnerableTime(const Time& time) {
+	void setLastVulnerableTime(Time time) {
 		lastVulnerableTime = time;
 	}
 
-	void setNextVulnerableTime(const Time& time) {
+	void setNextVulnerableTime(Time time) {
 		nextVulnerableTime = time;
 	}
 
-	void setVulnerabilityEndTime(const Time& time) {
+	void setVulnerabilityEndTime(Time time) {
 		vulnerabilityEndTime = time;
 	}
 
@@ -161,7 +156,7 @@ public:
 	}
 
 	void setActiveMinefield(int indx, uint64 minefieldOID) {
-		minefieldSlots.get(indx) = minefieldOID;
+		minefieldSlots.get(indx) == minefieldOID;
 	}
 
 	void initializeTransientMembers();
@@ -272,11 +267,11 @@ public:
 		dnaStrand.removeAll();
 	}
 
-	void setDnaStrand(const Vector<String>& strand) {
+	void setDnaStrand(Vector<String> strand) {
 		dnaStrand = strand;
 	}
 
-	const Vector<String>& getDnaStrand() {
+	Vector<String> getDnaStrand() {
 		return dnaStrand;
 	}
 
@@ -284,68 +279,40 @@ public:
 		dnaLocks.removeAll();
 	}
 
-	void setDnaLocks(const Vector<int>& locks) {
+	void setDnaLocks(Vector<int> locks) {
 		dnaLocks = locks;
 	}
 
-	const Vector<int>& getDnaLocks() const {
+	Vector<int> getDnaLocks() {
 		return dnaLocks;
 	}
 
-	Vector<int>& getDnaLocks() {
-		return dnaLocks;
-	}
-
-	const String& getCurrentDnaChain() {
+	String getCurrentDnaChain() {
 		return currentDnaChain;
 	}
 
-	void setCurrentDnaChain(const String& chain) {
+	void setCurrentDnaChain(String chain) {
 		currentDnaChain = chain;
 	}
 
-	const Vector<int>& getPowerSwitchRules() {
+	Vector<int> getPowerSwitchRules() {
 		return powerSwitchRules;
 	}
 
-	void setPowerSwitchRules(const Vector<int>& rules) {
+	void setPowerSwitchRules(Vector<int> rules) {
 		powerSwitchRules = rules;
 	}
 
-	const Vector<bool>& getPowerSwitchStates() {
+	Vector<bool> getPowerSwitchStates() {
 		return powerSwitchStates;
 	}
 
-	void setPowerSwitchStates(const Vector<bool>& states) {
+	void setPowerSwitchStates(Vector<bool> states) {
 		powerSwitchStates = states;
 	}
 
 	bool getPowerPosition(int indx) {
 		return powerSwitchStates.get(indx);
-	}
-
-	int getBaseTerminalCount() {
-		return baseTerminals.size();
-	}
-
-	SceneObject* getBaseTerminal(int idx) {
-		return baseTerminals.get(idx);
-	}
-
-	void addBaseTerminal(SceneObject* term) {
-		baseTerminals.add(term);
-	}
-
-	void clearBaseTerminals() {
-		baseTerminals.removeAll();
-	}
-
-	bool areTerminalsSpawned() {
-		return terminalsSpawned;
-	}
-
-	void setTerminalsSpawned(bool val) {
-		terminalsSpawned = val;
 	}
 
 private:

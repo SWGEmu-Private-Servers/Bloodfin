@@ -5,6 +5,8 @@
 #ifndef STOPLISTENINGCOMMAND_H_
 #define STOPLISTENINGCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/player/sessions/EntertainingSession.h"
 #include "server/zone/managers/player/PlayerManager.h"
 
 class StoplisteningCommand : public QueueCommand {
@@ -28,7 +30,7 @@ public:
 
 		ManagedReference<PlayerManager*> playerManager = server->getPlayerManager();
 
-		if (playerManager != nullptr)
+		if (playerManager != NULL)
 			playerManager->stopListen(creature, target);
 
 		return SUCCESS;

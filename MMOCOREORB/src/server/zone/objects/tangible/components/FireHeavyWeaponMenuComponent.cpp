@@ -6,17 +6,18 @@
  */
 
 #include "FireHeavyWeaponMenuComponent.h"
+#include "WeaponObjectMenuComponent.h"
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 
-void FireHeavyWeaponMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
-	if (sceneObject == nullptr || !sceneObject->isWeaponObject() || player == nullptr)
+void FireHeavyWeaponMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
+	if (sceneObject == NULL || !sceneObject->isWeaponObject() || player == NULL)
 		return;
 
 	WeaponObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, player);
 }
 
-int FireHeavyWeaponMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int FireHeavyWeaponMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isWeaponObject() || !player->isPlayerCreature() || !sceneObject->isASubChildOf(player))
 		return 0;
 
@@ -25,6 +26,5 @@ int FireHeavyWeaponMenuComponent::handleObjectMenuSelect(SceneObject* sceneObjec
 
 		return 1;
 	}
-
 	return WeaponObjectMenuComponent::handleObjectMenuSelect(sceneObject, player, selectedID);
 }

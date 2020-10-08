@@ -4,21 +4,23 @@
 
 package server.zone.objects.mission;
 
+import engine.lua.LuaObject;
 import server.zone.objects.intangible.IntangibleObject;
 import server.zone.objects.waypoint.WaypointObject;
+import server.zone.Zone;
 
 include server.zone.objects.scene.variables.StringId;
-include templates.SharedObjectTemplate;
+import server.zone.templates.SharedObjectTemplate;
+import server.zone.objects.mission.MissionObserver;
 import server.zone.objects.creature.CreatureObject;
-import server.zone.objects.scene.SceneObject;
+import system.util.SortedVector;
 import server.zone.objects.mission.MissionObjective;
-include templates.TemplateReference;
+include server.zone.templates.TemplateReference;
 import server.zone.managers.mission.spawnmaps.NpcSpawnPoint;
 include server.zone.objects.mission.MissionTypes;
+include server.zone.managers.faction.FactionManager;
 include server.zone.packets.scene.AttributeListMessage;
-include templates.faction.Factions;
 
-@json
 class MissionObject extends IntangibleObject {
 	protected WaypointObject waypointToMission;
 
@@ -58,6 +60,8 @@ class MissionObject extends IntangibleObject {
 	protected unsigned int refreshCounter;
 
 	protected string targetName;
+	protected NpcSpawnPoint missionTarget;
+	protected NpcSpawnPoint missionTargetDest;
 
 	protected string templateString1;
 	protected string templateString2;
@@ -70,7 +74,7 @@ class MissionObject extends IntangibleObject {
 
 	public MissionObject() {
 		typeCRC = MissionTypes.SURVEY;
-
+                
 		refreshCounter = 0;
 
 		//targetTemplateCRC = 2640304325;
@@ -95,16 +99,19 @@ class MissionObject extends IntangibleObject {
 		endPositionX = 0;
 		endPositionY = 0;
 
+		missionTarget = null;
+		missionTargetDest = null;
+
 		targetObjectId = 0;
 
-		faction = Factions.FACTIONNEUTRAL;
+		faction = FactionManager.FACTIONNEUTRAL;
 
 		missionNumber = 0;
 		missionLevel = 0;
 
 		Logger.setLoggingName("MissionObject");
 	}
-
+	
 	/**
 	 * Fills the attribute list message options that are sent to player creature
 	 * @pre { }
@@ -173,7 +180,7 @@ class MissionObject extends IntangibleObject {
 	public native void updateMissionLocation();
 
 	public void abort() {
-		if (missionObjective)
+		if (missionObjective != null)
 			missionObjective.abort();
 	}
 
@@ -195,6 +202,18 @@ class MissionObject extends IntangibleObject {
 	@preLocked
 	public void setRewardFactionPointsImperial(int points) {
 		rewardFactionPointsImperial = points;
+	}
+
+	@local
+	@preLocked
+	public void setMissionTarget(NpcSpawnPoint target) {
+		missionTarget = target;
+	}
+
+	@local
+	@preLocked
+	public void setMissionTargetDest(NpcSpawnPoint target) {
+		missionTargetDest = target;
 	}
 
 	@preLocked
@@ -268,14 +287,21 @@ class MissionObject extends IntangibleObject {
 		return endPlanet;
 	}
 
-	@preLocked
-	public void setEndPlanet(final string newEndPlanet) {
-		endPlanet = newEndPlanet;
-	}
-
 	@dirty
 	public WaypointObject getWaypointToMission() {
 		return waypointToMission;
+	}
+
+	@dirty
+	@local
+	public NpcSpawnPoint getMissionTarget() {
+		return missionTarget;
+	}
+
+	@dirty
+	@local
+	public NpcSpawnPoint getMissionTargetDest() {
+		return missionTargetDest;
 	}
 
 	@read

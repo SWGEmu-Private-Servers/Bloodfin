@@ -2,14 +2,14 @@
 				Copyright <SWGEmu>
 		See file COPYING for copying conditions.*/
 
-#include "client/zone/Zone.h"
-#include "client/zone/managers/object/ObjectManager.h"
+#include "zone/Zone.h"
+#include "zone/managers/object/ObjectManager.h"
 
 #include "ClientCore.h"
 
-#include "client/login/LoginSession.h"
+#include "login/LoginSession.h"
 
-ClientCore::ClientCore(int instances) : Core("log/core3client.log", "client3"), Logger("CoreClient") {
+ClientCore::ClientCore(int instances) : Core("log/core3client.log"), Logger("CoreClient") {
 	ClientCore::instances = instances;
 
 	setInfoLogLevel();
@@ -23,20 +23,39 @@ int connectCount = 0, disconnectCount = 0;
 
 void ClientCore::run() {
 	for (int i = 0; i < instances; ++i) {
-		zones.add(nullptr);
+		zones.add(NULL);
 	}
 
 	info("initialized", true);
 
 	int rounds = 0;
 
-	loginCharacter(0);
+	while (true) {
+		int index = System::random(instances - 1);
 
-	handleCommands();
+		if (System::random(100) < 80)
+			loginCharacter(index);
+		else
+			logoutCharacter(index);
+
+	#ifdef WITH_STM
+		try {
+			//TransactionalMemoryManager::commitPureTransaction();
+		} catch (const TransactionAbortedException& e) {
+		}
+	#endif
+
+		debug(String::valueOf(connectCount) + " connects, " + String::valueOf(disconnectCount) + " disconnects. " +
+				String::valueOf(++rounds) + " rounds");
+
+		Thread::sleep(10 + System::random(40));
+	}
+
+	//handleCommands();
 
 	for (int i = 0; i < instances; ++i) {
 		Zone* zone = zones.get(i);
-		if (zone != nullptr)
+		if (zone != NULL)
 			zone->disconnect();
 	}
 
@@ -46,7 +65,7 @@ void ClientCore::run() {
 void ClientCore::loginCharacter(int index) {
 	try {
 		Zone* zone = zones.get(index);
-		if (zone != nullptr)
+		if (zone != NULL)
 			return;
 
 		Reference<LoginSession*> loginSession = new LoginSession(index);
@@ -71,16 +90,16 @@ void ClientCore::loginCharacter(int index) {
 
 		connectCount++;
 	} catch (Exception& e) {
-		e.printMessage();
+
 	}
 }
 
 void ClientCore::logoutCharacter(int index) {
 	Zone* zone = zones.get(index);
-	if (zone == nullptr || !zone->isStarted())
+	if (zone == NULL || !zone->isStarted())
 		return;
 
-	zones.set(index, nullptr);
+	zones.set(index, NULL);
 
 	zone->disconnect();
 
@@ -101,10 +120,7 @@ void ClientCore::handleCommands() {
 			System::out << "> ";
 
 			char line[256];
-			auto res = fgets(line, sizeof(line), stdin);
-
-			if (!res)
-				continue;
+			fgets(line, sizeof(line), stdin);
 
 			command = line;
 			command = command.replaceFirst("\n", "");

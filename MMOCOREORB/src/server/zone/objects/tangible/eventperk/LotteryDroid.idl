@@ -4,22 +4,20 @@
 
 package server.zone.objects.tangible.eventperk;
 
+import server.zone.objects.scene.SceneObject;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.tangible.tasks.RemoveEventPerkItemTask;
 import server.zone.objects.tangible.tasks.LotteryDroidPulseTask;
-import system.lang.ref.Reference;
-include system.util.Vector;
-include system.lang.Time;
-import server.zone.packets.object.ObjectMenuResponse;
+import system.util.VectorMap;
+import server.zone.Zone;
 
-@json
-class LotteryDroid extends CreatureObject {
+class LotteryDroid extends CreatureObject {	
 	@dereferenced
 	protected Time purchaseTime;
 
 	@dereferenced
 	protected Time gameStartTime;
-
+	
 	protected int gameStatus;
 	protected int ticketPrice;
 	protected float payoutPercent;
@@ -31,6 +29,7 @@ class LotteryDroid extends CreatureObject {
 	public final static int GAMESETUP = 0;
 	public final static int GAMESTARTED = 1;
 	public final static int GAMEENDED = 2;
+	public final static unsigned long TIMETOLIVE = 1296000000; // 15 Days
 
 	@dereferenced
 	protected Vector<unsigned long> playerList;
@@ -42,7 +41,7 @@ class LotteryDroid extends CreatureObject {
 	protected transient Vector<unsigned int> payoutPercentChoices;
 
 	@dereferenced
-	protected transient Reference<LotteryDroidPulseTask> gamePulse;
+	protected Reference<LotteryDroidPulseTask> gamePulse;
 
 	@dereferenced
 	protected transient Reference<RemoveEventPerkItemTask> removeEventPerkItemTask;
@@ -62,14 +61,6 @@ class LotteryDroid extends CreatureObject {
 
 	public native void initializeTransientMembers();
 
-	public void notifyLoadFromDatabase() {
-		super.notifyLoadFromDatabase();
-
-		if (gameStatus == GAMESTARTED || gameStatus == GAMEENDED) {
-			activateGamePulse();
-		}
-	}
-
 	@preLocked
 	@arg1preLocked
 	public native int handleObjectMenuSelect(CreatureObject player, byte selectedID);
@@ -82,23 +73,26 @@ class LotteryDroid extends CreatureObject {
 	public native void endGame();
 
 	@preLocked
+	public native void activateRemoveEvent(boolean immediate = false);
+
+	@preLocked
 	public native void startLottery(CreatureObject player);
 
 	public native void sendDurationSUI(CreatureObject player);
-
+	
 	public native void sendPayoutSUI(CreatureObject player);
 
 	public native void sendTicketCostSUI(CreatureObject player);
-
+	
 	public native void sendAddCreditsSUI(CreatureObject player);
 
 	public native void sendLotteryInstructionsSUI(CreatureObject player);
-
+	
 	public native void sendRegistrationSUI(CreatureObject player);
 
 	public native void sendLotteryInfoSUI(CreatureObject player);
 
-	public native string getTimeLeft(unsigned long timeLeft);
+	public native string getTimeLeft(int timeLeft);
 
 	public native CreatureObject getDeedOwner();
 
@@ -158,11 +152,6 @@ class LotteryDroid extends CreatureObject {
 	@preLocked
 	public void addToCreditPool(int amount) {
 		creditPool = creditPool + amount;
-	}
-
-	@read
-	public int getCreditPool() {
-		return creditPool;
 	}
 
 	@read

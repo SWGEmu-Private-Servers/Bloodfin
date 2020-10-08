@@ -6,6 +6,7 @@
 #define HARVESTERGETRESOURCEDATACOMMAND_H_
 
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/installation/harvester/HarvesterObject.h"
 #include "server/zone/packets/harvester/HarvesterResourceDataMessage.h"
 
 class HarvesterGetResourceDataCommand : public QueueCommand {
@@ -31,20 +32,21 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object == nullptr || !object->isInstallationObject())
+		if (object == NULL || !object->isInstallationObject())
 			return GENERALERROR;
 
 		InstallationObject* inso = cast<InstallationObject*>( object.get());
 
-		auto zone = inso->getZone();
-
-		if (zone == nullptr)
+		if (inso->getZone() == NULL)
 			return GENERALERROR;
+
+		/*if (!inso->isHarvesterObject())
+			return GENERALERROR;*/
 
 		try {
 			Locker clocker(object, player);
 
-			HarvesterResourceDataMessage* msg = new HarvesterResourceDataMessage(player, inso, zone);
+			HarvesterResourceDataMessage* msg = new HarvesterResourceDataMessage(player, inso);
 			player->sendMessage(msg);
 
 		} catch (Exception& e) {

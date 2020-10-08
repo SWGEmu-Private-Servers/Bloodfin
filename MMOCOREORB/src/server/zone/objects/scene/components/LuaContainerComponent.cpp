@@ -10,13 +10,14 @@
 #include "server/zone/managers/director/DirectorManager.h"
 #include "server/zone/objects/scene/TransferErrorCode.h"
 
-LuaContainerComponent::LuaContainerComponent(const String& className) : luaClassName(className) {
+LuaContainerComponent::LuaContainerComponent(String className) {
+	luaClassName = className;
 }
 
 LuaContainerComponent::~LuaContainerComponent(){
 }
 
-int LuaContainerComponent::canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) const {
+int LuaContainerComponent::canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) {
 	if (sceneObject == object) {
 		errorDescription = "@container_error_message:container02"; //You cannot add something to itself.
 
@@ -42,7 +43,7 @@ int LuaContainerComponent::canAddObject(SceneObject* sceneObject, SceneObject* o
 	return result;
 }
 
-bool LuaContainerComponent::transferObject(SceneObject* sceneObject, SceneObject* object, int containmentType, bool notifyClient, bool allowOverflow, bool notifyRoot) const {
+bool LuaContainerComponent::transferObject(SceneObject* sceneObject, SceneObject* object, int containmentType, bool notifyClient, bool allowOverflow, bool notifyRoot) {
 	if (sceneObject == object)
 		return false;
 
@@ -65,7 +66,7 @@ bool LuaContainerComponent::transferObject(SceneObject* sceneObject, SceneObject
 	return result;
 }
 
-bool LuaContainerComponent::removeObject(SceneObject* sceneObject, SceneObject* object, SceneObject* destination, bool notifyClient) const {
+bool LuaContainerComponent::removeObject(SceneObject* sceneObject, SceneObject* object, SceneObject* destination, bool notifyClient) {
 	if (sceneObject == object)
 		return false;
 
@@ -92,7 +93,7 @@ bool LuaContainerComponent::removeObject(SceneObject* sceneObject, SceneObject* 
  * Is called when this object has been inserted with an object
  * @param object object that has been inserted
  */
-int LuaContainerComponent::notifyObjectInserted(SceneObject* sceneObject, SceneObject* object) const {
+int LuaContainerComponent::notifyObjectInserted(SceneObject* sceneObject, SceneObject* object) {
 	return ContainerComponent::notifyObjectInserted(sceneObject, object);
 }
 
@@ -100,6 +101,6 @@ int LuaContainerComponent::notifyObjectInserted(SceneObject* sceneObject, SceneO
  * Is called when an object was removed
  * @param object object that has been inserted
  */
-int LuaContainerComponent::notifyObjectRemoved(SceneObject* sceneObject, SceneObject* object, SceneObject* destination) const {
+int LuaContainerComponent::notifyObjectRemoved(SceneObject* sceneObject, SceneObject* object, SceneObject* destination) {
 	return ContainerComponent::notifyObjectRemoved(sceneObject, object, destination);
 }

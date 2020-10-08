@@ -9,6 +9,7 @@
 #define RENAMEVENDORSUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/objects/player/sui/inputbox/SuiInputBox.h"
 #include "server/zone/managers/vendor/VendorManager.h"
 
 class RenameVendorSuiCallback : public SuiCallback {
@@ -32,14 +33,14 @@ public:
 
 		String name = args->get(0).toString();
 
-		ManagedReference<SceneObject*> strong = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> strong = suiBox->getUsingObject();
 
-		if (strong == nullptr)
+		if (strong == NULL)
 			return;
 
 		TangibleObject* vendor = cast<TangibleObject*>(strong.get());
 
-		if (vendor == nullptr)
+		if (vendor == NULL)
 			return;
 
 		VendorManager::instance()->handleRenameVendor(player, vendor, name);

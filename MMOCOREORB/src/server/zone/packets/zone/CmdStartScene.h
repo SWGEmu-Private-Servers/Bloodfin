@@ -5,17 +5,22 @@
 #ifndef CMDSTARTSCENE_H_
 #define CMDSTARTSCENE_H_
 
-#include "engine/service/proto/BaseMessage.h"
+#include "engine/engine.h"
+
+#include "server/zone/objects/player/Races.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/terrain/Terrain.h"
+
 #include "server/zone/Zone.h"
-#include "templates/manager/TemplateManager.h"
+
+#include "server/zone/managers/templates/TemplateManager.h"
 
 class CmdStartScene : public BaseMessage {
 public:
 	CmdStartScene(CreatureObject* creo) : BaseMessage(50) {
 		Zone* zone = creo->getZone();
 
-		/*if (zone == nullptr)
+		/*if (zone == NULL)
 			zone = creo->getRootParent()->getZone();*/
 
 		insertShort(0x09);

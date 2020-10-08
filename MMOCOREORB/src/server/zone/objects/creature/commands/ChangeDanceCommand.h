@@ -5,6 +5,7 @@
 #ifndef CHANGEDANCECOMMAND_H_
 #define CHANGEDANCECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "StartDanceCommand.h"
 
 class ChangeDanceCommand : public QueueCommand {
@@ -24,7 +25,7 @@ public:
 
 		ManagedReference<EntertainingSession*> session = creature->getActiveSession(SessionFacadeType::ENTERTAINING).castTo<EntertainingSession*>();
 
-		if (session == nullptr) {
+		if (session == NULL) {
 			creature->sendSystemMessage("@performance:dance_must_be_performing_self");
 			return GENERALERROR;
 		}
@@ -61,7 +62,7 @@ public:
 			return GENERALERROR;
 		}
 
-		session->sendEntertainingUpdate(creature, /*0x3C4CCCCD*/0.0125f, performanceManager->getDanceAnimation(args), 0x07339FF8, 0xDD);
+		session->sendEntertainingUpdate(creature, /*0x3C4CCCCD*/0.0125, performanceManager->getDanceAnimation(args), 0x07339FF8, 0xDD);
 		session->setPerformanceName(args);
 
 		creature->notifyObservers(ObserverEventType::CHANGEENTERTAIN, creature);

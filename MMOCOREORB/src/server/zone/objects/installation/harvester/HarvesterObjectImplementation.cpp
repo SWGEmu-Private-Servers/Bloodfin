@@ -7,9 +7,15 @@
 
 #include "server/zone/objects/installation/harvester/HarvesterObject.h"
 #include "server/zone/packets/harvester/HarvesterObjectMessage7.h"
+#include "server/zone/packets/installation/InstallationObjectDeltaMessage7.h"
+#include "server/zone/objects/resource/ResourceSpawn.h"
 #include "server/zone/objects/resource/ResourceContainer.h"
+#include "server/zone/Zone.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/packets/harvester/ResourceHarvesterActivatePageMessage.h"
+#include "server/zone/managers/resource/ResourceManager.h"
+#include "server/zone/objects/area/ActiveArea.h"
+#include "server/zone/templates/tangible/SharedStructureObjectTemplate.h"
 
 void HarvesterObjectImplementation::fillObjectMenuResponse(ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	if (!isOnAdminList(player))
@@ -20,11 +26,11 @@ void HarvesterObjectImplementation::fillObjectMenuResponse(ObjectMenuResponse* m
 	menuResponse->addRadialMenuItemToRadialID(118, 78, 3, "@harvester:manage"); //Operate Machinery
 }
 
-void HarvesterObjectImplementation::synchronizedUIListen(CreatureObject* player, int value) {
-	if (!player->isPlayerCreature() || !isOnAdminList(player) || getZone() == nullptr)
+void HarvesterObjectImplementation::synchronizedUIListen(SceneObject* player, int value) {
+	if (!player->isPlayerCreature() || !isOnAdminList(cast<CreatureObject*>(player)) || getZone() == NULL)
 		return;
 
-	addOperator(player);
+	addOperator(cast<CreatureObject*>(player));
 
 	updateInstallationWork();
 
@@ -36,8 +42,8 @@ void HarvesterObjectImplementation::synchronizedUIListen(CreatureObject* player,
 	for (int i = 0; i < resourceHopper.size(); ++i) {
 		ResourceContainer* container = resourceHopper.get(i);
 
-		if (container != nullptr) {
-			container->sendTo(player, true);
+		if (container != NULL) {
+			container->sendTo(cast<CreatureObject*>(player), true);
 		}
 	}
 
@@ -49,11 +55,11 @@ void HarvesterObjectImplementation::updateOperators() {
 	broadcastToOperators(msg);
 }
 
-void HarvesterObjectImplementation::synchronizedUIStopListen(CreatureObject* player, int value) {
+void HarvesterObjectImplementation::synchronizedUIStopListen(SceneObject* player, int value) {
 	if (!player->isPlayerCreature())
 		return;
 
-	removeOperator(player);
+	removeOperator(cast<CreatureObject*>(player));
 }
 
 int HarvesterObjectImplementation::handleObjectMenuSelect(CreatureObject* player, byte selectedID) {

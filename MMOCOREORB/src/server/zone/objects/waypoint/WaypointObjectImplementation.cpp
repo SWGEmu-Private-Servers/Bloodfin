@@ -21,7 +21,7 @@ void WaypointObjectImplementation::loadTemplateData(SharedObjectTemplate* templa
 	specialTypeID = 0;
 }
 
-String WaypointObjectImplementation::getDetailedDescription() const {
+String WaypointObjectImplementation::getDetailedDescription() {
 	if (detailedDescription.isEmpty())
 		return SceneObjectImplementation::getDetailedDescription();
 
@@ -41,11 +41,4 @@ void WaypointObjectImplementation::insertToMessage(BaseMessage* msg) {
 	msg->writeLong(getObjectID());
 	msg->writeByte(color);
 	msg->writeByte(active);
-}
-
-void WaypointObjectImplementation::fillAttributeList(AttributeListMessage* alm, CreatureObject* object) {
-	IntangibleObjectImplementation::fillAttributeList(alm, object);
-
-	if (questDetails.length() > 0)
-		alm->insertAttribute("quest_details", questDetails);
 }

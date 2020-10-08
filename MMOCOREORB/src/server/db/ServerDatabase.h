@@ -7,34 +7,54 @@
 
 #include "engine/engine.h"
 
-namespace conf {
-	class ConfigManager;
-}
+#include "../conf/ConfigManager.h"
 
-class ServerDatabase : public Logger {
+class ServerDatabase {
 	static Vector<Database*>* databases;
 	static AtomicInteger currentDB;
-	int dbSchemaVersion;
 
 public:
-	ServerDatabase(conf::ConfigManager* configManager);
-	~ServerDatabase();
+	ServerDatabase(ConfigManager* configManager) {
+		String& dbHost = configManager->getDBHost();
+        String& dbUser = configManager->getDBUser();
+        String& dbPass = configManager->getDBPass();
+        String& dbName = configManager->getDBName();
+        uint16& dbPort = configManager->getDBPort();
+
+        databases = new Vector<Database*>();
+
+        for (int i = 0; i < DEFAULT_SERVERDATABASE_INSTANCES; ++i) {
+        	Database* db = new engine::db::mysql::MySqlDatabase(String("ServerDatabase" + String::valueOf(i)), dbHost);
+        	db->connect(dbName, dbUser, dbPass, dbPort);
+
+        	databases->add(db);
+        }
+
+	}
+
+	const static int DEFAULT_SERVERDATABASE_INSTANCES = 8;
+
+	~ServerDatabase() {
+		while (!databases->isEmpty()) {
+			Database* db = databases->remove(0);
+
+			delete db;
+		}
+
+		delete databases;
+		databases = NULL;
+	}
 
 	inline static Database* instance() {
-		if (databases == nullptr)
+		if (databases == NULL)
 			throw DatabaseException("No Server Database initiated");
 
-		int i = currentDB.postIncrement() % databases->size();
+		int i = currentDB.get() % databases->size();
+
+		currentDB.increment();
 
 		return databases->get(i);
 	}
-
-	inline int getSchemaVersion() const {
-		return dbSchemaVersion;
-	}
-private:
-	void alterDatabase(int nextVersion, const String& alterSql);
-	void updateDatabaseSchema();
 };
 
 #endif /*SERVERDATABASE_H_*/

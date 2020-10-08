@@ -1,14 +1,10 @@
 package server.zone.objects.installation;
 
 import server.zone.objects.installation.InstallationObject;
-import server.zone.packets.object.ObjectMenuResponse;
-import server.zone.objects.creature.CreatureObject;
-include engine.log.Logger;
+import server.zone.objects.area.ActiveArea;
 
-
-@json
 class GeneratorObject extends InstallationObject {
-	public GeneratorObject() {
+	public GeneratorObject() {		
 		Logger.setLoggingName("GeneratorObject");
 	}
 
@@ -42,7 +38,7 @@ class GeneratorObject extends InstallationObject {
 	 * @param value value from packet
 	 */
 	@preLocked
-	public native void synchronizedUIListen(CreatureObject player, int value);
+	public native void synchronizedUIListen(SceneObject player, int value);
 
 	/**
 	 * Calls the appropriate UI Stop Listener Function
@@ -52,7 +48,7 @@ class GeneratorObject extends InstallationObject {
 	 * @param value value from packet
 	 */
 	@preLocked
-	public native void synchronizedUIStopListen(CreatureObject player, int value);
+	public native void synchronizedUIStopListen(SceneObject player, int value);
 
 	@dirty
 	public boolean isGeneratorObject() {

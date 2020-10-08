@@ -10,7 +10,10 @@
 
 #include "AuctionTerminalDataComponent.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/auction/AuctionItem.h"
+#include "server/zone/managers/vendor/VendorManager.h"
 #include "server/zone/managers/auction/AuctionsMap.h"
+#include "server/zone/Zone.h"
 
 class VendorDataComponent: public AuctionTerminalDataComponent {
 protected:
@@ -23,25 +26,26 @@ protected:
 	bool disabled;
 	bool registered;
 
-	SerializableTime lastSuccessfulUpdate;
+	Time lastSuccessfulUpdate;
 
 	int maintAmount;
 
-	SerializableTime lastXpAward;
+	Time lastXpAward;
 	int awardUsageXP;
 
 	bool adBarking;
 
-	SerializableTime emptyTimer;
-	SerializableTime inactiveTimer;
+	Time emptyTimer;
+	Time inactiveTimer;
 
 	bool mail1Sent;
+	bool mail2Sent;
 
 	Vector<uint64> vendorBarks;
 	uint64 lastBark;
-	SerializableString barkMessage;
-	SerializableString barkMood;
-	SerializableString barkAnimation;
+	String barkMessage;
+	String barkMood;
+	String barkAnimation;
 
 	float originalDirection;
 
@@ -55,8 +59,9 @@ public:
 		VENDORCHECKINTERVAL = 60, // 60 Minutes
 		VENDORCHECKDELAY    = 20, // 20 Minutes
 
-		EMPTYWARNING        = 60 * 60 * 24 * 14, // 14 days
-		EMPTYDELETE         = 60 * 60 * 24 * 28, // 28 days
+		FIRSTWARNING        = 60 * 60 * 24 * 25, // 5 days
+		SECONDWARNING       = 60 * 60 * 24 * 50, // 10 days
+		EMPTYDELETE         = 60 * 60 * 24 * 14, // 14 days
 
 		DELETEWARNING       = 60 * 60 * 24 * 100, // 100 days
 
@@ -68,16 +73,19 @@ public:
 	VendorDataComponent();
 
 	virtual ~VendorDataComponent() {
-
+		if (vendorCheckTask != NULL)
+			vendorCheckTask->cancel();
 	}
 
 	void initializeTransientMembers();
 
 	void notifyObjectDestroyingFromDatabase();
 
-	void runVendorUpdate();
+	void sendVendorUpdateMail(bool isEmpty);
 
-	void writeJSON(nlohmann::json& j) const;
+	void sendVendorDestroyMail();
+
+	void runVendorUpdate();
 
 	void setOwnerId(uint64 id) {
 		ownerId = id;
@@ -96,7 +104,7 @@ public:
 		updateUID();
 
 		ManagedReference<SceneObject*> strongParent = parent.get();
-		if (strongParent == nullptr)
+		if (strongParent == NULL)
 			return;
 
 		originalDirection = strongParent->getDirectionAngle();
@@ -170,14 +178,13 @@ public:
 	}
 
 	inline bool isEmpty() {
-		ManagedReference<AuctionManager*> auctionManager = auctionMan.get();
 
-		if (auctionManager == nullptr)
+		if (auctionManager == NULL)
 			return false;
 
 		ManagedReference<AuctionsMap*> auctionsMap =
 				auctionManager->getAuctionMap();
-		if (auctionsMap == nullptr) {
+		if (auctionsMap == NULL) {
 			return false;
 		}
 
@@ -186,6 +193,7 @@ public:
 
 	inline void setEmpty() {
 		mail1Sent = false;
+		mail2Sent = false;
 
 		emptyTimer.updateToCurrentTime();
 	}
@@ -269,8 +277,6 @@ public:
 	void performVendorBark(SceneObject* target);
 
 	void scheduleVendorCheckTask(int delay); // In minutes
-
-	void cancelVendorCheckTask();
 
 private:
 	void addSerializableVariables();

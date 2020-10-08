@@ -5,6 +5,7 @@
 #ifndef SABERPOLEARMLEGHIT2COMMAND_H_
 #define SABERPOLEARMLEGHIT2COMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "JediCombatQueueCommand.h"
 
 class SaberPolearmLegHit2Command : public JediCombatQueueCommand {
@@ -22,6 +23,10 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
 
 		if (isWearingArmor(creature)) {
 			return NOJEDIARMOR;

@@ -1,11 +1,15 @@
 #ifndef SAMPLEDNATASK_H_
 #define SAMPLEDNATASK_H_
 
+#include "server/zone/managers/resource/ResourceManager.h"
 #include "server/zone/managers/combat/CombatManager.h"
 #include "server/zone/managers/creature/CreatureManager.h"
 #include "server/zone/managers/creature/DnaManager.h"
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "templates/params/creature/CreatureAttribute.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
+#include "server/zone/templates/mobile/CreatureTemplate.h"
+#include "server/zone/templates/tangible/DnaSampleTemplate.h"
+#include "server/zone/objects/tangible/component/genetic/GeneticComponent.h"
 #include "engine/engine.h"
 
 class SampleDnaTask : public Task {
@@ -215,7 +219,7 @@ public:
 	void award(int cl, float rollMod, int skillMod) {
 		int xp = DnaManager::instance()->generateXp(cl);
 		ManagedReference<PlayerManager*> playerManager = player->getZoneServer()->getPlayerManager();
-		if(playerManager != nullptr)
+		if(playerManager != NULL)
 			playerManager->awardExperience(player, "bio_engineer_dna_harvesting", xp, true);
 		int quality = 0;
 		// generate quality based on skill

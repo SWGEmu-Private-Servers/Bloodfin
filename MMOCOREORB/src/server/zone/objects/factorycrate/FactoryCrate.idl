@@ -4,15 +4,19 @@
 
 package server.zone.objects.factorycrate;
 
+import system.util.VectorMap;
+import engine.lua.LuaObject;
+
 import server.zone.objects.scene.SceneObject;
+import server.zone.Zone;
+include server.zone.objects.tangible.OptionBitmask;
 import server.zone.objects.tangible.TangibleObject;
 import server.zone.packets.scene.AttributeListMessage;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.packets.object.ObjectMenuResponse;
-include templates.SharedObjectTemplate;
+include server.zone.templates.SharedObjectTemplate;
 import server.zone.objects.scene.variables.ContainerPermissions;
 
-@json
 class FactoryCrate extends TangibleObject {
 
 	protected int maxCapacity;
@@ -73,8 +77,6 @@ class FactoryCrate extends TangibleObject {
 	public abstract boolean isFactoryCrate() {
 		return true;
 	}
-
-	public native boolean isValidFactoryCrate();
 
 	@read
 	public int getMaxCapacity() {

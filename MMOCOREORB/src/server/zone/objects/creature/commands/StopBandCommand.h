@@ -5,6 +5,8 @@
 #ifndef STOPBANDCOMMAND_H_
 #define STOPBANDCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class StopBandCommand : public QueueCommand {
 public:
 
@@ -23,14 +25,14 @@ public:
 
 		ManagedReference<GroupObject*> group = creature->getGroup();
 
-		if (group == nullptr) {
+		if (group == NULL) {
 			creature->sendSystemMessage("You must be the leader of a band to use that command.");
 			return GENERALERROR;
 		}
 
-		Reference<CreatureObject*> leader = group->getLeader();
+		Reference<CreatureObject*> leader = (group->getLeader()).castTo<CreatureObject*>();
 
-		if (leader == nullptr || creature != leader) {
+		if (leader == NULL || creature != leader) {
 			creature->sendSystemMessage("You must be the band leader to stop the band's song.");
 			return GENERALERROR;
 		}
@@ -38,7 +40,7 @@ public:
 		ManagedReference<Facade*> facade = creature->getActiveSession(SessionFacadeType::ENTERTAINING);
 		ManagedReference<EntertainingSession*> session = dynamic_cast<EntertainingSession*>(facade.get());
 
-		if (session == nullptr)
+		if (session == NULL)
 			return GENERALERROR;
 
 		if (!session->isPlayingMusic())
@@ -50,16 +52,16 @@ public:
 			Locker locker(group);
 
 			for (int i = 0; i < group->getGroupSize(); ++i) {
-				Reference<CreatureObject*> groupMember = group->getGroupMember(i);
-
-				if (groupMember == nullptr || !groupMember->isPlayingMusic())
-					continue;
+				Reference<CreatureObject*> groupMember = (group->getGroupMember(i)).castTo<CreatureObject*>();
 
 				Locker clocker(groupMember, group);
 
+				if (groupMember == NULL || !groupMember->isPlayingMusic())
+					continue;
+
 				ManagedReference<EntertainingSession*> bandMemberSession = groupMember->getActiveSession(SessionFacadeType::ENTERTAINING).castTo<EntertainingSession*>();
 
-				if (bandMemberSession == nullptr || !bandMemberSession->isPlayingMusic())
+				if (bandMemberSession == NULL || !bandMemberSession->isPlayingMusic())
 					continue;
 
 				if (groupMember == creature) {

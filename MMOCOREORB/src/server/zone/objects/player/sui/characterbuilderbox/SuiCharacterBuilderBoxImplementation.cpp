@@ -5,8 +5,10 @@
  *      Author: crush
  */
 
+
 #include "server/zone/objects/player/sui/characterbuilderbox/SuiCharacterBuilderBox.h"
 #include "server/zone/packets/ui/SuiCreatePageMessage.h"
+#include "server/zone/objects/player/sui/listbox/SuiListBoxMenuItem.h"
 
 BaseMessage* SuiCharacterBuilderBoxImplementation::generateMessage() {
 
@@ -27,16 +29,16 @@ BaseMessage* SuiCharacterBuilderBoxImplementation::generateMessage() {
 	addSetting("3", "btnOther", "visible", "true");
 	addSetting("3", "btnOther", "visible", "@refresh");
 
-	addSetting("3","btnOther","Location","102,262");
-	addSetting("3","btnOther","Size","81,19");
-	addSetting("3","btnOther","ScrollExtent","81,19");
+    addSetting("3","btnOther","Location","102,262");
+    addSetting("3","btnOther","Size","81,19");
+    addSetting("3","btnOther","ScrollExtent","81,19");
 
-	addSetting("3","btnOk","Location","188,262");
-	addSetting("3","btnOk","Size","81,19");
-	addSetting("3","btnOk","ScrollExtent","81,19");
+    addSetting("3","btnOk","Location","188,262");
+    addSetting("3","btnOk","Size","81,19");
+    addSetting("3","btnOk","ScrollExtent","81,19");
 
-	addSetting("3","btnCancel","Size","81,19");
-	addSetting("3","btnCancel","ScrollExtent","81,19");
+    addSetting("3","btnCancel","Size","81,19");
+    addSetting("3","btnCancel","ScrollExtent","81,19");
 
 	addSetting("3", "btnCancel", "Text", "@cancel");
 
@@ -47,9 +49,9 @@ BaseMessage* SuiCharacterBuilderBoxImplementation::generateMessage() {
 
 	//Fill the above Data Container
 	for (int i = 0; i < currentNode->getChildNodeSize(); ++i) {
-		auto node = currentNode->getChildNodeAt(i);
+		CharacterBuilderMenuNode* node = currentNode->getChildNodeAt(i);
 
-		if (node == nullptr)
+		if (node == NULL)
 			continue;
 
 		addSetting("4", "List.dataList", "Name", String::valueOf(i));
@@ -73,10 +75,10 @@ BaseMessage* SuiCharacterBuilderBoxImplementation::generateMessage() {
 	return message;
 }
 
-const CharacterBuilderMenuNode* SuiCharacterBuilderBoxImplementation::getCurrentNode() {
+CharacterBuilderMenuNode* SuiCharacterBuilderBoxImplementation::getCurrentNode() {
 	return currentNode;
 }
 
-void SuiCharacterBuilderBoxImplementation::setCurrentNode(const CharacterBuilderMenuNode* node) {
+void SuiCharacterBuilderBoxImplementation::setCurrentNode(CharacterBuilderMenuNode* node) {
 	currentNode = node;
 }

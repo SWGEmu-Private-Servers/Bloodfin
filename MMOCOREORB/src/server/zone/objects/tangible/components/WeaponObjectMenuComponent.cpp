@@ -6,19 +6,22 @@
  */
 
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/tangible/powerup/PowerupObject.h"
 #include "server/zone/objects/tangible/weapon/WeaponObject.h"
 #include "WeaponObjectMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
+#include "server/zone/managers/objectcontroller/ObjectController.h"
 #include "server/zone/objects/player/sessions/SlicingSession.h"
 
-void WeaponObjectMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void WeaponObjectMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
 	if (!sceneObject->isTangibleObject())
 		return;
 
 	ManagedReference<WeaponObject*> weapon = cast<WeaponObject*>(sceneObject);
-	if(weapon == nullptr)
+	if(weapon == NULL)
 		return;
 
 	if(weapon->isASubChildOf(player)) {
@@ -36,12 +39,12 @@ void WeaponObjectMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
 
 }
 
-int WeaponObjectMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int WeaponObjectMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isTangibleObject())
 		return 0;
 
 	ManagedReference<WeaponObject*> weapon = cast<WeaponObject*>(sceneObject);
-	if(weapon == nullptr)
+	if(weapon == NULL)
 		return 1;
 
 	if(weapon->isASubChildOf(player)) {
@@ -55,7 +58,7 @@ int WeaponObjectMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, 
 			ManagedReference<Facade*> facade = player->getActiveSession(SessionFacadeType::SLICING);
 			ManagedReference<SlicingSession*> session = dynamic_cast<SlicingSession*>(facade.get());
 
-			if (session != nullptr) {
+			if (session != NULL) {
 				player->sendSystemMessage("@slicing/slicing:already_slicing");
 				return 0;
 			}
@@ -77,7 +80,7 @@ int WeaponObjectMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, 
 		if(selectedID == 71) {
 
 			ManagedReference<PowerupObject*> pup = weapon->removePowerup();
-			if(pup == nullptr)
+			if(pup == NULL)
 				return 1;
 
 			Locker locker(pup);

@@ -6,7 +6,7 @@
 #define BADGE_H_
 
 #include "engine/engine.h"
-#include "templates/datatables/DataTableRow.h"
+#include "server/zone/templates/datatables/DataTableRow.h"
 
 class Badge {
 

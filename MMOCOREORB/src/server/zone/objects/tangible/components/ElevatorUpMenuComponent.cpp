@@ -10,11 +10,11 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/scene/SceneObject.h"
 
-void ElevatorUpMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* creature) const {
+void ElevatorUpMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* creature) {
 	menuResponse->addRadialMenuItem(198, 3, "@elevator_text:up");
 }
 
-int ElevatorUpMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* creature, byte selectedID) const {
+int ElevatorUpMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* creature, byte selectedID) {
 	if (selectedID != 198)
 		return 0;
 

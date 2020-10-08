@@ -4,9 +4,13 @@
 
 package server.zone.objects.player.sui.messagebox;
 
+import engine.lua.LuaObject;
+import server.zone.objects.scene.SceneObject;
 import server.zone.objects.creature.CreatureObject;
 import engine.service.proto.BaseMessage;
 import server.zone.objects.player.sui.SuiBox;
+include server.zone.packets.ui.SuiCreatePageMessage;
+import server.zone.objects.creature.CreatureObject;
 
 class SuiTransferBox extends SuiBox {
 	protected string lblFrom;
@@ -24,7 +28,6 @@ class SuiTransferBox extends SuiBox {
 		super(player, windowType, SuiBox.TRANSFERBOX);
 	}
 
-	@local
 	public native BaseMessage generateMessage();
 
 	public native void addFrom(final string from, final string startingFrom, final string inputFrom, final string rFrom);

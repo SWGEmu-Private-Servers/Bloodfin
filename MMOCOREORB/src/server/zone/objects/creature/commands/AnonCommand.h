@@ -5,6 +5,7 @@
 #ifndef ANONCOMMAND_H_
 #define ANONCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
 
 class AnonCommand : public QueueCommand {
@@ -33,7 +34,7 @@ public:
 		else
 			creature->sendSystemMessage("@ui_who:anonymous_true");
 
-		if (ghost != nullptr)
+		if (ghost != NULL)
 			ghost->toggleCharacterBit(PlayerObject::ANONYMOUS);
 
 

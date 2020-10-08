@@ -41,7 +41,7 @@ public:
 	 * @param allowOverflow if true will bypass the containerVolumeLimit check
 	 * @return returns true if the object has been successfully added
 	 */
-	virtual bool transferObject(SceneObject* sceneObject, SceneObject* object, int containmentType, bool notifyClient = false, bool allowOverflow = false, bool notifyRoot = true) const;
+	virtual bool transferObject(SceneObject* sceneObject, SceneObject* object, int containmentType, bool notifyClient = false, bool allowOverflow = false, bool notifyRoot = true);
 
 	/**
 	 * Tries to remove/unlink object
@@ -51,7 +51,7 @@ public:
 	 * @param notifyClient not used currently
 	 * @return returns true if the object has been successfully removed
 	 */
-	virtual bool removeObject(SceneObject* sceneObject, SceneObject* object, SceneObject* destination, bool notifyClient) const;
+	virtual bool removeObject(SceneObject* sceneObject, SceneObject* object, SceneObject* destination, bool notifyClient);
 
 	/**
 	 * Evaluates if this object has the necessary free slots to be able to add the specified SceneObject
@@ -61,21 +61,21 @@ public:
 	 * @param error error string that the player will receive on error
 	 * @return returns 0 on success, or error code
 	 */
-	virtual int canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) const;
+	virtual int canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription);
 
-	virtual bool checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) const;
+	virtual bool checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission);
 
 	/**
 	 * Is called when this object has been inserted with an object
 	 * @param object object that has been inserted
 	 */
-	virtual int notifyObjectInserted(SceneObject* sceneObject, SceneObject* object) const;
+	virtual int notifyObjectInserted(SceneObject* sceneObject, SceneObject* object);
 
 	/**
 	 * Is called when an object was removed
 	 * @param object object that has been inserted
 	 */
-	virtual int notifyObjectRemoved(SceneObject* sceneObject, SceneObject* object, SceneObject* destination) const;
+	virtual int notifyObjectRemoved(SceneObject* sceneObject, SceneObject* object, SceneObject* destination);
 
 };
 

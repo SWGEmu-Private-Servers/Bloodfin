@@ -34,24 +34,24 @@ public:
 
 		ManagedReference<SceneObject*> obj = server->getZoneServer()->getObject(targetID);
 
-		if (obj == nullptr)
+		if (obj == NULL)
 			return INVALIDTARGET;
 
-		ManagedReference<CellObject*> cell = obj->getParent().get().castTo<CellObject*>();
+		ManagedReference<SceneObject*> cell = obj->getParent();
 
 		int cellid = 0;
 		uint32 buildingTemplate = 0;
 
-		if (cell != nullptr) {
-			cellid = cell->getCellNumber();
-			ManagedReference<SceneObject*> building = cell->getParent().get();
+		if (cell != NULL && cell->isCellObject()) {
+			cellid = (cast<CellObject*>(cell.get()))->getCellNumber();
+			ManagedReference<SceneObject*> building = cell->getParent();
 			buildingTemplate = building->getServerObjectCRC();
 		}
 
 		StringBuffer msg;
 
 		float posX = obj->getPositionX(), posZ = obj->getPositionZ(), posY = obj->getPositionY();
-		const Quaternion* direction = obj->getDirection();
+		Quaternion* direction = obj->getDirection();
 
 		msg << "x = " << posX << ", z = " << posZ << ", y = " << posY << ", ow = " << direction->getW()
 				<< ", ox = " << direction->getX() << ", oz = " << direction->getZ() << ", oy = " << direction->getY()
@@ -64,12 +64,12 @@ public:
 			AiAgent* objCreo = obj.castTo<AiAgent*>();
 
 			PatrolPoint* home = objCreo->getHomeLocation();
-			if (home != nullptr) {
+			if (home != NULL) {
 				cell = home->getCell();
 
-				if (cell != nullptr) {
-					cellid = cell->getCellNumber();
-					ManagedReference<SceneObject*> building = cell->getParent().get();
+				if (cell != NULL && cell->isCellObject()) {
+					cellid = (cast<CellObject*>(cell.get()))->getCellNumber();
+					ManagedReference<SceneObject*> building = cell->getParent();
 					buildingTemplate = building->getServerObjectCRC();
 				}
 
@@ -84,9 +84,9 @@ public:
 				PatrolPoint nextPosition = objCreo->getNextPosition();
 				cell = nextPosition.getCell();
 
-				if (cell != nullptr) {
-					cellid = cell->getCellNumber();
-					ManagedReference<SceneObject*> building = cell->getParent().get();
+				if (cell != NULL && cell->isCellObject()) {
+					cellid = (cast<CellObject*>(cell.get()))->getCellNumber();
+					ManagedReference<SceneObject*> building = cell->getParent();
 					buildingTemplate = building->getServerObjectCRC();
 				}
 

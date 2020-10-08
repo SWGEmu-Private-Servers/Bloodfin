@@ -6,11 +6,12 @@
  */
 
 #include "LoginSession.h"
+#include "LoginClient.h"
 
 #include "LoginPacketHandler.h"
 
 void LoginPacketHandler::handleMessage(Message* pack) {
-	debug() << "parsing " << *pack;
+	//info("parsing " + pack->toStringData());
 
 	sys::uint16 opcount = pack->parseShort();
 	sys::uint32 opcode = pack->parseInt();
@@ -77,7 +78,7 @@ void LoginPacketHandler::handleEnumerateCharacterId(Message* pack) {
 
 	uint32 characters = pack->parseInt();
 
-	if (loginSession == nullptr)
+	if (loginSession == NULL)
 		return;
 
 	if (characters == 0) {
@@ -103,18 +104,17 @@ void LoginPacketHandler::handleEnumerateCharacterId(Message* pack) {
 		loginSession->addCharacter(oid);
 	}
 
-	client->info("please enter character to login... -1 to create a new one", true);
+	//client->info("please enter character to login... -1 to create a new one", true);
 
-	char characterID[32];
-	auto res = fgets(characterID, sizeof(characterID), stdin);
+	//char characterID[32];
+	//fgets(characterID, sizeof(characterID), stdin);
 
-	if (!res)
-		return;
+	//String selected = characterID;
+	//selected = selected.replaceFirst("\n", "");
 
-	String selected = characterID;
-	selected = selected.replaceFirst("\n", "");
-
-	int selectedInt = Integer::valueOf(selected);
+	int selectedInt = -1; //Integer::valueOf(selected);
+	if (characters > 0)
+		selectedInt = 0;
 
 	client->info("selected character " + String::valueOf(selectedInt));
 

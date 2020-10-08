@@ -5,6 +5,7 @@
 #ifndef MEDITATECOMMAND_H_
 #define MEDITATECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/events/MeditateTask.h"
 
@@ -39,7 +40,7 @@ public:
 
 		Reference<Task*> task = player->getPendingTask("meditate");
 
-		if (task != nullptr) {
+		if (task != NULL) {
 			player->sendSystemMessage("@jedi_spam:already_in_meditative_state");
 			return GENERALERROR;
 		}

@@ -9,15 +9,11 @@
 #define DAMAGEOVERTIMELIST_H_
 
 #include "engine/engine.h"
-
-#include "engine/util/json_utils.h"
-
 #include "DamageOverTime.h"
 
 class DamageOverTimeList : private VectorMap<uint64, Vector<DamageOverTime> > {
 protected:
 	Time nextTick;
-	// TODO: why is this boolean here? what purpose does it serve?
 	bool dot;
 	Mutex guard;
 public:
@@ -33,12 +29,6 @@ public:
 		dot = list.dot;
 	}
 
-	friend void to_json(nlohmann::json& j, const DamageOverTimeList& l) {
-		const VectorMap<uint64, Vector<DamageOverTime> >& map = l;
-
-		to_json(j, map);
-	}
-
 	bool toBinaryStream(ObjectOutputStream* stream) {
 		return VectorMap<uint64, Vector<DamageOverTime> >::toBinaryStream(stream);
 	}
@@ -50,7 +40,7 @@ public:
 	uint64 activateDots(CreatureObject* victim);
 	uint32 addDot(CreatureObject* victim, CreatureObject* attacker, uint64 parentObjectID, uint32 duration, uint64 dotType, uint8 pool, uint32 strength, float potency, uint32 defense, int secondaryStrength = 0);
 	uint8 getRandomPool(uint64 dotType);
-	bool healState(CreatureObject* victim, uint64 dotType, float reduction, bool sendMsg = true);
+	bool healState(CreatureObject* victim, uint64 dotType, float reduction);
 	void clear(CreatureObject* creature);
 	bool hasDot(uint64 dotType);
 	void multiplyAllDOTDurations (float multiplier);

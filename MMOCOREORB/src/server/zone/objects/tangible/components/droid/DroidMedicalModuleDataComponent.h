@@ -6,6 +6,8 @@
 #define DROIDMEDICALGMODULEDATACOMPONENT_H_
 
 #include "BaseDroidModuleComponent.h"
+#include "server/zone/objects/tangible/tool/CraftingStation.h"
+#include "engine/core/ManagedReference.h"
 
 namespace server {
 namespace zone {
@@ -13,6 +15,7 @@ namespace objects {
 namespace tangible {
 namespace components {
 namespace droid {
+
 
 class DroidMedicalModuleDataComponent : public BaseDroidModuleComponent {
 
@@ -22,14 +25,14 @@ protected:
 public:
 	DroidMedicalModuleDataComponent();
 	~DroidMedicalModuleDataComponent();
-	String getModuleName() const;
+	String getModuleName();
 	void initializeTransientMembers();
 	void fillAttributeList(AttributeListMessage* msg, CreatureObject* droid);
 	void loadSkillMods(CreatureObject* player);
 	void unloadSkillMods(CreatureObject* player);
 	bool skillsByRange() { return true;}
 	int getBatteryDrain() { return 0;}
-	String toString() const;
+	String toString();
 	// crafting droid module specific
 	void onCall();
 	void onStore();
@@ -40,6 +43,7 @@ public:
 	int getMedicalRating();
 };
 
+
 } // droid
 } // components
 } // tangible
@@ -47,5 +51,4 @@ public:
 } // zone
 } // server
 using namespace server::zone::objects::tangible::components::droid;
-
 #endif /* DROIDMEDICALGMODULEDATACOMPONENT_H_ */

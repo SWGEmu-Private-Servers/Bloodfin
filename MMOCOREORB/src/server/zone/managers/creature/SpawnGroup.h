@@ -8,6 +8,7 @@
 #ifndef SPAWNGROUP_H_
 #define SPAWNGROUP_H_
 
+#include "engine/engine.h"
 #include "LairSpawn.h"
 
 namespace server {
@@ -71,19 +72,19 @@ public:
 		return *this;
 	}
 
-	const String& getTemplateName() const {
+	String getTemplateName() const {
 		return templateName;
 	}
 
-	const Vector<Reference<LairSpawn*> >& getSpawnList() {
-		return spawnList;
+	Vector<Reference<LairSpawn*> >* getSpawnList() {
+		return &spawnList;
 	}
 
-	void setTemplateName(const String& templateName) {
+	void setTemplateName(String templateName) {
 		this->templateName = templateName;
 	}
 
-	int getMinLevelCeiling() const {
+	int getMinLevelCeiling() {
 		return minLevelCeiling;
 	}
 };

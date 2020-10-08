@@ -5,6 +5,7 @@
 #ifndef BLEEDINGSHOTCOMMAND_H_
 #define BLEEDINGSHOTCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "CombatQueueCommand.h"
 
 class BleedingShotCommand : public CombatQueueCommand {
@@ -21,6 +22,16 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
+
+		ManagedReference<WeaponObject*> weapon = creature->getWeapon();
+
+		if (!weapon->isPistolWeapon()) {
+			return INVALIDWEAPON;
+		}
 
 		return doCombatAction(creature, target);
 	}

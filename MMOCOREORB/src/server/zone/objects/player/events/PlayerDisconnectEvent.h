@@ -6,6 +6,8 @@
 #define PLAYERDISCONNECTEVENT_H_
 
 #include "server/zone/objects/player/PlayerObject.h"
+#include "server/zone/packets/scene/SceneObjectDestroyMessage.h"
+#include "server/zone/Zone.h"
 
 namespace server {
 namespace zone {
@@ -14,7 +16,7 @@ namespace player {
 namespace events {
 
 class PlayerDisconnectEvent : public Task {
-	ManagedWeakReference<PlayerObject*> player;
+	ManagedReference<PlayerObject*> player;
 	bool isSafeArea;
 public:
 	PlayerDisconnectEvent(PlayerObject* pl, bool isSafe) : Task(2000) {
@@ -23,28 +25,23 @@ public:
 	}
 
 	void run() {
-		ManagedReference<PlayerObject*> play = player.get();
-
-		if (play == nullptr)
-			return;
-
-		ManagedReference<SceneObject*> par = play->getParent().get();
+		ManagedReference<SceneObject*> par = player->getParent();
 
 		Locker locker(par);
 
 		try {
-			play->clearDisconnectEvent();
+			player->clearDisconnectEvent();
 
-			play->setLinkDead(isSafeArea);
+			player->setLinkDead(isSafeArea);
 
-			if (play->isOnline())
-				play->disconnect(true, false);
+			if (player->isOnline())
+				player->disconnect(true, false);
 
 
 		} catch (Exception& e) {
-			play->error("Unreported Exception caught in PlayerDisconnectEvent::activate");
+			player->error("Unreported Exception caught in PlayerDisconnectEvent::activate");
 
-			play->clearDisconnectEvent();
+			player->clearDisconnectEvent();
 		}
 	}
 

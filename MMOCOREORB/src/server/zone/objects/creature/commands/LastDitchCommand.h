@@ -5,6 +5,7 @@
 #ifndef LASTDITCHCOMMAND_H_
 #define LASTDITCHCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "CombatQueueCommand.h"
 
 class LastDitchCommand : public CombatQueueCommand {
@@ -21,6 +22,16 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
+
+		ManagedReference<WeaponObject*> weapon = creature->getWeapon();
+
+		if (!weapon->isPistolWeapon()) {
+			return INVALIDWEAPON;
+		}
 
 		int dmg = doCombatAction(creature, target);
 

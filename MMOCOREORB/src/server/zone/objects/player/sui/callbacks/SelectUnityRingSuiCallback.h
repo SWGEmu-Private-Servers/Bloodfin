@@ -9,6 +9,7 @@
 #define SELECTUNITYRINGSUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/managers/stringid/StringIdManager.h"
 
 class SelectUnityRingSuiCallback : public SuiCallback {
 
@@ -22,7 +23,7 @@ public:
 		bool cancelPressed = (eventIndex == 1);
 
 		PlayerManager* playerManager = player->getZoneServer()->getPlayerManager();
-		if( !suiBox->isListBox() || playerManager == nullptr )
+		if( !suiBox->isListBox() || playerManager == NULL )
 			return;
 
 		if( cancelPressed ){

@@ -7,6 +7,12 @@
 
 #include "server/zone/managers/minigames/GamblingManager.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/Zone.h"
+#include "server/zone/ZoneServer.h"
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/packets/ui/SuiCreatePageMessage.h"
+#include "server/chat/StringIdChatParameter.h"
 
 class BetCommand : public QueueCommand {
 public:
@@ -30,12 +36,12 @@ public:
 
 			CreatureObject* player = cast<CreatureObject*>(creature);
 
-			if (player == nullptr)
+			if (player == NULL)
 				return GENERALERROR;
 
 			GamblingManager* gamblingManager = server->getGamblingManager();
 
-			if (gamblingManager == nullptr)
+			if (gamblingManager == NULL)
 				return GENERALERROR;
 
 			if (!gamblingManager->isPlaying(player)) {

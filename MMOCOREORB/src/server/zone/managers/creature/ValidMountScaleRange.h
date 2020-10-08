@@ -1,8 +1,21 @@
 #ifndef VALIDMOUNTSCALERANGE_H_
 #define VALIDMOUNTSCALERANGE_H_
 
-#include "templates/datatables/DataTableRow.h"
-#include "templates/params/primitives/StringParam.h"
+#include "engine/engine.h"
+#include "server/zone/templates/datatables/DataTableRow.h"
+#include "server/zone/templates/params/primitives/StringParam.h"
+
+namespace server {
+namespace zone {
+namespace managers {
+namespace creature {
+class PetManager;
+}
+}
+}
+}
+
+using namespace server::zone::managers::creature;
 
 class ValidMountScaleRange : public Object {
 protected:
@@ -47,6 +60,7 @@ public:
 		return validScaleMax;
 	}
 
+	friend class server::zone::managers::creature::PetManager;
 };
 
 #endif /* VALIDMOUNTSCALERANGE_H_ */

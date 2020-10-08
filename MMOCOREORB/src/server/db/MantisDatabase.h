@@ -8,37 +8,66 @@
 #ifndef MANTISDATABASE_H_
 #define MANTISDATABASE_H_
 
-#include "engine/engine.h"
-#include "system/lang/ref/UniqueReference.h"
 
-namespace conf {
-	class ConfigManager;
-}
+#include "engine/engine.h"
+
+#include "../conf/ConfigManager.h"
 
 class MantisDatabase {
-	static UniqueReference<ArrayList<UniqueReference<Database*> >* > databases;
+	static Vector<Database*>* databases;
 	static AtomicInteger currentDB;
 
 	static String tablePrefix;
 
 public:
+	MantisDatabase(ConfigManager* configManager) {
+		String& dbHost = configManager->getMantisHost();
+        String& dbUser = configManager->getMantisUser();
+        String& dbPass = configManager->getMantisPass();
+        String& dbName = configManager->getMantisName();
+        tablePrefix = configManager->getMantisPrefix();
+        uint16& dbPort = configManager->getMantisPort();
+
+        databases = new Vector<Database*>();
+
+        for (int i = 0; i < DEFAULT_SERVERDATABASE_INSTANCES; ++i) {
+        	try {
+        		Database* db = new engine::db::mysql::MySqlDatabase(String("MantisDatabase" + String::valueOf(i)), dbHost);
+        		db->connect(dbName, dbUser, dbPass, dbPort);
+
+        		databases->add(db);
+        	} catch (const Exception& e) {
+
+        	}
+        }
+
+	}
+
 	const static int DEFAULT_SERVERDATABASE_INSTANCES = 1;
 
-	MantisDatabase(conf::ConfigManager* configManager);
-	~MantisDatabase();
+	~MantisDatabase() {
+		while (!databases->isEmpty()) {
+			Database* db = databases->remove(0);
+
+			delete db;
+		}
+
+		delete databases;
+		databases = NULL;
+	}
 
 	inline static Database* instance() {
 		if (databases->size() == 0)
-			return nullptr;
+			return NULL;
 
 		int i = currentDB.get() % databases->size();
 
 		currentDB.increment();
 
-		return databases->get(i).get();
+		return databases->get(i);
 	}
 
-	static const String& getTablePrefix() {
+	static String& getTablePrefix() {
 		return tablePrefix;
 	}
 };

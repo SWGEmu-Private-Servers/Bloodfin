@@ -3,22 +3,20 @@
 		See file COPYING for copying conditions.
 */
 
+#include "server/ServerCore.h"
+#include "server/zone/ZoneServer.h"
 #include "server/zone/managers/director/PersistentEvent.h"
-#include "server/zone/managers/director/ScreenPlayTask.h"
+#include "DirectorManager.h"
+#include "ScreenPlayTask.h"
+#include "engine/engine.h"
 
 void PersistentEventImplementation::loadTransientTask() {
 	if (eventExecuted)
 		return;
 
-	// Converting old int variable to uint64
-	if (timeStamp != 0 && miliDiff == 0) {
-		miliDiff = timeStamp;
-		timeStamp = 0;
-	}
-
 	Time expireTime;
 	uint64 currentTime = expireTime.getMiliTime();
-	uint64 remTime = (miliDiff + curTime) - currentTime;
+	int64 remTime = (timeStamp + curTime) - currentTime;
 
 	Reference<ScreenPlayTask*> task = new ScreenPlayTask(obj.get(), key, play, args);
 	task->setPersistentEvent(_this.getReferenceUnsafeStaticCast());
@@ -28,6 +26,4 @@ void PersistentEventImplementation::loadTransientTask() {
 	} else { // If not, schedule in 1s
 		task->schedule(1000);
 	}
-
-	screenplayTask = task;
 }

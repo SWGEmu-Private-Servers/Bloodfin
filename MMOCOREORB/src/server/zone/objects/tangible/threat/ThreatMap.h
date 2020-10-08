@@ -11,6 +11,7 @@
 
 
 #include "engine/engine.h"
+#include "ThreatStates.h"
 #include "ThreatMatrix.h"
 #include "server/zone/objects/tangible/threat/ThreatMapObserver.h"
 #include "server/zone/objects/creature/variables/CooldownTimerMap.h"
@@ -142,7 +143,7 @@ protected:
 public:
 	ThreatMap(TangibleObject* me) : VectorMap<ManagedReference<CreatureObject*> , ThreatMapEntry>(1, 0) {
 		self = me;
-		currentThreat = nullptr;
+		currentThreat = NULL;
 		setNoDuplicateInsertPlan();
 	}
 

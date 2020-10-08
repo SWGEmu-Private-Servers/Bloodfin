@@ -14,19 +14,15 @@ JediManager::~JediManager() {
 
 }
 
-const String& JediManager::getJediManagerName() {
+String JediManager::getJediManagerName() {
 	ReadLocker locker(this);
 
-	return jediManagerName;
+	String ret = jediManagerName;
+
+	return ret;
 }
 
-int JediManager::getJediProgressionType() {
-	ReadLocker locker(this);
-
-	return jediProgressionType;
-}
-
-void JediManager::setJediManagerName(const String& name) {
+void JediManager::setJediManagerName(String name) {
 	Locker writeLock(this);
 
 	jediManagerName = name;
@@ -51,25 +47,21 @@ void JediManager::loadConfiguration(Lua* luaEngine) {
 
 	switch (jediProgressionType) {
 	case HOLOGRINDJEDIPROGRESSION:
-		luaEngine->runFile("scripts/managers/jedi/hologrind_jedi_manager.lua");
+		luaEngine->runFile("scripts/managers/jedi/hologrind/hologrind_jedi_manager.lua");
 		break;
 	case VILLAGEJEDIPROGRESSION:
-		luaEngine->runFile("scripts/managers/jedi/village_jedi_manager.lua");
+		luaEngine->runFile("scripts/managers/jedi/village/village_jedi_manager.lua");
 		break;
 	case CUSTOMJEDIPROGRESSION:
-		luaEngine->runFile(luaEngine->getGlobalString("customJediProgressionFile"));
+		luaEngine->runFile(luaEngine->getGlobalString(String("customJediProgressionFile")));
 		break;
 	default:
 		break;
 	}
 
-	if (loaded.compareAndSet(false, true)) {
-		auto managerName = luaEngine->getGlobalString(String("jediManagerName"));
+	setJediManagerName(luaEngine->getGlobalString(String("jediManagerName")));
 
-		setJediManagerName(managerName);
-	}
-
-	info() << Thread::getCurrentThread()->getName() <<  " loaded.";
+	info("Loaded.");
 }
 
 void JediManager::onPlayerCreated(CreatureObject* creature) {
@@ -78,15 +70,6 @@ void JediManager::onPlayerCreated(CreatureObject* creature) {
 	*luaOnPlayerCreated << creature;
 
 	luaOnPlayerCreated->callFunction();
-}
-
-void JediManager::onSkillRevoked(CreatureObject* creature, Skill* skill) {
-	Lua* lua = DirectorManager::instance()->getLuaInstance();
-	Reference<LuaFunction*> luaOnSkillRevoked = lua->createFunction(getJediManagerName(), "onSkillRevoked", 0);
-	*luaOnSkillRevoked << creature;
-	*luaOnSkillRevoked << skill;
-
-	luaOnSkillRevoked->callFunction();
 }
 
 void JediManager::onPlayerLoggedIn(CreatureObject* creature) {
@@ -123,41 +106,11 @@ void JediManager::useItem(SceneObject* item, const int itemType, CreatureObject*
 	luaUseItem->callFunction();
 }
 
-bool JediManager::canLearnSkill(CreatureObject* creature, const String& skillName) {
-	Lua* lua = DirectorManager::instance()->getLuaInstance();
-	Reference<LuaFunction*> luaStartTask = lua->createFunction(getJediManagerName(), "canLearnSkill", 1);
-	*luaStartTask << creature;
-	*luaStartTask << skillName;
-
-	lua_State* L = luaStartTask->callFunction();
-
-	bool result = lua_toboolean(L, -1);
-
-	lua_pop(L, 1);
-
-	return result;
-}
-
-bool JediManager::canSurrenderSkill(CreatureObject* creature, const String& skillName) {
-	Lua* lua = DirectorManager::instance()->getLuaInstance();
-	Reference<LuaFunction*> luaStartTask = lua->createFunction(getJediManagerName(), "canSurrenderSkill", 1);
-	*luaStartTask << creature;
-	*luaStartTask << skillName;
-
-	lua_State* L = luaStartTask->callFunction();
-
-	bool result = lua_toboolean(L, -1);
-
-	lua_pop(L, 1);
-
-	return result;
-}
-
-void JediManager::onFSTreeCompleted(CreatureObject* creature, const String& branch) {
+/*void JediManager::onFSTreeCompleted(CreatureObject* creature, String branch) {
 	Lua* lua = DirectorManager::instance()->getLuaInstance();
 	Reference<LuaFunction*> luaStartTask = lua->createFunction(getJediManagerName(), "onFSTreeCompleted", 0);
 	*luaStartTask << creature;
 	*luaStartTask << branch;
 
 	luaStartTask->callFunction();
-}
+}*/

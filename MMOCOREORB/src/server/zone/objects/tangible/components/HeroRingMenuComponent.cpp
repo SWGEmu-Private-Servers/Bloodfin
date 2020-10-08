@@ -1,23 +1,26 @@
 #include "HeroRingMenuComponent.h"
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "templates/params/creature/CreatureAttribute.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
 #include "server/zone/objects/tangible/wearables/WearableObject.h"
+#include "server/zone/objects/player/PlayerObject.h"
+#include "server/zone/managers/player/PlayerManager.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/tangible/components/HeroRingDataComponent.h"
 #include "server/zone/packets/object/PlayClientEffectObjectMessage.h"
 
-void HeroRingMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void HeroRingMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
 	TangibleObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, player);
 
 	TangibleObject* ring = cast<TangibleObject*>(sceneObject);
 
-	if (ring == nullptr)
+	if (ring == NULL)
 		return;
 
 	HeroRingDataComponent* data = cast<HeroRingDataComponent*>(ring->getDataObjectComponent()->get());
 
-	if (data == nullptr || !data->isHeroRingData())
+	if (data == NULL || !data->isHeroRingData())
 		return;
 
 	if (data->getCharges() > 0)
@@ -25,7 +28,7 @@ void HeroRingMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, Obj
 
 }
 
-int HeroRingMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int HeroRingMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 
 	if (selectedID == 20) { // Restore Life
 
@@ -34,12 +37,12 @@ int HeroRingMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Crea
 
 		WearableObject* wearable = cast<WearableObject*>(sceneObject);
 
-		if (wearable == nullptr)
+		if (wearable == NULL)
 			return 0;
 
 		HeroRingDataComponent* data = cast<HeroRingDataComponent*>(wearable->getDataObjectComponent()->get());
 
-		if (data == nullptr || !data->isHeroRingData())
+		if (data == NULL || !data->isHeroRingData())
 			return 0;
 
 		int charges = data->getCharges();
@@ -58,7 +61,7 @@ int HeroRingMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Crea
 		}
 
 		if (!player->checkCooldownRecovery("mark_of_hero")) {
-			const Time* timeRemaining = player->getCooldownTime("mark_of_hero");
+			Time* timeRemaining = player->getCooldownTime("mark_of_hero");
 			StringIdChatParameter cooldown("quest/hero_of_tatooine/system_messages", "restore_not_yet");
 			cooldown.setTO(getCooldownString(timeRemaining->miliDifference() * -1));
 			player->sendSystemMessage(cooldown);
@@ -69,15 +72,13 @@ int HeroRingMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Crea
 		player->healDamage(player, CreatureAttribute::ACTION, 200);
 		player->healDamage(player, CreatureAttribute::MIND, 200);
 
-		player->removeFeignedDeath();
-
 		data->setCharges(charges - 1);
 
 		String hardpoint = "";
 
-		if (player->getSlottedObject("ring_r") != nullptr && player->getSlottedObject("ring_r")->getObjectID() == sceneObject->getObjectID())
+		if (player->getSlottedObject("ring_r") != NULL && player->getSlottedObject("ring_r")->getObjectID() == sceneObject->getObjectID())
 			hardpoint = "hold_r";
-		else if (player->getSlottedObject("ring_l") != nullptr && player->getSlottedObject("ring_l")->getObjectID() == sceneObject->getObjectID())
+		else if (player->getSlottedObject("ring_l") != NULL && player->getSlottedObject("ring_l")->getObjectID() == sceneObject->getObjectID())
 			hardpoint = "hold_l";
 
 		PlayClientEffectObjectMessage* effect = new PlayClientEffectObjectMessage(player, "clienteffect/item_ring_hero_mark.cef", hardpoint);
@@ -93,7 +94,7 @@ int HeroRingMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Crea
 
 }
 
-String HeroRingMenuComponent::getCooldownString(uint32 delta) const {
+String HeroRingMenuComponent::getCooldownString(uint32 delta) {
 
 	int seconds = delta / 1000;
 

@@ -9,7 +9,6 @@
 #define RESPAWNCREATURETASK_H_
 
 #include "server/zone/objects/creature/ai/AiAgent.h"
-#include "server/zone/Zone.h"
 
 class RespawnCreatureTask : public Task {
 	ManagedReference<AiAgent*> creature;
@@ -21,15 +20,10 @@ public:
 		creature = cr;
 		zone = zn;
 		this->level = level;
-
-		setCustomTaskQueue(zone->getZoneName());
 	}
 
 	void run() {
 		Locker locker(creature);
-
-		if (creature->getHomeObject().get() == nullptr && creature->getRespawnTimer() == 0)
-			return;
 
 		creature->respawn(zone, level);
 

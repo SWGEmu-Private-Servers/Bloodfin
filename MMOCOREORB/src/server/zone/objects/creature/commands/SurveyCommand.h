@@ -5,6 +5,9 @@
 #ifndef SURVEYCOMMAND_H_
 #define SURVEYCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/tangible/tool/SurveyTool.h"
+
 class SurveyCommand : public QueueCommand {
 public:
 
@@ -20,6 +23,14 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isPlayerCreature()) {
+
+			ManagedReference<SurveySession*> session = creature->getActiveSession(SessionFacadeType::SURVEY).castTo<SurveySession*>();
+			if(session == NULL) {
+				creature->sendSystemMessage("@ui:survey_notool");
+			}
+		}
 
 		return SUCCESS;
 	}

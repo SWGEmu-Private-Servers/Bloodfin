@@ -9,32 +9,38 @@
 #include "sui/InsertPowerSuiCallback.h"
 
 #include "server/zone/managers/resource/ResourceManager.h"
-#include "server/zone/managers/faction/FactionManager.h"
+#include "server/zone/managers/planet/PlanetManager.h"
+#include "server/zone/managers/structure/StructureManager.h"
 
 #include "server/zone/packets/installation/InstallationObjectMessage3.h"
 #include "server/zone/packets/installation/InstallationObjectDeltaMessage3.h"
 #include "server/zone/packets/installation/InstallationObjectDeltaMessage7.h"
 #include "server/zone/packets/installation/InstallationObjectMessage6.h"
+
 #include "server/zone/packets/chat/ChatSystemMessage.h"
+#include "server/zone/objects/area/ActiveArea.h"
+#include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/packets/scene/AttributeListMessage.h"
+#include "server/zone/objects/player/sui/listbox/SuiListBox.h"
+#include "server/zone/objects/player/sui/inputbox/SuiInputBox.h"
 #include "server/zone/objects/player/sui/transferbox/SuiTransferBox.h"
 
 #include "server/zone/objects/resource/ResourceSpawn.h"
 #include "server/zone/objects/resource/ResourceContainer.h"
 #include "server/zone/Zone.h"
-#include "templates/installation/SharedInstallationObjectTemplate.h"
+#include "server/zone/templates/tangible/SharedInstallationObjectTemplate.h"
 #include "SyncrhonizedUiListenInstallationTask.h"
+#include "server/zone/objects/installation/components/TurretObserver.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
+#include "server/zone/objects/building/BuildingObject.h"
 #include "components/TurretDataComponent.h"
 #include "server/zone/objects/player/FactionStatus.h"
-#include "templates/params/OptionBitmask.h"
-#include "templates/params/creature/CreatureFlag.h"
-#include "server/zone/objects/creature/ai/AiAgent.h"
+#include "server/zone/objects/tangible/wearables/ArmorObject.h"
+#include "server/zone/templates/tangible/ArmorObjectTemplate.h"
+#include "server/zone/objects/tangible/OptionBitmask.h"
 
 void InstallationObjectImplementation::loadTemplateData(SharedObjectTemplate* templateData) {
 	StructureObjectImplementation::loadTemplateData(templateData);
-
-	if (!templateData->isSharedInstallationObjectTemplate())
-		return;
 
 	SharedInstallationObjectTemplate* inso = dynamic_cast<SharedInstallationObjectTemplate*>(templateData);
 
@@ -52,8 +58,9 @@ void InstallationObjectImplementation::sendBaselinesTo(SceneObject* player) {
 	player->sendMessage(buio6);
 
 
-	if ((getObjectTemplate()->getGameObjectType() == SceneObjectType::MINEFIELD || getObjectTemplate()->getGameObjectType() == SceneObjectType::DESTRUCTIBLE) && player->isCreatureObject())
+	if((this->isTurret() || isMinefield()) && player->isCreatureObject()){
 			sendPvpStatusTo(cast<CreatureObject*>(player));
+	}
 
 }
 
@@ -65,19 +72,48 @@ void InstallationObjectImplementation::fillAttributeList(AttributeListMessage* a
 		//Add the owner name to the examine window.
 		ManagedReference<SceneObject*> obj = object->getZoneServer()->getObject(ownerObjectID);
 
-		if(obj != nullptr) {
+		if(obj != NULL) {
 			alm->insertAttribute("owner", obj->getDisplayedName());
 		}
 	}
-	if(isTurret() && dataObjectComponent != nullptr){
+	if(isTurret() && dataObjectComponent != NULL){
 
 		TurretDataComponent* turretData = cast<TurretDataComponent*>(dataObjectComponent.get());
-			if(turretData == nullptr)
+			if(turretData == NULL)
 				return;
 
 			turretData->fillAttributeList(alm);
 	}
 
+}
+
+void InstallationObjectImplementation::broadcastMessage(BasePacket* message, bool sendSelf) {
+	Zone* zone = getZone();
+
+	if (zone == NULL)
+		return;
+
+	Locker zoneLocker(zone);
+
+	SortedVector<ManagedReference<QuadTreeEntry*> > closeSceneObjects;
+	zone->getInRangeObjects(getPositionX(), getPositionY(), 512, &closeSceneObjects, false);
+
+	for (int i = 0; i < closeSceneObjects.size(); ++i) {
+		ManagedReference<SceneObject*> scno = cast<SceneObject*>( closeSceneObjects.get(i).get());
+
+		if (!sendSelf && scno == _this.getReferenceUnsafeStaticCast())
+			continue;
+
+		if(!scno->isPlayerCreature())
+			continue;
+
+		CreatureObject* creo = cast<CreatureObject*>( scno.get());
+
+		if(isOnAdminList(creo))
+			scno->sendMessage(message->clone());
+	}
+
+	delete message;
 }
 
 void InstallationObjectImplementation::setOperating(bool value, bool notifyClient) {
@@ -88,7 +124,7 @@ void InstallationObjectImplementation::setOperating(bool value, bool notifyClien
 
 	if (value) {
 
-		if(currentSpawn == nullptr)
+		if(currentSpawn == NULL)
 			return;
 
 		spawnDensity = currentSpawn->getDensityAt(getZone()->getZoneName(), getPositionX(), getPositionY());
@@ -263,7 +299,7 @@ ResourceContainer* InstallationObjectImplementation::getContainerFromHopper(Reso
 			return entry;
 	}
 
-	return nullptr;
+	return NULL;
 }
 
 void InstallationObjectImplementation::updateInstallationWork() {
@@ -277,7 +313,7 @@ void InstallationObjectImplementation::updateInstallationWork() {
 bool InstallationObjectImplementation::updateMaintenance(Time& workingTime) {
 
 	Time now;
-
+	
 	int currentTime = time(0);
 	int lastTime = lastMaintenanceTime.getTime();
 
@@ -335,8 +371,8 @@ bool InstallationObjectImplementation::updateMaintenance(Time& workingTime) {
 void InstallationObjectImplementation::updateHopper(Time& workingTime, bool shutdownAfterUpdate) {
 
 	Locker locker(_this.getReferenceUnsafeStaticCast());
-
-	if (getZone() == nullptr)
+	
+	if (getZone() == NULL)
 		return;
 
 	Time timeToWorkTill;
@@ -347,7 +383,7 @@ void InstallationObjectImplementation::updateHopper(Time& workingTime, bool shut
 	}
 
 	if (resourceHopper.size() == 0) { // no active spawn
-		if(currentSpawn == nullptr)
+		if(currentSpawn == NULL)
 			return;
 
 		Locker locker(currentSpawn);
@@ -356,7 +392,7 @@ void InstallationObjectImplementation::updateHopper(Time& workingTime, bool shut
 
 	ManagedReference<ResourceContainer*> container = resourceHopper.get(0);
 
-	if(currentSpawn == nullptr)
+	if(currentSpawn == NULL)
 		currentSpawn = container->getSpawnObject();
 
 	Time currentTime = workingTime;
@@ -429,7 +465,7 @@ void InstallationObjectImplementation::clearResourceHopper() {
 	//lets delete the containers from db
 	for (int i = 0; i < resourceHopper.size(); ++i) {
 		ResourceContainer* container = resourceHopper.get(i);
-		if (container != nullptr) {
+		if (container != NULL) {
 			Locker locker(container);
 			container->destroyObjectFromDatabase(true);
 		}
@@ -481,7 +517,7 @@ void InstallationObjectImplementation::changeActiveResourceID(uint64 spawnID) {
 	}
 
 	currentSpawn = getZoneServer()->getObject(spawnID).castTo<ResourceSpawn*>();
-	if (currentSpawn == nullptr) {
+	if (currentSpawn == NULL) {
 		error("new spawn null");
 		return;
 	}
@@ -494,7 +530,7 @@ void InstallationObjectImplementation::changeActiveResourceID(uint64 spawnID) {
 
 	ManagedReference<ResourceContainer*> container = getContainerFromHopper(currentSpawn);
 
-	if (container == nullptr) {
+	if (container == NULL) {
 		Locker locker(currentSpawn);
 		container = currentSpawn->createResource(0);
 
@@ -513,22 +549,12 @@ void InstallationObjectImplementation::changeActiveResourceID(uint64 spawnID) {
 }
 
 void InstallationObjectImplementation::broadcastToOperators(BasePacket* packet) {
-#ifdef LOCKFREE_BCLIENT_BUFFERS
-	Reference<BasePacket*> pack = packet;
-#endif
-
 	for (int i = 0; i < operatorList.size(); ++i) {
 		CreatureObject* player = operatorList.get(i);
-#ifdef LOCKFREE_BCLIENT_BUFFERS
-		player->sendMessage(pack);
-#else
 		player->sendMessage(packet->clone());
-#endif
 	}
 
-#ifndef LOCKFREE_BCLIENT_BUFFERS
 	delete packet;
-#endif
 }
 
 void InstallationObjectImplementation::activateUiSync() {
@@ -537,7 +563,7 @@ void InstallationObjectImplementation::activateUiSync() {
 
 	try {
 
-		if (syncUiTask == nullptr)
+		if (syncUiTask == NULL)
 			syncUiTask = new SyncrhonizedUiListenInstallationTask(_this.getReferenceUnsafeStaticCast());
 
 		if (!syncUiTask->isScheduled())
@@ -573,7 +599,7 @@ void InstallationObjectImplementation::destroyObjectFromDatabase(bool destroyCon
 
 	ManagedReference<SceneObject*> deed = getZoneServer()->getObject(deedObjectID);
 
-	if (deed != nullptr) {
+	if (deed != NULL) {
 		Locker locker(deed);
 		deed->destroyObjectFromDatabase(true);
 	}
@@ -621,7 +647,7 @@ void InstallationObjectImplementation::updateResourceContainerQuantity(ResourceC
 }
 
 uint64 InstallationObjectImplementation::getActiveResourceSpawnID() {
-	if (currentSpawn == nullptr) {
+	if (currentSpawn == NULL) {
 		return 0;
 	} else {
 
@@ -668,50 +694,8 @@ bool InstallationObjectImplementation::isAggressiveTo(CreatureObject* target) {
 	if (!isAttackableBy(target) || target->isVehicleObject())
 		return false;
 
-	if (target->isPlayerCreature()) {
-		Reference<PlayerObject*> ghost = target->getPlayerObject();
-		if (ghost != nullptr && ghost->hasCrackdownTefTowards(getFaction())) {
-			return true;
-		}
-	}
-
 	if (getFaction() != 0 && target->getFaction() != 0 && getFaction() != target->getFaction())
 		return true;
-
-	SharedInstallationObjectTemplate* instTemplate = templateObject.castTo<SharedInstallationObjectTemplate*>();
-
-	if (instTemplate != nullptr) {
-		String factionString = instTemplate->getFactionString();
-
-		if (!factionString.isEmpty()) {
-			if (target->isAiAgent()) {
-				AiAgent* targetAi = target->asAiAgent();
-
-				if (FactionManager::instance()->isEnemy(factionString, targetAi->getFactionString()))
-					return true;
-			} else if (target->isPlayerCreature()) {
-				PlayerObject* ghost = target->getPlayerObject();
-
-				if (ghost == nullptr)
-					return false;
-
-				if (ghost->getFactionStanding(factionString) <= -3000)
-					return true;
-
-				FactionMap* fMap = FactionManager::instance()->getFactionMap();
-
-				const Faction& faction = fMap->get(factionString);
-				const SortedVector<String>* enemies = faction.getEnemies();
-
-				for (int i = 0; i < enemies->size(); ++i) {
-					const String& enemy = enemies->get(i);
-
-					if (ghost->getFactionStanding(enemy) >= 3000)
-						return true;
-				}
-			}
-		}
-	}
 
 	return false;
 }
@@ -724,49 +708,35 @@ bool InstallationObjectImplementation::isAttackableBy(CreatureObject* object) {
 	unsigned int thisFaction = getFaction();
 	unsigned int otherFaction = object->getFaction();
 
+	if (otherFaction != 0 && thisFaction != 0) {
+		if (otherFaction == thisFaction) {
+			return false;
+		}
+
+	}
+
 	if (object->isPet()) {
 		ManagedReference<CreatureObject*> owner = object->getLinkedCreature().get();
 
-		if (owner == nullptr)
+		if (owner == NULL)
 			return false;
 
 		return isAttackableBy(owner);
 
 	} else if (object->isPlayerCreature()) {
-		if (thisFaction != 0) {
-			Reference<PlayerObject*> ghost = object->getPlayerObject();
-			if (ghost != nullptr && ghost->hasCrackdownTefTowards(thisFaction)) {
-				return true;
-			}
-			if (otherFaction != 0 && otherFaction == thisFaction) {
-				return false;
-			}
-			if (object->getFactionStatus() == 0) {
-				return false;
-			}
-
-			if ((getPvpStatusBitmask() & CreatureFlag::OVERT) && object->getFactionStatus() != FactionStatus::OVERT) {
-				return false;
-			}
-		}
-	}
-
-	if (otherFaction != 0 && thisFaction != 0) {
-		if (otherFaction == thisFaction) {
+		ManagedReference<PlayerObject*> ghost = object->getPlayerObject();
+		if (ghost == NULL) {
 			return false;
 		}
-	}
 
-	SharedInstallationObjectTemplate* instTemplate = templateObject.castTo<SharedInstallationObjectTemplate*>();
-
-	if (instTemplate != nullptr) {
-		String factionString = instTemplate->getFactionString();
-
-		if (!factionString.isEmpty()) {
-			if (object->isAiAgent() && !FactionManager::instance()->isEnemy(factionString, object->asAiAgent()->getFactionString()))
+		if (thisFaction != 0) {
+			if (ghost->getFactionStatus() == 0) {
 				return false;
-			else if (object->isPlayerCreature() && getObjectTemplate()->getFullTemplateString().contains("turret_fs_village"))
+			}
+
+			if ((getPvpStatusBitmask() & CreatureFlag::OVERT) && ghost->getFactionStatus() != FactionStatus::OVERT) {
 				return false;
+			}
 		}
 	}
 
@@ -777,13 +747,13 @@ void InstallationObjectImplementation::createChildObjects() {
 	if (isTurret()) {
 		SharedInstallationObjectTemplate* inso = dynamic_cast<SharedInstallationObjectTemplate*>(getObjectTemplate());
 
-		if (inso != nullptr) {
+		if (inso != NULL) {
 			uint32 defaultWeaponCRC = inso->getWeapon().hashCode();
 
-			if (getZoneServer() != nullptr) {
+			if (getZoneServer() != NULL) {
 				Reference<WeaponObject*> defaultWeapon = (getZoneServer()->createObject(defaultWeaponCRC, getPersistenceLevel())).castTo<WeaponObject*>();
 
-				if (defaultWeapon == nullptr) {
+				if (defaultWeapon == NULL) {
 					return;
 				}
 
@@ -792,10 +762,10 @@ void InstallationObjectImplementation::createChildObjects() {
 					return;
 				}
 
-				if (dataObjectComponent != nullptr) {
+				if (dataObjectComponent != NULL) {
 					TurretDataComponent* turretData = cast<TurretDataComponent*>(dataObjectComponent.get());
 
-					if (turretData != nullptr) {
+					if (turretData != NULL) {
 						turretData->setWeapon(defaultWeapon);
 					}
 				}
@@ -811,11 +781,7 @@ void InstallationObjectImplementation::createChildObjects() {
 	}
 }
 
-float InstallationObjectImplementation::getHitChance() const {
-	const SharedInstallationObjectTemplate* inso = dynamic_cast<const SharedInstallationObjectTemplate*>(getObjectTemplate());
-
-	if (inso == nullptr)
-		return 0;
-
-	return inso->getChanceHit();
+float InstallationObjectImplementation::getHitChance(){
+		SharedInstallationObjectTemplate* inso = dynamic_cast<SharedInstallationObjectTemplate*>(getObjectTemplate());
+		return inso->getChanceHit();
 }

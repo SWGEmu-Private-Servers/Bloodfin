@@ -5,20 +5,25 @@
 package server.zone.managers.minigames;
 
 import engine.log.Logger;
+import engine.lua.Lua;
 import server.zone.objects.creature.CreatureObject;
+import server.zone.Zone;
+import server.zone.ZoneServer;
+import system.util.VectorMap;
+import system.util.Vector;
 import engine.util.Observer;
 include server.zone.objects.area.ForageMap;
-include server.zone.objects.transaction.TransactionLog;
 
 class ForageManager extends Observer implements Logger {
-
+	
 	public static final int SCOUT = 1;
 	public static final int MEDICAL = 2;
 	public static final int LAIR = 3;
 	public static final int SHELLFISH = 4;
-
+	 
 	@dereferenced
 	protected ForageMap forageAreas;
+
 
 	public ForageManager() {
 		Logger.setLoggingName("ForageManager");
@@ -29,6 +34,7 @@ class ForageManager extends Observer implements Logger {
 	public void deleteForageAreaCollection(string playerName) {
 		forageAreas.drop(playerName);
 	}
+
 
 	/**
 	 * Starts foraging.
@@ -44,6 +50,7 @@ class ForageManager extends Observer implements Logger {
 	 * @param scoutForage Determines if the player is using /forage or /medicalforage.
 	 */
 	public native void startForaging(CreatureObject player, int forageType); 
+
 
 	/**
 	 * Finishes foraging.
@@ -62,6 +69,7 @@ class ForageManager extends Observer implements Logger {
 	 */
 	public native void finishForaging(CreatureObject player, int forageType, float forageX, float forageY, final string planet);
 
+
 	/**
 	 * Gives the player items for a successful forage.
 	 * Checks player's inventory space and discards items they could have received if they had space.
@@ -76,6 +84,8 @@ class ForageManager extends Observer implements Logger {
 	 */
 	public native boolean forageGiveItems(CreatureObject player, int forageType, float forageX, float forageY, final string planet);
 
+
+
 	/**
 	 * Gives the player resources for a successful forage.
 	 * Pulls a list of all the flora resource spawns on that planet.
@@ -88,7 +98,28 @@ class ForageManager extends Observer implements Logger {
 	 * @param forageY The y coordinate of the player's position when they first started foraging.
 	 * @param planet The planet (zone ID) the player was on when they first started foraging.
 	 */
-	@local
-	private native boolean forageGiveResource(@dereferenced TransactionLog trx, CreatureObject player, float forageX, float forageY, final string planet, string resType);
+	public native boolean forageGiveResource(CreatureObject player, float forageX, float forageY, final string planet, string resType); 
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

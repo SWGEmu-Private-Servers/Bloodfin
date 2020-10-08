@@ -1,14 +1,16 @@
 /*
- * SelectHarvestSuiCallback.h
+ * LoadStimpackSuiCallback.h
  *
  */
 
-#ifndef SELECTHARVESTSUICALLBACK_H_
-#define SELECTHARVESTSUICALLBACK_H_
+#ifndef LOADSTIMPACKSUICALLBACK_H_
+#define LOADSTIMPACKSUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
 #include "server/zone/objects/player/sui/listbox/SuiListBox.h"
+#include "server/zone/objects/tangible/pharmaceutical/StimPack.h"
 #include "server/zone/objects/tangible/components/droid/DroidHarvestModuleDataComponent.h"
+#include "server/zone/objects/tangible/component/droid/DroidComponent.h"
 #include "server/zone/objects/creature/ai/DroidObject.h"
 
 class SelectHarvestSuiCallback : public SuiCallback {
@@ -25,25 +27,26 @@ public:
 		}
 
 		if (args->size() < 1) {
+			player->sendSystemMessage("@pet/droid_modules:invalid_stimpack");
 			return;
 		}
 
 		int index = Integer::valueOf(args->get(0).toString());
 
 		SuiListBox* listBox = cast<SuiListBox*>( suiBox);
-		ManagedReference<SceneObject*> object = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> object = suiBox->getUsingObject();
 
-		if (object == nullptr) {
+		if (object == NULL) {
 			return;
 		}
 
 		DroidObject* droid = cast<DroidObject*>(object.get());
-		if (droid == nullptr){
+		if (droid == NULL){
 			return;
 		}
 
-		auto module = droid->getModule("harvest_module").castTo<DroidHarvestModuleDataComponent*>();
-		if(module == nullptr) {
+		DroidHarvestModuleDataComponent* module = cast<DroidHarvestModuleDataComponent*>( droid->getModule("harvest_module"));
+		if(module == NULL) {
 			return;
 		}
 
@@ -54,4 +57,4 @@ public:
 
 };
 
-#endif /* SELECTHARVESTSUICALLBACK_H_ */
+#endif /* LOADSTIMPACKSUICALLBACK_H_ */

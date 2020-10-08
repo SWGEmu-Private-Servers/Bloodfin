@@ -1,30 +1,34 @@
 #include "server/zone/objects/tangible/eventperk/FlagGame.h"
 #include "server/zone/Zone.h"
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "templates/params/creature/CreatureFlag.h"
+#include "server/zone/objects/creature/CreatureFlag.h"
 #include "server/zone/objects/tangible/TangibleObject.h"
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/templates/tangible/EventPerkDeedTemplate.h"
+#include "server/zone/objects/tangible/components/FlagGameMenuComponent.h"
 #include "server/zone/objects/tangible/components/FlagGameDataComponent.h"
 #include "server/zone/objects/tangible/tasks/FlagGamePulseTask.h"
+#include "server/zone/objects/tangible/deed/eventperk/EventPerkDeed.h"
 
 void FlagGameImplementation::initializeTransientMembers() {
 	TangibleObjectImplementation::initializeTransientMembers();
+
 }
 
 void FlagGameImplementation::notifyInsertToZone(Zone* zone) {
 	if (rebScore > impScore)
-		changeFlag(Factions::FACTIONREBEL);
+		changeFlag(FactionManager::FACTIONREBEL);
 	else if (impScore > rebScore)
-		changeFlag(Factions::FACTIONIMPERIAL);
+		changeFlag(FactionManager::FACTIONIMPERIAL);
 	else
 		changeFlag(0);
 }
 
 uint32 FlagGameImplementation::getFlagTemplate(uint32 faction) {
 	switch (faction) {
-	case Factions::FACTIONREBEL:
+	case FactionManager::FACTIONREBEL:
 		return 0x1C517D16; // STRING_HASHCODE("object/tangible/furniture/all/event_flag_game_reb_banner.iff")
-	case Factions::FACTIONIMPERIAL:
+	case FactionManager::FACTIONIMPERIAL:
 		return 0xA5EBEFBE; // STRING_HASHCODE("object/tangible/furniture/all/event_flag_game_imp_banner.iff")
 	case 0:
 	default:
@@ -37,19 +41,19 @@ void FlagGameImplementation::changeFlag(uint32 faction) {
 
 	ManagedReference<ZoneServer*> zoneServer = getZoneServer();
 
-	if (zoneServer == nullptr)
+	if (zoneServer == NULL)
 		return;
 
 	ManagedReference<TangibleObject*> flag = zoneServer->createObject(getFlagTemplate(faction), "playerstructures", 1).castTo<TangibleObject*>();
 
-	if (flag == nullptr)
+	if (flag == NULL)
 		return;
 
 	Locker locker(flag);
 
 	FlagGameDataComponent* data = cast<FlagGameDataComponent*>(flag->getDataObjectComponent()->get());
 
-	if (data == nullptr) {
+	if (data == NULL) {
 		error("No dataObjectComponent.");
 		flag->destroyObjectFromDatabase(true);
 		return;
@@ -69,7 +73,7 @@ void FlagGameImplementation::changeFlag(uint32 faction) {
 void FlagGameImplementation::removeCurFlag() {
 	ManagedReference<TangibleObject*> flag = curFlag.get();
 
-	if (flag != nullptr) {
+	if (flag != NULL) {
 		Locker locker(flag);
 		flag->destroyObjectFromWorld(true);
 		flag->destroyObjectFromDatabase();
@@ -89,9 +93,9 @@ void FlagGameImplementation::tryFlagChange(CreatureObject* player) {
 		return;
 	}
 
-	if (player->getFaction() == Factions::FACTIONREBEL) {
+	if (player->getFaction() == FactionManager::FACTIONREBEL) {
 		announceToPlayers("flag_game_rebel_capture");
-	} else if (player->getFaction() == Factions::FACTIONIMPERIAL) {
+	} else if (player->getFaction() == FactionManager::FACTIONIMPERIAL) {
 		announceToPlayers("flag_game_imperial_capture");
 	} else {
 		return;
@@ -122,12 +126,12 @@ void FlagGameImplementation::startGame() {
 
 void FlagGameImplementation::endGame() {
 	if (rebScore > impScore) {
-		changeFlag(Factions::FACTIONREBEL);
-		doVictoryEffects(Factions::FACTIONREBEL);
+		changeFlag(FactionManager::FACTIONREBEL);
+		doVictoryEffects(FactionManager::FACTIONREBEL);
 		announceToPlayers("flag_game_over_reb_win");
 	} else if (impScore > rebScore) {
-		changeFlag(Factions::FACTIONIMPERIAL);
-		doVictoryEffects(Factions::FACTIONIMPERIAL);
+		changeFlag(FactionManager::FACTIONIMPERIAL);
+		doVictoryEffects(FactionManager::FACTIONIMPERIAL);
 		announceToPlayers("flag_game_over_imp_win");
 	} else {
 		changeFlag(0);
@@ -138,7 +142,7 @@ void FlagGameImplementation::endGame() {
 }
 
 void FlagGameImplementation::activateGamePulse() {
-	if (gamePulse == nullptr) {
+	if (gamePulse == NULL) {
 		gamePulse = new FlagGamePulseTask(_this.getReferenceUnsafeStaticCast());
 		gamePulse->reschedule(15 * 1000); // 15 second pulse
 	} else {
@@ -152,10 +156,10 @@ void FlagGameImplementation::announceToPlayers(const String& message) {
 
 	for (int i = 0; i < closeObjects.size(); i++) {
 		SceneObject* targetObject = cast<SceneObject*>(closeObjects.get(i).get());
-		if (targetObject != nullptr && targetObject->isPlayerCreature()) {
+		if (targetObject != NULL && targetObject->isPlayerCreature()) {
 			ManagedReference<CreatureObject*> player = cast<CreatureObject*>(targetObject);
 
-			if (player != nullptr)
+			if (player != NULL)
 				player->sendSystemMessage("@event_perk:" + message);
 		}
 	}
@@ -181,13 +185,13 @@ void FlagGameImplementation::doVictoryEffects(uint32 faction) {
 
 	for (int i = 0; i < closeObjects.size(); i++) {
 		SceneObject* targetObject = cast<SceneObject*>(closeObjects.get(i).get());
-		if (targetObject != nullptr && targetObject->isPlayerCreature()) {
+		if (targetObject != NULL && targetObject->isPlayerCreature()) {
 			ManagedReference<CreatureObject*> player = cast<CreatureObject*>(targetObject);
 
-			if (player != nullptr && player->getFaction() == faction && (player->getPvpStatusBitmask() & CreatureFlag::OVERT)) {
-				if (player->getFaction() == Factions::FACTIONREBEL) {
+			if (player != NULL && player->getFaction() == faction && (player->getPvpStatusBitmask() & CreatureFlag::OVERT)) {
+				if (player->getFaction() == FactionManager::FACTIONREBEL) {
 					player->playEffect("clienteffect/holoemote_rebel.cef", "head");
-				} else if (player->getFaction() == Factions::FACTIONIMPERIAL) {
+				} else if (player->getFaction() == FactionManager::FACTIONIMPERIAL) {
 					player->playEffect("clienteffect/holoemote_imperial.cef", "head");
 				}
 			}

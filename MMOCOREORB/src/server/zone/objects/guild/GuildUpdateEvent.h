@@ -22,23 +22,18 @@ public:
 		guildObject = guildObj;
 
 		server = zserv;
-
-		setCustomTaskQueue("slowQueue");
 	}
 
 	void run() {
-		if (server == nullptr || server->isServerShuttingDown())
-			return;
-
 		ManagedReference<GuildObject*> guild = guildObject.get();
 
-		if (guild == nullptr)
+		if (guild == NULL)
 			return;
 
 		Locker locker(guild);
 
 		if (server->isServerLoading()) {
-			guild->rescheduleUpdateEvent(10000);
+			guild->rescheduleUpdateEvent(10);
 			return;
 		}
 

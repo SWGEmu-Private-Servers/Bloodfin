@@ -8,6 +8,8 @@
 #ifndef EXPIREAUCTIONTASK_H_
 #define EXPIREAUCTIONTASK_H_
 
+#include "engine/engine.h"
+
 #include "server/zone/managers/auction/AuctionManager.h"
 
 class ExpireAuctionTask : public Task {
@@ -24,7 +26,7 @@ public:
 		ManagedReference<AuctionManager*> strongRef = auctionManager.get();
 		ManagedReference<AuctionItem*> strongRefItem = item.get();
 
-		if (strongRef == nullptr || strongRefItem == nullptr)
+		if (strongRef == NULL || strongRefItem == NULL)
 			return;
 
 		strongRef->expireAuction(strongRefItem);

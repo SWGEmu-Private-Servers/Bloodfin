@@ -8,7 +8,8 @@
 #ifndef RACIALCREATIONDATA_H_
 #define RACIALCREATIONDATA_H_
 
-#include "templates/datatables/DataTableRow.h"
+#include "engine/engine.h"
+#include "server/zone/templates/datatables/DataTableRow.h"
 
 namespace server {
 namespace zone {
@@ -46,7 +47,7 @@ public:
 		return *this;
 	}
 
-	void parseAttributeData(const DataTableRow* row) {
+	void parseAttributeData(DataTableRow* row) {
 		//The data starts at offset 2.
 		int min = 0;
 		int max = 0;
@@ -62,7 +63,7 @@ public:
 		row->getValue(20, totalAttributes);
 	}
 
-	void parseRacialModData(const DataTableRow* row) {
+	void parseRacialModData(DataTableRow* row) {
 		int mod = 0;
 
 		for (int i = 2; i < 11; ++i) {
@@ -72,23 +73,23 @@ public:
 		}
 	}
 
-	inline int getAttributeMin(int idx) const {
+	inline int getAttributeMin(int idx) {
 		return minAttributes.get(idx);
 	}
 
-	inline int getAttributeMax(int idx) const {
+	inline int getAttributeMax(int idx) {
 		return maxAttributes.get(idx);
 	}
 
-	inline int getAttributeMod(int idx) const {
+	inline int getAttributeMod(int idx) {
 		return modAttributes.get(idx);
 	}
 
-	inline int getAttributeTotal() const {
+	inline int getAttributeTotal() {
 		return totalAttributes;
 	}
 
-	String toString() const {
+	String toString() {
 		StringBuffer str;
 
 		for (int i = 0; i < minAttributes.size(); ++i)

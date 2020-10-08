@@ -5,6 +5,8 @@
 #ifndef DISMOUNTANDSTORECOMMAND_H_
 #define DISMOUNTANDSTORECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class DismountandstoreCommand : public QueueCommand {
 public:
 
@@ -20,7 +22,7 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
-		/*ManagedReference<CreatureObject*> mount = nullptr;
+		/*ManagedReference<CreatureObject*> mount = NULL;
 
 		if (creature->isRidingMount()) {
 			mount = cast<CreatureObject*>( creature->getParent());

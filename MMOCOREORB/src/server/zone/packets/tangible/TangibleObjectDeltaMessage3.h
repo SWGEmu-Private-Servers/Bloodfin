@@ -5,7 +5,7 @@
 #ifndef TANGIBLEOBJECTDELTAMESSAGE3_H_
 #define TANGIBLEOBJECTDELTAMESSAGE3_H_
 
-#include "server/zone/packets/DeltaMessage.h"
+#include "../../packets/DeltaMessage.h"
 
 #include "server/zone/objects/tangible/TangibleObject.h"
 
@@ -30,7 +30,8 @@ public:
 		addFloatUpdate(0, tano->getComplexity());
 	}
 
-	void updateObjectName(const StringId& name) {
+	void updateObjectName(StringId& name) {
+
 		addStringIdUpdate(1, name);
 	}
 

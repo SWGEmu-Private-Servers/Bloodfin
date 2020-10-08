@@ -6,32 +6,19 @@
 #define BASEDROIDMODULECOMPONENT_H_
 
 #include "engine/engine.h"
-
 #include "server/zone/objects/scene/components/DataObjectComponent.h"
 #include "server/zone/packets/scene/AttributeListMessage.h"
+#include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/creature/ai/DroidObject.h"
+#include "server/zone/objects/intangible/PetControlDevice.h"
 #include "server/zone/objects/manufactureschematic/craftingvalues/CraftingValues.h"
 
 namespace server {
 namespace zone {
 namespace objects {
-	namespace creature {
-		namespace ai {
-			class DroidObject;
-		}
-
-		class CreatureObject;
-	}
-
-	namespace intangible {
-		class PetControlDevice;
-	}
 namespace tangible {
 namespace components {
 namespace droid {
-
-using namespace server::zone::objects::creature;
-using namespace server::zone::objects::intangible;
-using namespace server::zone::objects::creature::ai;
 
 class BaseDroidModuleComponent : public DataObjectComponent, public Logger {
 
@@ -83,67 +70,42 @@ protected:
 
 public:
 	BaseDroidModuleComponent();
-
 	~BaseDroidModuleComponent();
-
-	virtual String getModuleName() const;
-
+	virtual String getModuleName();
 	void initializeTransientMembers();
-
 	// initialize the model based on the over all droid
-	virtual void initialize(DroidObject* droid);
-
+	virtual void initialize(CreatureObject* droid);
 	// attribultes to be added by module
 	virtual void fillAttributeList(AttributeListMessage* msg, CreatureObject* droid);
-
 	// add some object response menus
 	virtual void fillObjectMenuResponse(SceneObject* droidObject, ObjectMenuResponse* menuResponse, CreatureObject* player);
-
 	// handle menu selections
 	virtual int handleObjectMenuSelect(CreatureObject* player, byte selectedID, PetControlDevice* controller);
-
 	// add some skills to the player when active
 	virtual void loadSkillMods(CreatureObject* player);
-
 	// remove some skills mod when not active
 	virtual void unloadSkillMods(CreatureObject* player);
-
 	// check if skil mods of the module are based on range to the pet
 	virtual bool skillsByRange();
-
 	// Interface for Pet Manager to pass spacial commands to the droid for component processing
 	virtual void handlePetCommand(String cmd, CreatureObject* speaker) ;
-
 	// get drain amount when this module is active
 	virtual int getBatteryDrain();
-
 	// toggle this module form active to inactive i.e. auto harvest modules, barkers etc..
 	virtual void deactivate();
-
 	// does this module provide some kind of station effect
 	virtual bool actsAsCraftingStation();
-
 	// string rep of the module
-	virtual String toString() const;
-
+	virtual String toString();
 	virtual void onCall();
-
 	virtual void onStore();
-
 	virtual bool isDroidModuleData() { return true; }
-
 	virtual bool isStackable() { return false; }
-
 	virtual bool isCombatModule() { return false; }
-
 	virtual void addToStack(BaseDroidModuleComponent* other) {}
-
 	virtual void copy(BaseDroidModuleComponent* other){}
-
-	Reference<server::zone::objects::creature::ai::DroidObject*> getDroidObject();
-
+	ManagedReference<DroidObject*> getDroidObject();
 	virtual void updateCraftingValues(CraftingValues* values, bool firstUpdate);
-
 	virtual void setSpecies(int s) { species = s;}
 };
 
@@ -154,5 +116,4 @@ public:
 } //zone
 } //server
 using namespace server::zone::objects::tangible::components::droid;
-
 #endif /*BASEDROIDMODULECOMPONENT_H_*/

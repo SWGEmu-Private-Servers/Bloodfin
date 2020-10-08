@@ -12,9 +12,12 @@
 #define MEDITATETASK_H_
 
 #include "engine/engine.h"
+#include "server/zone/managers/objectcontroller/ObjectController.h"
+#include "server/zone/packets/chat/ChatSystemMessage.h"
 #include "server/chat/StringIdChatParameter.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "templates/params/creature/CreatureAttribute.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
 
 class MeditateTask: public Task {
 	ManagedReference<CreatureObject*> player;
@@ -77,7 +80,7 @@ public:
 				int wounds = player->getWounds(pool);
 
 				//Cap the heal at the amount of wounds the creature has.
-				heal = Math::min(wounds, heal);
+				heal = MIN(wounds, heal);
 
 				player->healWound(player, pool, heal, true, false);
 
@@ -88,7 +91,7 @@ public:
 				player->sendSystemMessage(healParams);
 			}
 
-			if (meditateTask != nullptr)
+			if (meditateTask != NULL)
 				meditateTask->reschedule(5000);
 			else
 				meditateTask->schedule(5000);

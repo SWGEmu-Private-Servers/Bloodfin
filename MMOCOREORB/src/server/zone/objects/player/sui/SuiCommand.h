@@ -52,10 +52,6 @@ public:
 		wideParameters.add(param);
 	}
 
-	UnicodeString& getWideParameter(int index) {
-		return wideParameters.get(index);
-	}
-
 	bool toBinaryStream(ObjectOutputStream* stream) {
 		stream->writeByte(commandType);
 		stream->writeInt(wideParameters.size());

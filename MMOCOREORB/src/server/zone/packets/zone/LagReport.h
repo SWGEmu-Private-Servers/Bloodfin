@@ -8,8 +8,7 @@
 #ifndef LAGREPORT_H_
 #define LAGREPORT_H_
 
-#include "engine/service/proto/BaseMessage.h"
-#include "server/zone/packets/MessageCallback.h"
+#include "../MessageCallback.h"
 
 class GameServerLagResponse : public BaseMessage {
 public:
@@ -60,7 +59,7 @@ public:
 	void run() {
 		ManagedReference<ZoneClientSession*> session = client.get();
 
-		if (session == nullptr)
+		if (session == NULL)
 			return;
 
 		ConnectionServerLagResponse* connectionServer = new ConnectionServerLagResponse();

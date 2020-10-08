@@ -6,10 +6,12 @@
 
 #include "server/zone/objects/creature/buffs/Buff.h"
 #include "BuffDurationEvent.h"
+#include "BuffList.h"
 
-#include "templates/params/creature/CreatureAttribute.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/packets/object/Buffs.h"
+#include "server/zone/packets/object/ShowFlyText.h"
 #include "server/zone/managers/skill/SkillModManager.h"
 
 void BuffImplementation::init() {
@@ -18,7 +20,7 @@ void BuffImplementation::init() {
 	skillModifiers.setNoDuplicateInsertPlan();
 	skillModifiers.setNullValue(0);
 
-	E3_ASSERT(buffDuration >= 0);
+	assert(buffDuration >= 0);
 }
 
 void BuffImplementation::initializeTransientMembers() {
@@ -31,7 +33,7 @@ void BuffImplementation::initializeTransientMembers() {
 void BuffImplementation::loadBuffDurationEvent(CreatureObject* creo) {
 	if(nextExecutionTime.getTime() - time(0) > buffDuration) {
 		error("Buff timer was f'ed in the a!  Serialized Time:" + String::valueOf((int)(nextExecutionTime.getTime() - time(0))) + " Duration: " + String::valueOf(buffDuration));
-		nextExecutionTime = Time((uint32)(time(0) + (int)buffDuration));
+		nextExecutionTime = (uint32)(time(0) + (int)buffDuration);
 	}
 
 	if (nextExecutionTime.isPast()) {
@@ -48,7 +50,7 @@ void BuffImplementation::loadBuffDurationEvent(CreatureObject* creo) {
 
 void BuffImplementation::notifyLoadFromDatabase() {
 /*
-	if (buffEvent != nullptr && buffEvent->isScheduled()) {
+	if (buffEvent != NULL && buffEvent->isScheduled()) {
 		buffEvent->cancel();
 		error("Buff had event scheduled before it was loaded!");
 	}
@@ -74,7 +76,7 @@ void BuffImplementation::sendTo(CreatureObject* player) {
 }
 
 void BuffImplementation::setBuffEventNull() {
-	buffEvent = nullptr;
+	buffEvent = NULL;
 }
 
 void BuffImplementation::sendDestroyTo(CreatureObject* player) {
@@ -84,44 +86,41 @@ void BuffImplementation::sendDestroyTo(CreatureObject* player) {
 	}
 }
 
-Time BuffImplementation::getTimeApplied() const {
+Time BuffImplementation::getTimeApplied() {
 	return timeApplied;
 }
 
-int BuffImplementation::compareTo(const Buff* buff) const {
+int BuffImplementation::compareTo(Buff *buff) {
 	Time rhs = buff->getTimeApplied();
-
 	return timeApplied.compareTo(rhs);
 }
-
 void BuffImplementation::activate(bool applyModifiers) {
-	debug() << "activating buff with crc " << hex << buffCRC;
-
+	//info("activating buff with crc " + String::hexvalueOf((int)buffCRC), true);
 	try {
-		if (applyModifiers)
+
+		if(applyModifiers)
 			applyAllModifiers();
 
 		scheduleBuffEvent();
 
 		timeApplied.updateToCurrentTime();
 
-		debug() << "nextExecutionTime miliDifference:" << nextExecutionTime.miliDifference();
+		//info("nextExecutionTime miliDifference:" + String::valueOf(nextExecutionTime.miliDifference()), true);
 
-		ManagedReference<CreatureObject*> creo = creature.get();
-		if (creo->isPlayerCreature())
-			sendTo(creo);
+		if (creature.get()->isPlayerCreature())
+			sendTo((cast<CreatureObject*>(creature.get().get())));
 
 		if (!startMessage.isEmpty())
-			creo->sendSystemMessage(startMessage);
+			creature.get()->sendSystemMessage(startMessage);
 
 		if (!startFlyFile.isEmpty())
-			creo->showFlyText(startFlyFile, startFlyAux, startFlyRed, startFlyGreen, startFlyBlue);
+			creature.get()->showFlyText(startFlyFile, startFlyAux, startFlyRed, startFlyGreen, startFlyBlue);
 
 		if (!startSpam.isEmpty()) {
-			creo->sendStateCombatSpam(startSpam.getFile(), startSpam.getStringID(), spamColor, 0, broadcastSpam);
+			creature.get()->sendStateCombatSpam(startSpam.getFile(), startSpam.getStringID(), spamColor, 0, broadcastSpam);
 		}
 
-	} catch (const Exception& e) {
+	} catch (Exception& e) {
 		error(e.getMessage());
 		e.printStackTrace();
 	}
@@ -146,31 +145,31 @@ void BuffImplementation::removeAllModifiers() {
 }
 
 void BuffImplementation::deactivate(bool removeModifiers) {
-	ManagedReference<CreatureObject*> strongRef = creature.get();
+	ManagedReference<CreatureObject*> strongRef = creature.get().get();
 
-	if (strongRef == nullptr)
+	if (strongRef == NULL)
 		return;
 
 	try {
-		if (removeModifiers)
+		if(removeModifiers)
 			removeAllModifiers();
 
-		if (strongRef->isPlayerCreature())
-			sendDestroyTo(strongRef);
+		if (creature.get()->isPlayerCreature())
+			sendDestroyTo(cast<CreatureObject*>(creature.get().get()));
 
 		if (!endMessage.isEmpty())
-			strongRef->sendSystemMessage(endMessage);
+			creature.get()->sendSystemMessage(endMessage);
 
 		if (!endFlyFile.isEmpty())
-			strongRef->showFlyText(endFlyFile, endFlyAux, endFlyRed, endFlyGreen, endFlyBlue);
+			creature.get()->showFlyText(endFlyFile, endFlyAux, endFlyRed, endFlyGreen, endFlyBlue);
 
 		if (!endSpam.isEmpty()) {
-			strongRef->sendStateCombatSpam(endSpam.getFile(), endSpam.getStringID(), spamColor, 0, broadcastSpam);
+			creature.get()->sendStateCombatSpam(endSpam.getFile(), endSpam.getStringID(), spamColor, 0, broadcastSpam);
 		}
 
 		clearBuffEvent();
 
-	} catch (const Exception& e) {
+	} catch (Exception& e) {
 		error(e.getMessage());
 		e.printStackTrace();
 	}
@@ -216,65 +215,60 @@ void BuffImplementation::parseSkillModifierString(const String& modifierstring) 
 	}
 }
 
-String BuffImplementation::getAttributeModifierString() const {
+String BuffImplementation::getAttributeModifierString() {
 	if (attributeModifiers.size() == 0)
 		return String("none");
 
-	StringBuffer retString;
+	String retString = "";
 
 	for (int i = 0; i < attributeModifiers.size(); i++) {
-		const auto& entry = attributeModifiers.elementAt(i);
-		retString << CreatureAttribute::getName(entry.getKey()) << " +"
-			<< entry.getValue() << ";";
+		VectorMapEntry<byte, int> entry = attributeModifiers.elementAt(i);
+		retString += CreatureAttribute::getName(entry.getKey()) + " +" + String::valueOf(entry.getValue()) + ";";
 	}
 
-	return retString.toString();
+	return retString;
 }
 
-String BuffImplementation::getSkillModifierString() const {
+String BuffImplementation::getSkillModifierString() {
 	if (skillModifiers.size() == 0)
 		return String("none");
 
-	StringBuffer retString;
+	String retString = "";
 
 	for (int i = 0; i < skillModifiers.size(); i++) {
-		const auto& entry = skillModifiers.elementAt(i);
-		retString << entry.getKey() << " +" << entry.getValue() << "; ";
+		VectorMapEntry<String, int> entry = skillModifiers.elementAt(i);
+		retString += entry.getKey() + " +" + String::valueOf(entry.getValue()) + "; ";
 	}
 
-	return retString.toString();
+	return retString;
 }
 
 void BuffImplementation::scheduleBuffEvent() {
 	buffEvent = new BuffDurationEvent(creature.get(), _this.getReferenceUnsafeStaticCast());
 	buffEvent->schedule((int) (buffDuration * 1000));
-	AtomicTime time;
-	Core::getTaskManager()->getNextExecutionTime(buffEvent, time);
-
-	nextExecutionTime = time.getTimeObject();
+	Core::getTaskManager()->getNextExecutionTime(buffEvent, nextExecutionTime);
 }
 
-float BuffImplementation::getTimeLeft() const {
-	if (buffEvent == nullptr || !buffEvent->isScheduled()) {
-		//info("buffEvent == nullptr || !buffEvent->isScheduled()", true);
+float BuffImplementation::getTimeLeft() {
+	if (buffEvent == NULL || !buffEvent->isScheduled()) {
+		//info("buffEvent == NULL || !buffEvent->isScheduled()", true);
 		return 0.0f;
 	}
 
-	AtomicTime next;
+	Time next;
 
 	Core::getTaskManager()->getNextExecutionTime(buffEvent, next);
 
-	float timeleft = round(Time().miliDifference(next.getTimeObject()) / 1000.0f);
+	float timeleft = round(Time().miliDifference(next) / 1000.0f);
 
 	//info("timeLeft = " + String::valueOf(timeleft), true);
 
-	return Math::max(0.0f, timeleft);
+	return MAX(0.0f, timeleft);
 }
 
-void BuffImplementation::applyAttributeModifiers() {
-	ManagedReference<CreatureObject*> creo = creature.get();
 
-	if (creo == nullptr)
+void BuffImplementation::applyAttributeModifiers() {
+	if (creature.get() == NULL)
 		return;
 
 	int size = attributeModifiers.size();
@@ -292,7 +286,7 @@ void BuffImplementation::applyAttributeModifiers() {
 			continue;
 
 		try {
-			int currentMaxHAM = creo->getMaxHAM(attribute);
+			int currentMaxHAM = creature.get()->getMaxHAM(attribute);
 
 			int newMaxHAM = currentMaxHAM + value;
 			if (newMaxHAM < 1)
@@ -302,17 +296,17 @@ void BuffImplementation::applyAttributeModifiers() {
 			attributeModifiers.drop(attribute);
 			attributeModifiers.put(attribute, buffAmount);
 
-			creo->setMaxHAM(attribute, newMaxHAM);
+			creature.get()->setMaxHAM(attribute, newMaxHAM);
 
-			if (creo->getHAM(attribute) > newMaxHAM - creo->getWounds(attribute))
-				creo->setHAM(attribute, newMaxHAM - creo->getWounds(attribute));
+			if (creature.get()->getHAM(attribute) > newMaxHAM - creature.get()->getWounds(attribute))
+				creature.get()->setHAM(attribute, newMaxHAM - creature.get()->getWounds(attribute));
 
-			if (!creo->isDead() && !creo->isIncapacitated()) {
+			if (!creature.get()->isDead() && !creature.get()->isIncapacitated()) {
 				if (fillAttributesOnBuff) {
-					int attributeval = Math::max(newMaxHAM, creo->getHAM(attribute) + value);
-					creo->healDamage(creo, attribute, attributeval, true);
+					int attributeval = MAX(newMaxHAM, creature.get()->getHAM(attribute) + value);
+					creature.get()->healDamage(creature.get(), attribute, attributeval, true);
 				} else if (value >= 0)
-					creo->healDamage(creo, attribute, value);
+					creature.get()->healDamage(creature.get(), attribute, value);
 			}
 
 		} catch (Exception& e) {
@@ -324,9 +318,7 @@ void BuffImplementation::applyAttributeModifiers() {
 }
 
 void BuffImplementation::applySkillModifiers() {
-	ManagedReference<CreatureObject*> creo = creature.get();
-
-	if (creo == nullptr)
+	if (creature.get() == NULL)
 		return;
 
 	int size = skillModifiers.size();
@@ -337,33 +329,29 @@ void BuffImplementation::applySkillModifiers() {
 		String key = entry->getKey();
 		int value = entry->getValue();
 
-		creo->addSkillMod(SkillModManager::BUFF, key, value, true);
+		creature.get()->addSkillMod(SkillModManager::BUFF, key, value, true);
 	}
 
 	// if there was a speed or acceleration mod change, this will take care of immediately setting them.
 	// the checks for if they haven't changed are in these methods
-	creo->updateSpeedAndAccelerationMods();
-	creo->updateTerrainNegotiation();
+	creature.get()->updateSpeedAndAccelerationMods();
+	creature.get()->updateTerrainNegotiation();
 }
 
 void BuffImplementation::applyStates() {
-	ManagedReference<CreatureObject*> creo = creature.get();
-
-	if (creo == nullptr)
+	if (creature.get() == NULL)
 		return;
 
 	int size = states.size();
 
 	for (int i = 0; i < size; ++i) {
 
-		creo->setState(states.get(i), true);
+		creature.get()->setState(states.get(i), true);
 	}
 }
 
 void BuffImplementation::removeAttributeModifiers() {
-	ManagedReference<CreatureObject*> creo = creature.get();
-
-	if (creo == nullptr)
+	if (creature.get() == NULL)
 		return;
 
 	int size = attributeModifiers.size();
@@ -382,17 +370,17 @@ void BuffImplementation::removeAttributeModifiers() {
 
 		try {
 
-			int attributemax = creo->getMaxHAM(attribute) - value;
+			int attributemax = creature.get()->getMaxHAM(attribute) - value;
 
-			int currentVal = creo->getHAM(attribute);
+			int currentVal = creature.get()->getHAM(attribute);
 
-			creo->setMaxHAM(attribute, attributemax);
+			creature.get()->setMaxHAM(attribute, attributemax);
 
 			if (currentVal >= attributemax) {
 				//creature.get()->inflictDamage(creature.get(), attribute, currentVal - attributemax, isSpiceBuff());
 
 				if (attribute % 3 == 0) {
-					creo->inflictDamage(creo, attribute, currentVal - attributemax, false);
+					creature.get()->inflictDamage(creature.get(), attribute, currentVal - attributemax, false);
 				} // else setMaxHam sets secondaries to max
 			}
 
@@ -402,7 +390,7 @@ void BuffImplementation::removeAttributeModifiers() {
 		}
 
 
-		/*int attributeval = Math::min(attributemax, creature.get()->getHAM(attribute) - value);
+		/*int attributeval = MIN(attributemax, creature.get()->getHAM(attribute) - value);
 
 		creature.get()->setHAM(attribute, attributeval);*/
 	}
@@ -410,9 +398,7 @@ void BuffImplementation::removeAttributeModifiers() {
 }
 
 void BuffImplementation::removeSkillModifiers() {
-	ManagedReference<CreatureObject*> creo = creature.get();
-
-	if (creo == nullptr)
+	if (creature.get() == NULL)
 		return;
 
 	int size = skillModifiers.size();
@@ -423,42 +409,40 @@ void BuffImplementation::removeSkillModifiers() {
 		String key = entry->getKey();
 		int value = entry->getValue();
 
-		creo->addSkillMod(SkillModManager::BUFF, key, -value, true);
+		creature.get()->addSkillMod(SkillModManager::BUFF, key, -value, true);
 
 	}
 
 	// if there was a speed or acceleration mod change, this will take care of immediately setting them.
 	// the checks for if they haven't changed are in these methods
-	creo->updateSpeedAndAccelerationMods();
-	creo->updateTerrainNegotiation();
+	creature.get()->updateSpeedAndAccelerationMods();
+	creature.get()->updateTerrainNegotiation();
 }
 
 void BuffImplementation::removeStates() {
-	ManagedReference<CreatureObject*> creo = creature.get();
-
-	if (creo == nullptr)
+	if (creature.get() == NULL)
 		return;
 
 	int size = states.size();
 
 	for (int i = 0; i < size; ++i) {
-		creo->clearState(states.get(i), true);
+		creature.get()->clearState(states.get(i), true);
 	}
 }
 
 void BuffImplementation::clearBuffEvent() {
-	if (buffEvent != nullptr) {
+	if (buffEvent != NULL) {
 		if (buffEvent->isScheduled())
 			buffEvent->cancel();
 
-		buffEvent->setBuffObject(nullptr);
-		buffEvent = nullptr;
+		buffEvent->setBuffObject(NULL);
+		buffEvent = NULL;
 		nextExecutionTime.updateToCurrentTime();
 	}
 }
 
-bool BuffImplementation::isActive() const {
-	return (buffEvent != nullptr && buffEvent->isScheduled());
+bool BuffImplementation::isActive() {
+	return (buffEvent != NULL && buffEvent->isScheduled());
 }
 
 void BuffImplementation::setStartMessage(StringIdChatParameter& start) {
@@ -500,3 +484,4 @@ void BuffImplementation::setEndFlyText(const String& file, const String& aux, ui
 	endFlyGreen = green;
 	endFlyBlue = blue;
 }
+

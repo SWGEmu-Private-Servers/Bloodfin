@@ -5,15 +5,13 @@
 #ifndef LIGHTUPDATETRANSFORMWITHPARENTMESSAGE_H_
 #define LIGHTUPDATETRANSFORMWITHPARENTMESSAGE_H_
 
-#include "engine/service/proto/BaseMessage.h"
+#include "engine/engine.h"
 
 #include "server/zone/objects/scene/SceneObject.h"
 
-#include "LightUpdateTransformMessage.h"
-
-class LightUpdateTransformWithParentMessage : public UNRELIABLE_LIGHT_BASE_CLASS {
+class LightUpdateTransformWithParentMessage : public BaseMessage {
 public:
-	LightUpdateTransformWithParentMessage(SceneObject* object) : UNRELIABLE_LIGHT_BASE_CLASS(50) {
+	LightUpdateTransformWithParentMessage(SceneObject* object) : BaseMessage(50) {
 		insertShort(0x08);
 		insertInt(0xC867AB5A);
 		insertLong(object->getParentID());
@@ -26,13 +24,8 @@ public:
 
 		// add movement counter
 		insertInt(object->getMovementCounter());
-
-		auto creo = object->asCreatureObject();
-
-		if (creo)
-			insertByte((int8)creo->getCurrentSpeed());
-		else
-			insertByte(0);
+		
+		insertByte(0); // unknown
 		
 		// add direction
 		insertByte((byte) object->getSpecialDirectionAngle());
@@ -42,7 +35,7 @@ public:
 			 << (int) (player->getPositionY()) << ") - Dir = " << (int) (player->getDirectionAngle()) << "\n";*/
 	}
 
-	LightUpdateTransformWithParentMessage(SceneObject* object, float posX, float posZ, float posY, uint64 cellID) : UNRELIABLE_LIGHT_BASE_CLASS(50) {
+	LightUpdateTransformWithParentMessage(SceneObject* object, float posX, float posZ, float posY, uint64 cellID) : BaseMessage(50) {
 		insertShort(0x08);
 		insertInt(0xC867AB5A);
 		insertLong(cellID);
@@ -56,12 +49,7 @@ public:
 		// add movement counter
 		insertInt(object->getMovementCounter());
 
-		auto creo = object->asCreatureObject();
-
-		if (creo)
-			insertByte((int8)creo->getCurrentSpeed());
-		else
-			insertByte(0);
+		insertByte(0); // unknown
 
 		// add direction
 		insertByte((byte) object->getSpecialDirectionAngle());

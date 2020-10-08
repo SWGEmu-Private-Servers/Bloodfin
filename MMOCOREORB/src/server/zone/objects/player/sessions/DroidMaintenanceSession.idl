@@ -4,12 +4,11 @@
 */
 
 package server.zone.objects.player.sessions;
+import engine.core.ManagedObject;
 import engine.util.Facade;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.structure.StructureObject;
 import server.zone.objects.tangible.components.droid.DroidMaintenanceModuleDataComponent;
-include system.util.Vector;
-include system.util.VectorMap;
 
 class DroidMaintenanceSession extends Facade {
 		

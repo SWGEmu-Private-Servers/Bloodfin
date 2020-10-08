@@ -8,6 +8,10 @@
 #ifndef COMMANDFACTORY_H_
 #define COMMANDFACTORY_H_
 
+#include "engine/engine.h"
+
+using namespace server::zone;
+
 namespace server {
 namespace zone {
 namespace managers {
@@ -22,7 +26,7 @@ class CommandCreatorMap : public HashTable<id, val> {
 
 public:
 	 CommandCreatorMap() {
-		 HashTable<id, val>::setNullValue(nullptr);
+		 HashTable<id, val>::setNullValue(NULL);
 	 }
 };
 
@@ -41,7 +45,7 @@ protected:
 public:
 	 BaseClassType createCommand(UniqueIdType uniqueID, Param1Type param1, Param2Type param2) {
 		 if (!commandCreator.containsKey(uniqueID))
-			 return nullptr;
+			 return NULL;
 
 		 return commandCreator.get(uniqueID)(param1, param2);
 	 }
@@ -59,7 +63,7 @@ public:
 		 return commandCreator.drop(uniqueID);
 	 }
 
-	 bool containsCommand(UniqueIdType uniqueID) const {
+	 bool containsCommand(UniqueIdType uniqueID) {
 		 return commandCreator.containsKey(uniqueID);
 	 }
 

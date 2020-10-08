@@ -11,8 +11,8 @@
 #include "server/zone/objects/manufactureschematic/ManufactureSchematic.h"
 #include "server/zone/objects/manufactureschematic/ingredientslots/IngredientSlot.h"
 #include "server/zone/objects/manufactureschematic/ingredientslots/ComponentSlot.h"
-#include "templates/tangible/PetDeedTemplate.h"
-#include "server/zone/objects/creature/ai/CreatureTemplate.h"
+#include "server/zone/templates/tangible/PetDeedTemplate.h"
+#include "server/zone/templates/mobile/CreatureTemplate.h"
 #include "server/zone/managers/player/PlayerManager.h"
 #include "server/zone/managers/creature/CreatureTemplateManager.h"
 #include "server/zone/objects/intangible/PetControlDevice.h"
@@ -20,21 +20,25 @@
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/objects/creature/ai/Creature.h"
+#include "server/zone/templates/tangible/SharedCreatureObjectTemplate.h"
 #include "server/zone/objects/tangible/component/genetic/GeneticComponent.h"
 #include "server/zone/managers/creature/CreatureManager.h"
+#include "server/zone/templates/mobile/CreatureTemplate.h"
+#include "server/zone/templates/tangible/PetDeedTemplate.h"
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "templates/customization/CustomizationIdManager.h"
+#include "server/zone/managers/customization/CustomizationIdManager.h"
 #include "server/zone/objects/scene/variables/CustomizationVariables.h"
 #include "server/zone/managers/stringid/StringIdManager.h"
 #include "server/zone/managers/creature/DnaManager.h"
 #include "server/zone/objects/creature/events/SampleDeedTask.h"
 #include "server/zone/managers/crafting/labratories/Genetics.h"
 
+
 void PetDeedImplementation::loadTemplateData(SharedObjectTemplate* templateData) {
 	DeedImplementation::loadTemplateData(templateData);
 	PetDeedTemplate* deedData = dynamic_cast<PetDeedTemplate*>(templateData);
 
-	if (deedData == nullptr)
+	if (deedData == NULL)
 		return;
 
 	controlDeviceObjectTemplate = deedData->getControlDeviceObjectTemplate();
@@ -122,9 +126,9 @@ void PetDeedImplementation::fillAttributeList(AttributeListMessage* alm, Creatur
 		alm->insertAttribute("spec_atk_2", "---");
 
 	CreatureTemplateManager* creatureTemplateManager = CreatureTemplateManager::instance();
-	Reference<CreatureTemplate*> petTemplate =  creatureTemplateManager->getTemplate( mobileTemplate.hashCode() );
+	ManagedReference<CreatureTemplate*> petTemplate =  creatureTemplateManager->getTemplate( mobileTemplate.hashCode() );
 	bool allowRanged = false;
-	if (petTemplate != nullptr) {
+	if (petTemplate != NULL) {
 		if (petTemplate->getWeapons().size() > 0) {
 			allowRanged = true;
 		}
@@ -183,15 +187,14 @@ void PetDeedImplementation::setupAttacks() {
 		}
 	}
 }
-
-const CreatureAttackMap* PetDeedImplementation::getAttacks() const {
+CreatureAttackMap* PetDeedImplementation::getAttacks() {
 	return &attacks;
 }
 
-String PetDeedImplementation::getTemplateName() const {
+String PetDeedImplementation::getTemplateName() {
 	CreatureTemplateManager* creatureTemplateManager = CreatureTemplateManager::instance();
-	Reference<CreatureTemplate*> petTemplate =  creatureTemplateManager->getTemplate( mobileTemplate.hashCode() );
-	if (petTemplate == nullptr) {
+	ManagedReference<CreatureTemplate*> petTemplate =  creatureTemplateManager->getTemplate( mobileTemplate.hashCode() );
+	if (petTemplate == NULL) {
 		return "";
 	}
 
@@ -208,24 +211,9 @@ int PetDeedImplementation::calculatePetLevel() {
 	}
 	return Genetics::calculateAgentLevel(avgHam, dps, chanceHit, regen, armor, effective, kinResist, energyResist, blastResist, heatResist, coldResist, elecResist, acidResist, stunResist);
 }
-
 void PetDeedImplementation::updateCraftingValues(CraftingValues* values, bool firstUpdate) {
 	ManagedReference<ManufactureSchematic*> manufact = values->getManufactureSchematic();
 	float clFactor = 0;
-
-	if (manufact == nullptr) {
-		String templateName;
-		SharedObjectTemplate* templ = getObjectTemplate();
-
-		if (templ != nullptr) {
-			templateName = templ->getFullTemplateString();
-		}
-
-		error("null manufacture schematic in PetDeedImplementation::updateCraftingValues for " + templateName);
-
-		return;
-	}
-
 	for (int i = 0; i < manufact->getSlotCount(); ++i) {
 		// Dna Component Slots
 		Reference<IngredientSlot* > iSlot = manufact->getSlot(i);
@@ -266,30 +254,30 @@ void PetDeedImplementation::updateCraftingValues(CraftingValues* values, bool fi
 			dexterity = component->getDexterity();
 			fortitude = component->getFortitude();
 			hardiness = component->getHardiness();
-			if (component->isSpecialResist(SharedWeaponObjectTemplate::KINETIC))
-				setSpecialResist(SharedWeaponObjectTemplate::KINETIC);
-			if (component->isSpecialResist(SharedWeaponObjectTemplate::ELECTRICITY))
-				setSpecialResist(SharedWeaponObjectTemplate::ELECTRICITY);
-			if (component->isSpecialResist(SharedWeaponObjectTemplate::ENERGY))
-				setSpecialResist(SharedWeaponObjectTemplate::ENERGY);
-			if (component->isSpecialResist(SharedWeaponObjectTemplate::ACID))
-				setSpecialResist(SharedWeaponObjectTemplate::ACID);
-			if (component->isSpecialResist(SharedWeaponObjectTemplate::BLAST))
-				setSpecialResist(SharedWeaponObjectTemplate::BLAST);
-			if (component->isSpecialResist(SharedWeaponObjectTemplate::COLD))
-				setSpecialResist(SharedWeaponObjectTemplate::COLD);
-			if (component->isSpecialResist(SharedWeaponObjectTemplate::HEAT))
-				setSpecialResist(SharedWeaponObjectTemplate::HEAT);
-			if (component->isSpecialResist(SharedWeaponObjectTemplate::LIGHTSABER))
-				setSpecialResist(SharedWeaponObjectTemplate::LIGHTSABER);
-			if (component->isSpecialResist(SharedWeaponObjectTemplate::STUN))
-				setSpecialResist(SharedWeaponObjectTemplate::STUN);
+			if (component->isSpecialResist(WeaponObject::KINETIC))
+				setSpecialResist(WeaponObject::KINETIC);
+			if (component->isSpecialResist(WeaponObject::ELECTRICITY))
+				setSpecialResist(WeaponObject::ELECTRICITY);
+			if (component->isSpecialResist(WeaponObject::ENERGY))
+				setSpecialResist(WeaponObject::ENERGY);
+			if (component->isSpecialResist(WeaponObject::ACID))
+				setSpecialResist(WeaponObject::ACID);
+			if (component->isSpecialResist(WeaponObject::BLAST))
+				setSpecialResist(WeaponObject::BLAST);
+			if (component->isSpecialResist(WeaponObject::COLD))
+				setSpecialResist(WeaponObject::COLD);
+			if (component->isSpecialResist(WeaponObject::HEAT))
+				setSpecialResist(WeaponObject::HEAT);
+			if (component->isSpecialResist(WeaponObject::LIGHTSABER))
+				setSpecialResist(WeaponObject::LIGHTSABER);
+			if (component->isSpecialResist(WeaponObject::STUN))
+				setSpecialResist(WeaponObject::STUN);
 			level = Genetics::calculatePetLevel(component);
 		}
 	}
 	CreatureTemplateManager* creatureTemplateManager = CreatureTemplateManager::instance();
-	Reference<CreatureTemplate*> petTemplate =  creatureTemplateManager->getTemplate( mobileTemplate.hashCode() );
-	if (petTemplate != nullptr) {
+	ManagedReference<CreatureTemplate*> petTemplate =  creatureTemplateManager->getTemplate( mobileTemplate.hashCode() );
+	if (petTemplate != NULL) {
 		// get min CL from the template
 		int skinFactor = petTemplate->getLevel();
 		if (level > 75) {
@@ -315,15 +303,14 @@ void PetDeedImplementation::fillObjectMenuResponse(ObjectMenuResponse* menuRespo
 
 int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte selectedID) {
 	if (selectedID == 21) {
-		if (generated || !player->hasSkill("outdoors_bio_engineer_novice") || !isASubChildOf(player))
+		if(generated || !player->hasSkill("outdoors_bio_engineer_novice") || !isASubChildOf(player))
 			return 1;
-
 		if (player->isRidingMount()) {
 			player->sendSystemMessage("You cannot sample DNA while mounted");
 			return 1;
 		}
 
-		if(player->getPendingTask("sampledeed") != nullptr) {
+		if(player->getPendingTask("sampledeed") != NULL) {
 			player->sendSystemMessage("@bio_engineer:harvest_dna_already_harvesting");
 			return 1;
 		}
@@ -335,7 +322,7 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 
 		Locker clocker(_this.getReferenceUnsafeStaticCast());
 
-		Reference<SampleDeedTask*> task = new SampleDeedTask(_this.getReferenceUnsafeStaticCast(), player);
+		ManagedReference<SampleDeedTask*> task = new SampleDeedTask(_this.getReferenceUnsafeStaticCast(), player);
 		player->addPendingTask("sampledeed",task,0);
 		return 0;
 	}
@@ -344,14 +331,14 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 		if (generated || !isASubChildOf(player))
 			return 1;
 
-		if (player->isInCombat() || player->getParentRecursively(SceneObjectType::BUILDING) != nullptr) {
+		if (player->isInCombat() || player->getParentRecursively(SceneObjectType::BUILDING) != NULL) {
 			player->sendSystemMessage("@pet/pet_menu:cant_call"); //You can only unpack vehicles while Outside and not in Combat.
 			return 1;
 		}
 
 		ManagedReference<SceneObject*> datapad = player->getSlottedObject("datapad");
 
-		if (datapad == nullptr) {
+		if (datapad == NULL) {
 			player->sendSystemMessage("Datapad doesn't exist when trying to call pet");
 			return 1;
 		}
@@ -368,7 +355,7 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 		for (int i = 0; i < datapad->getContainerObjectsSize(); ++i) {
 			ManagedReference<SceneObject*> object = datapad->getContainerObject(i);
 
-			if (object != nullptr && object->isPetControlDevice()) {
+			if (object != NULL && object->isPetControlDevice()) {
 				PetControlDevice* device = cast<PetControlDevice*>( object.get());
 
 				if (device->getPetType() == PetManager::CREATUREPET) {
@@ -392,7 +379,7 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 		for (int i = 0; i < ghost->getActivePetsSize(); ++i) {
 			ManagedReference<AiAgent*> object = ghost->getActivePet(i);
 
-			if (object != nullptr && object->isCreature()) {
+			if (object != NULL && object->isCreature()) {
 				if (++currentlySpawned >= maxPets) {
 					player->sendSystemMessage("@pet/pet_menu:too_many"); // You can't control any more pets. Store one first
 					return 1;
@@ -408,15 +395,15 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 		}
 
 		Reference<CreatureManager*> creatureManager = player->getZone()->getCreatureManager();
-		if( creatureManager == nullptr ){
+		if( creatureManager == NULL ){
 			player->sendSystemMessage("Internal Pet Deed Error #307");
 			return 1;
 		}
 
 		CreatureTemplateManager* creatureTemplateManager = CreatureTemplateManager::instance();
-		Reference<CreatureTemplate*> petTemplate = creatureTemplateManager->getTemplate( mobileTemplate.hashCode() );
+		ManagedReference<CreatureTemplate*> petTemplate = creatureTemplateManager->getTemplate( mobileTemplate.hashCode() );
 
-		if (petTemplate == nullptr) {
+		if (petTemplate == NULL) {
 			player->sendSystemMessage("wrong pet template;mobileTemplate=[" + mobileTemplate + "]" );
 			return 1;
 		}
@@ -438,7 +425,7 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 		// All checks complete, lets setup the control device and do it.
 		ManagedReference<PetControlDevice*> controlDevice = (server->getZoneServer()->createObject(controlDeviceObjectTemplate.hashCode(), 1)).castTo<PetControlDevice*>();
 
-		if (controlDevice == nullptr) {
+		if (controlDevice == NULL) {
 			player->sendSystemMessage("wrong pet control device;controlDevice=[" + controlDeviceObjectTemplate + "]" );
 			return 1;
 		}
@@ -447,7 +434,7 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 
 		String templateToSpawn = creatureManager->getTemplateToSpawn(mobileTemplate.hashCode());
 		ManagedReference<CreatureObject*> creatureObject = creatureManager->createCreature(templateToSpawn.hashCode(), true, 0 );
-		if( creatureObject == nullptr ) {
+		if( creatureObject == NULL ) {
 			controlDevice->destroyObjectFromDatabase(true);
 			player->sendSystemMessage("wrong pet template;mobileTemplate=[" + mobileTemplate + "]" );
 			return 1;
@@ -456,13 +443,14 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 		Locker clocker(creatureObject, player);
 
 		ManagedReference<Creature*> pet = creatureObject.castTo<Creature*>();
-		if( pet == nullptr ) {
+		if( pet == NULL ) {
 			controlDevice->destroyObjectFromDatabase(true);
 			creatureObject->destroyObjectFromDatabase(true);
 			player->sendSystemMessage("Internal Pet Deed Error #348" );
 			return 1;
 		}
 
+		ObjectManager* objectManager = server->getZoneServer()->getObjectManager();
 		pet->setPetDeed(_this.getReferenceUnsafeStaticCast());
 		pet->loadTemplateData( petTemplate );
 		pet->setCustomObjectName(StringIdManager::instance()->getStringId(*pet->getObjectName()), true);
@@ -473,7 +461,7 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 
 		// Copy color customization from deed to pet
 		CustomizationVariables* customVars = getCustomizationVariables();
-		if( customVars != nullptr ){
+		if( customVars != NULL ){
 			for (int i = 0; i < customVars->size(); ++i) {
 				uint8 id = customVars->elementAt(i).getKey();
 				int16 val = customVars->elementAt(i).getValue();
@@ -505,7 +493,7 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 		//Remove the deed from it's container.
 		ManagedReference<SceneObject*> deedContainer = getParent().get();
 
-		if (deedContainer != nullptr) {
+		if (deedContainer != NULL) {
 			destroyObjectFromWorld(true);
 		}
 
@@ -517,7 +505,7 @@ int PetDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte s
 	return DeedImplementation::handleObjectMenuSelect(player, selectedID);
 }
 
-bool PetDeedImplementation::isSpecialResist(int type) const {
+bool PetDeedImplementation::isSpecialResist(int type) {
 	return specialResists & type;
 }
 void PetDeedImplementation::setSpecialResist(int type) {
@@ -561,23 +549,23 @@ bool PetDeedImplementation::adjustPetStats(CreatureObject* player, CreatureObjec
 	fortitude = DnaManager::instance()->valueForLevel(DnaManager::ARM_LEVEL,oldLevel);
 	armor = fortitude/500;
 	float effectiveness = (int)(((fortitude - (armor * 500)) / 50) * 5);
-	if (!isSpecialResist(SharedWeaponObjectTemplate::KINETIC) && kinResist > 0)
+	if (!isSpecialResist(WeaponObject::KINETIC) && kinResist > 0)
 		kinResist = effectiveness;
-	if(!isSpecialResist(SharedWeaponObjectTemplate::ACID) && acidResist > 0)
+	if(!isSpecialResist(WeaponObject::ACID) && acidResist > 0)
 		acidResist = effectiveness;
-	if(!isSpecialResist(SharedWeaponObjectTemplate::BLAST) && blastResist > 0)
+	if(!isSpecialResist(WeaponObject::BLAST) && blastResist > 0)
 		blastResist = effectiveness;
-	if(!isSpecialResist(SharedWeaponObjectTemplate::COLD) && coldResist > 0)
+	if(!isSpecialResist(WeaponObject::COLD) && coldResist > 0)
 		coldResist = effectiveness;
-	if(!isSpecialResist(SharedWeaponObjectTemplate::ELECTRICITY) && elecResist > 0)
+	if(!isSpecialResist(WeaponObject::ELECTRICITY) && elecResist > 0)
 		elecResist = effectiveness;
-	if(!isSpecialResist(SharedWeaponObjectTemplate::ENERGY) && energyResist > 0)
+	if(!isSpecialResist(WeaponObject::ENERGY) && energyResist > 0)
 		energyResist = effectiveness;
-	if(!isSpecialResist(SharedWeaponObjectTemplate::HEAT) && heatResist > 0)
+	if(!isSpecialResist(WeaponObject::HEAT) && heatResist > 0)
 		heatResist = effectiveness;
-	if(!isSpecialResist(SharedWeaponObjectTemplate::LIGHTSABER) && saberResist > 0)
+	if(!isSpecialResist(WeaponObject::LIGHTSABER) && saberResist > 0)
 		saberResist = effectiveness;
-	if(!isSpecialResist(SharedWeaponObjectTemplate::STUN) && stunResist > 0)
+	if(!isSpecialResist(WeaponObject::STUN) && stunResist > 0)
 		stunResist = effectiveness;
 
 	// ensure the stats are set

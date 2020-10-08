@@ -4,24 +4,21 @@
 
 package server.zone.objects.mission;
 
+import engine.util.Observer;
 import engine.util.Observable;
+import engine.core.Task;
 import server.zone.objects.mission.MissionObject;
 import server.zone.objects.mission.MissionObjective;
 import server.zone.objects.mission.MissionObserver;
 import server.zone.objects.scene.SceneObject;
 import server.zone.objects.creature.ai.AiAgent;
-import server.zone.objects.creature.CreatureObject;
-include templates.TemplateReference;
-include templates.SharedObjectTemplate;
+include server.zone.templates.TemplateReference;
+import server.zone.templates.SharedObjectTemplate;
 import server.zone.objects.mission.bountyhunter.BountyHunterDroid;
 import server.zone.objects.mission.bountyhunter.events.BountyHunterTargetTask;
 include server.zone.objects.mission.bountyhunter.events.FindTargetTaskList;
 import system.thread.Mutex;
-import engine.core.ManagedObject;
-include engine.log.Logger;
-include engine.util.u3d.Vector3;
 
-@json
 class BountyMissionObjective extends MissionObjective {
 	@dereferenced
 	protected TemplateReference<SharedObjectTemplate> npcTemplateToSpawn;
@@ -32,14 +29,12 @@ class BountyMissionObjective extends MissionObjective {
 
 	protected SceneObject activeDroid;
 
-	protected transient BountyHunterDroid droid;
+	protected BountyHunterDroid droid;
 
 	@dereferenced
-	protected transient FindTargetTaskList droidTasks;
+	protected FindTargetTaskList droidTasks;
 
-	protected transient BountyHunterTargetTask targetTask;
-
-	protected boolean completedMission;
+	protected BountyHunterTargetTask targetTask;
 
 	@dereferenced
 	protected transient Mutex syncMutex;
@@ -57,13 +52,11 @@ class BountyMissionObjective extends MissionObjective {
 		activeDroid = null;
 		droid = null;
 
-		completedMission = false;
-
 		Logger.setLoggingName("BountyMissionObjective");
 	}
 
-	public void finalize() {
-
+	public native void finalize() {
+		cancelAllTasks();
 	}
 
 	public void initializeTransientMembers() {
@@ -126,6 +119,9 @@ class BountyMissionObjective extends MissionObjective {
 	@dirty
 	public native string getTargetZoneName();
 
+	private native void addToBountyLock();
+	private native void removeFromBountyLock(boolean immediately);
+
 	@preLocked
 	private native void removePlayerTargetObservers();
 	@preLocked
@@ -138,11 +134,13 @@ class BountyMissionObjective extends MissionObjective {
 	private native void startNpcTargetTask();
 
 	@dirty
-	public native boolean isPlayerTarget();
+	private native boolean isPlayerTarget();
 
 	private native void handleNpcTargetKilled(Observable observable);
 	private native int handleNpcTargetReceivesDamage(ManagedObject arg1);
 	private native void handlePlayerKilled(ManagedObject arg1);
+	private native void handleDefenderAdded(ManagedObject arg1);
+	private native void handleDefenderDropped(ManagedObject arg1);
 
 	@dereferenced
 	@local

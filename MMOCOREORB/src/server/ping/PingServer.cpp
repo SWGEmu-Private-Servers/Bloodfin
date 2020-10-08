@@ -2,6 +2,7 @@
 				Copyright <SWGEmu>
 		See file COPYING for copying conditions.*/
 
+#include "PingClient.h"
 #include "PingServer.h"
 
 PingServer::PingServer() : DatagramServiceThread("PingServer") {
@@ -26,6 +27,7 @@ void PingServer::run() {
 }
 
 void PingServer::shutdown() {
+	// shutting down
 }
 
 PingClient* PingServer::createConnection(Socket* sock, SocketAddress& addr) {
@@ -61,7 +63,7 @@ void PingServer::handleMessage(ServiceClient* client, Packet* message) {
 bool PingServer::handleError(ServiceClient* client, Exception& e) {
 	PingClient* lclient = cast<PingClient*>(client);
 
-	if (lclient != nullptr) {
+	if (lclient != NULL) {
 		lclient->setError();
 
 		lclient->disconnect();

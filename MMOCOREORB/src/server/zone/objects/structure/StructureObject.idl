@@ -9,18 +9,18 @@ import server.zone.objects.tangible.TangibleObject;
 import server.zone.objects.structure.events.StructureMaintenanceTask;
 import server.zone.objects.scene.SceneObject;
 import server.zone.objects.creature.CreatureObject;
-include templates.SharedObjectTemplate;
+import server.zone.objects.player.PlayerObject;
+import server.zone.templates.SharedObjectTemplate;
+import server.zone.objects.area.ActiveArea;
+import engine.util.u3d.AABBTree;
+import engine.util.u3d.AABBNode;
+import engine.util.u3d.Vector3;
 import system.lang.Time;
 include server.zone.objects.structure.StructurePermissionList;
-import server.zone.objects.pathfinding.NavArea;
-import server.zone.objects.creature.credits.CreditObject;
-include server.zone.CloseObjectsVector;
 
-@json
 class StructureObject extends TangibleObject {
 	protected transient StructureMaintenanceTask structureMaintenanceTask;
-
-	protected NavArea navArea;
+	//protected transient StructurePowerTask structurePowerTask;
 
 	@dereferenced
 	protected StructurePermissionList structurePermissionList;
@@ -36,7 +36,6 @@ class StructureObject extends TangibleObject {
 
 	protected unsigned long ownerObjectID;
 	protected unsigned long deedObjectID;
-	protected unsigned long waypointID;
 
 	protected float surplusMaintenance;
 	protected float surplusPower;
@@ -54,8 +53,6 @@ class StructureObject extends TangibleObject {
 
 		deedObjectID = 0;
 
-		waypointID = 0;
-
 		surplusMaintenance = 0;
 
 		surplusPower = 0;
@@ -65,14 +62,12 @@ class StructureObject extends TangibleObject {
 		maintenanceReduced = false;
 
 		permissionsFixed = false;
-
-		navArea = null;
 	}
 
 	public native void initializeTransientMembers();
-
+	
 	public native void finalize();
-
+	
 	/**
 	 * Reads and sets the template data from a SharedObjectTemplate LuaObject
 	 * @pre { templateData is a valid pointer }
@@ -91,41 +86,26 @@ class StructureObject extends TangibleObject {
 
 	public native void destroyObjectFromWorld(boolean sendSelfDestroy);
 
-	/**
-	 * Destroys this object from database
-	 * @pre { this is locked }
-	 * @post { this is locked }
-	 * @param destroyContainedObjects if true, will destroy from database all its contained objects
-	 */
-	public native void destroyObjectFromDatabase(boolean destroyContainedObjects = false);
-
 	public native void notifyInsertToZone(Zone zone);
 
 	@preLocked
 	public void createChildObjects() {
 		super.createChildObjects();
 	}
-
-	@read
-	public abstract int getReceiverFlags() {
-		return CloseObjectsVector.STRUCTURETYPE | super.getReceiverFlags();
-	}
-
+	
 	/**
 	 * Gets called when the structure has been created;
 	 */
 	public abstract int notifyStructurePlaced(CreatureObject creature) {
 		return 0;
 	}
-
-	public native void destroyOrphanCivicStructure();
-
+	
 	@dirty
 	public abstract boolean checkRequisitesForPlacement(CreatureObject player) {
 		return true;
 	}
 
-	@read
+	@dirty
 	public native string getTimeString(unsigned int timestamp);
 
 	/**
@@ -141,7 +121,7 @@ class StructureObject extends TangibleObject {
 	 */
 	@preLocked
 	public native void scheduleMaintenanceTask(int timeFromNow);
-
+	
 	/**
 	 * This method should be called anytime a method needs up to date information about
 	 * maintenance, power, and condition of the structure.
@@ -149,73 +129,69 @@ class StructureObject extends TangibleObject {
 	@preLocked
 	public native abstract void updateStructureStatus();
 
-	@prelocked
-	@read
-	public native string getDebugStructureStatus();
-
 	/**
 	 * Checks if the player is on the admin list.
 	 * @param player The creo of the player to check for admin permission.
 	 * @return Returns true if the player has admin permissions.
 	 */
-	@read
+	@dirty
 	public native boolean isOnAdminList(CreatureObject player);
-
+	
 	/**
 	 * Checks if the player/guild is on the admin list.
 	 * For PermissionsListModify command
 	 * @param objectID The oid of the player/guild to check for admin permission.
 	 * @return Returns true if the player/guild has admin permissions.
 	 */
-	@read
+	@dirty
 	public boolean isOnAdminList(final unsigned long objectID) {
 		return structurePermissionList.isOnPermissionList("ADMIN", objectID);
 	}
-
+	
 	/**
 	 * Checks if the player is on the entry list.
 	 * @param player The creo of the player to check for entry permission.
 	 * @return Returns true if the player has entry permissions.
 	 */
-	@read
+	@dirty
 	public native boolean isOnEntryList(CreatureObject player);
-
+	
 	/**
 	 * Checks if the player is on the ban list.
 	 * @param player The creo of the player to check for ban permission.
 	 * @return Returns true if the player has ban permissions.
 	 */
-	@read
+	@dirty
 	public native boolean isOnBanList(CreatureObject player);
-
+	
 	/**
 	 * Checks if the player/guild is on the ban list.
 	 * For PermissionsListModify command
 	 * @param objectID The oid of the player/guild to check for ban permission.
 	 * @return Returns true if the player/guild has ban permissions.
 	 */
-	@read
+	@dirty
 	public boolean isOnBanList(final unsigned long objectID) {
 		return structurePermissionList.isOnPermissionList("BAN", objectID);
 	}
-
+	
 	/**
 	 * Checks if the player is on the hopper list.
 	 * @param player The creo of the player to check for hopper permission.
 	 * @return Returns true if the player has hopper permissions.
 	 */
-	@read
+	@dirty
 	public native boolean isOnHopperList(CreatureObject player);
-
+	
 	/**
 	 * Checks if the player is the on the specified permission list.
 	 * @param listName The name of the list to check.
 	 * @param player The creo of the player to check.
 	 * @return Returns true if the player was found on the list.
 	 */
-	@read
+	@dirty
 	public native boolean isOnPermissionList(final string listName, CreatureObject player);
-
+	
 	/**
 	 * Checks if the player/guild is the on the specified permission list.
 	 * For PermissionsListModify command
@@ -223,23 +199,22 @@ class StructureObject extends TangibleObject {
 	 * @param objectID The oid of the player/guild to check.
 	 * @return Returns true if the player/guild was found on the list.
 	 */
-	@read
+	@dirty
 	public boolean isOnPermissionList(final string listName, final unsigned long objectID) {
 		return structurePermissionList.isOnPermissionList(listName, objectID);
 	}
 
-	@read
+	@dirty
 	public native boolean isOwnerOf(SceneObject obj);
-
-	@read
+	@dirty
 	public native boolean isOwnerOf(unsigned long oid);
-
-	@read
+	
+	@dirty
 	public boolean isOnAccessList(SceneObject obj) {
 		return false;
 	}
-
-	@read
+	
+	@dirty
 	public boolean isOnAccessList(unsigned long oid) {
 		return false;
 	}
@@ -248,29 +223,29 @@ class StructureObject extends TangibleObject {
 	public void sendPermissionListTo(CreatureObject creature, final string listName) {
 		structurePermissionList.sendTo(creature, listName);
 	}
-
-	@read
+	
+	@dirty
 	public boolean hasPermissionList(final string listName) {
 		return structurePermissionList.containsList(listName);
 	}
-
-	@read
+	
+	@dirty
 	public boolean isPermissionListFull(final string listName) {
 		return structurePermissionList.isListFull(listName);
 	}
-
+	
 	public int togglePermission(final string listName, final unsigned long objectID) {
 		return structurePermissionList.togglePermission(listName, objectID);
 	}
-
+	
 	public int grantPermission(final string listName, final unsigned long objectID) {
 		return structurePermissionList.grantPermission(listName, objectID);
 	}
-
+	
 	public int revokePermission(final string listName, final unsigned long objectID) {
 		return structurePermissionList.revokePermission(listName, objectID);
 	}
-
+	
 	public int revokeAllPermissions(final unsigned long objectID) {
 		return structurePermissionList.revokeAllPermissions(objectID);
 	}
@@ -283,25 +258,25 @@ class StructureObject extends TangibleObject {
 	 * Returns the cost to redeed this building. The redeed cost is 50 times the hourly maintenance rate.
 	 * @return int The cost to redeed this building.
 	 */
-	@read
+	@dirty
 	public int getRedeedCost() {
 		return (getBaseMaintenanceRate() * 50);
 	}
 
-	@read
-	public native CreatureObject getOwnerCreatureObject();
-
+	@dirty
+	public native CreatureObject getOwnerCreatureObject(); 
+	
 	@read
 	public unsigned long getOwnerObjectID() {
 		return ownerObjectID;
 	}
-
+	
 	@read
 	public unsigned long getDeedObjectID() {
 		return deedObjectID;
 	}
-
-	@read
+	
+	@dirty
 	public native int getLotSize();
 
 	@preLocked
@@ -309,37 +284,34 @@ class StructureObject extends TangibleObject {
 		maintenanceReduced = value;
 	}
 
-	@read
+	@dirty
 	public native float getMaintenanceRate();
 
-	@read
+	@dirty
 	public native string getMaintenanceMods();
 
-	@read
+	@dirty
 	public native int getBaseMaintenanceRate();
-
-	@read
+	
+	@dirty
 	public abstract native int getBasePowerRate();
-
-	@read
-	public native float getDelayDestroyHours();
-
+	
 	@read
 	public int getSurplusMaintenance() {
 		return surplusMaintenance;
 	}
-
+	
 	@read
 	public int getSurplusPower() {
 		return surplusPower;
 	}
-
-	@read
+	
+	@dirty
 	public abstract boolean isPublicStructure() {
 		return false;
 	}
-
-	@read
+	
+	@dirty
 	public abstract boolean isPrivateStructure() {
 		return false;
 	}
@@ -348,16 +320,6 @@ class StructureObject extends TangibleObject {
 	public void setOwner(unsigned long objectID) {
 		ownerObjectID = objectID;
 		structurePermissionList.setOwner(objectID);
-	}
-
-	@preLocked
-	public void setWaypointID(unsigned long objectID) {
-		waypointID = objectID;
-	}
-
-	@read
-	public unsigned long getWaypointID() {
-		return waypointID;
 	}
 
 	@preLocked
@@ -393,7 +355,7 @@ class StructureObject extends TangibleObject {
 	 */
 	@preLocked
 	@arg2preLocked
-	public native void payMaintenance(int maintenance, CreditObject creditObj, boolean cashFirst);
+	public native void payMaintenance(int maintenance, CreatureObject payer, boolean cashFirst);
 
 	@preLocked
 	public void setSurplusPower(int surplus) {
@@ -405,7 +367,7 @@ class StructureObject extends TangibleObject {
 		surplusPower += add;
 	}
 
-	@read
+	@dirty
 	public boolean isDecaying() {
 		return (surplusMaintenance < 0);
 	}
@@ -420,19 +382,19 @@ class StructureObject extends TangibleObject {
 	public abstract boolean isCondemned() {
 		return false;
 	}
-
+	
 	public abstract void setPublicStructure(boolean privacy) {
-
+		
 	}
 
 	@dirty
 	public boolean isStructureObject() {
 		return true;
 	}
-
-	@read
+	
+	@dirty
 	public native boolean isCampStructure();
-
+	
 	@dirty
 	public boolean isRedeedable() {
 		if (isCivicStructure()) {
@@ -441,13 +403,17 @@ class StructureObject extends TangibleObject {
 			return (getRedeedCost() < surplusMaintenance);
 		}
 	}
-
+	
+	@local
+	@dirty
+	public native AABBTree getAABBTree();
+	
 	/**
 	 * Adds this object's skill mod map to the target object's skill mod map
 	 * @param targetObject The targeted object containing the SkillModMap which will be affected.
 	 */
 	@local
-	@read
+	@dirty
 	@arg1preLocked
 	public native void addTemplateSkillMods(TangibleObject targetObject);
 
@@ -456,25 +422,25 @@ class StructureObject extends TangibleObject {
 	 * @param targetObject the targeted object containing the SkillModMap which will be affected.
 	 */
 	@local
-	@read
+	@dirty
 	@arg1preLocked
 	public native void removeTemplateSkillMods(TangibleObject tangibleObject);
-
+	
 	@dirty
 	public abstract string getRedeedMessage() {
 		return "";
 	}
-
-	@read
+	
+	@dirty
 	public native boolean isCivicStructure();
 
 	@dirty
 	public native boolean isCityHall();
 
-	@read
+	@dirty
 	public native boolean isCommercialStructure();
 
-	@read
+	@dirty
 	public native boolean isGuildHall();
 
 	@preLocked
@@ -482,17 +448,4 @@ class StructureObject extends TangibleObject {
 		structurePermissionList.migrateLists(super.getZoneServer(), getOwnerObjectID());
 		permissionsFixed = true;
 	}
-
-	@read
-	public NavArea getNavArea() {
-		return navArea;
-	}
-
-	@read
-	public boolean hasNavmesh() {
-		return navArea;
-	}
-
-	@preLocked
-	public native abstract void createNavMesh();
 }

@@ -5,10 +5,14 @@
 #ifndef BANDFLOURISHCOMMAND_H_
 #define BANDFLOURISHCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/ai/DroidObject.h"
 #include "server/zone/objects/tangible/Instrument.h"
 #include "server/zone/objects/player/sessions/EntertainingSession.h"
+#include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/group/GroupObject.h"
+#include "server/zone/managers/skill/SkillManager.h"
+#include "server/zone/managers/skill/PerformanceManager.h"
 #include "server/zone/objects/tangible/components/droid/DroidPlaybackModuleDataComponent.h"
 
 class BandFlourishCommand : public QueueCommand {
@@ -26,10 +30,10 @@ public:
 		ManagedReference<EntertainingSession*> session = dynamic_cast<EntertainingSession*>(facade.get());
 
 		ManagedReference<Instrument*> instrument = session->getInstrument(player);
-		int leaderInstrument = instrument == nullptr ? -1 : instrument->getInstrumentType();
+		int leaderInstrument = instrument == NULL ? -1 : instrument->getInstrumentType();
 
 		//Make the player flourish.
-		if (group == nullptr) { //player is not in a group.
+		if (group == NULL) { //player is not in a group.
 			if (instrumentType > 0) { //the player specified a valid instrument.
 				if (!player->isPlayingMusic() || leaderInstrument != instrumentType) {
 					return;
@@ -72,27 +76,29 @@ public:
 			Locker locker(group);
 
 			for (int i = 0; i < group->getGroupSize(); i++) {
-				Reference<CreatureObject*> groupMember = group->getGroupMember(i);
+				Reference<CreatureObject*> groupMember = (group->getGroupMember(i)).castTo<CreatureObject*>();
 
 				Locker clocker(groupMember, group);
 
 				if (groupMember != player && groupMember->isPlayerCreature()) {
-					ManagedReference<Facade*> pfacade = groupMember->getActiveSession(SessionFacadeType::ENTERTAINING);
+					CreatureObject* member = cast<CreatureObject*>(groupMember.get());
+
+					ManagedReference<Facade*> pfacade = member->getActiveSession(SessionFacadeType::ENTERTAINING);
 
 					ManagedReference<EntertainingSession*> psession = dynamic_cast<EntertainingSession*>(pfacade.get());
 
-					if (psession == nullptr)
+					if (psession == NULL)
 						continue;
 
-					ManagedReference<Instrument*> pinstrument = psession->getInstrument(groupMember);
-					int playerInstrumentType = pinstrument == nullptr ? -1 : pinstrument->getInstrumentType();
+					ManagedReference<Instrument*> pinstrument = psession->getInstrument(member);
+					int playerInstrumentType = pinstrument == NULL ? -1 : pinstrument->getInstrumentType();
 
 					if (psession->isAcceptingBandFlourishes()) {
 
 						//Handle dance flourish
 						if (!musicflourish && psession->isDancing()) {
 							params.setStringId("performance", "flourish_perform_band_member");
-							groupMember->sendSystemMessage(params);
+							member->sendSystemMessage(params);
 							psession->doFlourish(Integer::valueOf(number), false);
 						}
 
@@ -100,22 +106,19 @@ public:
 						if (musicflourish && psession->isPlayingMusic()) {
 							if (instrumentType < 1 || (playerInstrumentType == instrumentType)) {
 								params.setStringId("performance", "flourish_perform_band_member");
-								groupMember->sendSystemMessage(params);
+								member->sendSystemMessage(params);
 								psession->doFlourish(Integer::valueOf(number), false);
 							}
 						}
 					}
 				}
-
-				if (groupMember != player && groupMember->isDroidObject()) {
+				if(groupMember != player && groupMember->isDroidObject()) {
 					// is the droid playing music?
 					DroidObject* droid = cast<DroidObject*>(groupMember.get());
-					auto module = droid->getModule("playback_module");
-
-					if (module != nullptr) {
-						DroidPlaybackModuleDataComponent* entertainer = cast<DroidPlaybackModuleDataComponent*>(module.get());
-
-						if (entertainer != nullptr) {
+					BaseDroidModuleComponent* module = droid->getModule("playback_module");
+					if(module != NULL) {
+						DroidPlaybackModuleDataComponent* entertainer = cast<DroidPlaybackModuleDataComponent*>(module);
+						if(entertainer != NULL) {
 							if (entertainer->isActive() && musicflourish && (instrumentType == entertainer->getCurrentInstrument() || instrumentType < 1)) {
 								entertainer->doFlourish(Integer::valueOf(number));
 							}

@@ -1,9 +1,16 @@
 #include "engine/engine.h"
 
 #include "server/zone/objects/creature/buffs/PlayerVehicleBuff.h"
+#include "BuffDurationEvent.h"
+#include "BuffList.h"
 
+#include "server/zone/objects/creature/CreatureAttribute.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/packets/object/Buffs.h"
+#include "server/zone/packets/object/ShowFlyText.h"
+#include "server/zone/managers/skill/SkillModManager.h"
 
+#include "server/zone/objects/creature/VehicleObject.h"
 #include "server/zone/managers/creature/PetManager.h"
 #include "server/zone/ZoneServer.h"
 
@@ -40,7 +47,7 @@ void PlayerVehicleBuffImplementation::activate(bool applyModifiers) {
 
 			ManagedReference<CreatureObject*> rider = creature.get()->getSlottedObject("rider").castTo<CreatureObject*>();
 
-			if(rider != nullptr) {
+			if(rider != NULL) {
 				rider->sendSystemMessage(startMessage);
 			}
 		}
@@ -54,7 +61,7 @@ void PlayerVehicleBuffImplementation::deactivate(bool removeModifiers) {
 
 			ManagedReference<CreatureObject*> rider = creature.get()->getSlottedObject("rider").castTo<CreatureObject*>();
 
-			if(rider != nullptr) {
+			if(rider != NULL) {
 				rider->sendSystemMessage(endMessage);
 			}
 		}
@@ -66,18 +73,20 @@ void PlayerVehicleBuffImplementation::updateRiderSpeeds() {
 	ManagedReference<CreatureObject*> vehicle = creature.get();
 	ManagedReference<CreatureObject*> rider = vehicle->getSlottedObject("rider").castTo<CreatureObject*>();
 
-	if (rider == nullptr) // Our rider is gone
+	if(rider == NULL) // Our rider is gone
 		return;
 
-	Core::getTaskManager()->executeTask([=] () {
-		Locker riderLock(rider);
-		Locker crossLock(vehicle, rider);
 
-		if (!rider->isRidingMount()) // dismount will reset the player's speed for us, do nothing
+	EXECUTE_TASK_2(vehicle, rider, {
+
+		Locker riderLock(rider_p);
+		Locker crossLock(vehicle_p, rider_p);
+
+		if(!rider_p->isRidingMount()) // dismount will reset the player's speed for us, do nothing
 			return;
 
 		// Speed hack buffer
-		SpeedMultiplierModChanges* changeBuffer = rider->getSpeedMultiplierModChanges();
+		SpeedMultiplierModChanges* changeBuffer = rider_p->getSpeedMultiplierModChanges();
 		const int bufferSize = changeBuffer->size();
 
 		// Drop old change off the buffer
@@ -86,27 +95,28 @@ void PlayerVehicleBuffImplementation::updateRiderSpeeds() {
 		}
 
 		// get vehicle speed
-		float newSpeed = vehicle->getRunSpeed();
+		float newSpeed = vehicle_p->getRunSpeed();
 
 		// get animal mount speeds
-		if (vehicle->isMount()) {
-			PetManager* petManager = vehicle->getZoneServer()->getPetManager();
+		if (vehicle_p->isMount()) {
+			PetManager* petManager = vehicle_p->getZoneServer()->getPetManager();
 
-			if (petManager != nullptr) {
-				newSpeed = petManager->getMountedRunSpeed(vehicle);
+			if (petManager != NULL) {
+				newSpeed = petManager->getMountedRunSpeed(vehicle_p);
 			}
 		}
 
 		// add speed multiplier mod
-		newSpeed *= vehicle->getSpeedMultiplierMod();
+		newSpeed *= vehicle_p->getSpeedMultiplierMod();
 
 		// Add a fake "skillmod" change
-		changeBuffer->add(SpeedModChange(newSpeed / rider->getRunSpeed()));
+		changeBuffer->add(SpeedModChange(newSpeed / rider_p->getRunSpeed()));
 
 		// Commit changebuffer ?
-		rider->updateToDatabase();
+		rider_p->updateToDatabase();
 
 		// Update riders speed to match mount speed
-		rider->setRunSpeed(newSpeed);
-	}, "UpdateRiderSpeedsLambda");
+		rider_p->setRunSpeed(newSpeed);
+	});
 }
+

@@ -9,6 +9,8 @@
 #define OVERRIDETERMINALSUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/objects/scene/SceneObjectType.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/managers/gcw/GCWManager.h"
 
 class OverrideTerminalSuiCallback : public SuiCallback {
@@ -20,22 +22,22 @@ public:
 	void run(CreatureObject* player, SuiBox* suiBox, uint32 eventIndex, Vector<UnicodeString>* args) {
 		bool cancelPressed = (eventIndex == 1);
 
-		if (cancelPressed || !suiBox->isListBox() || player == nullptr || args->size() <= 0 )
+		if (cancelPressed || !suiBox->isListBox() || player == NULL || args->size() <= 0 )
 			return;
 
 		if(player->isDead() || player->isIncapacitated())
 			return;
 
-		ManagedReference<SceneObject*> obj = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = suiBox->getUsingObject();
 
-		if(obj == nullptr || !obj->isTangibleObject())
+		if(obj == NULL || !obj->isTangibleObject())
 			return;
 
 		ManagedReference<TangibleObject*> overrideTerminal = cast<TangibleObject*>(obj.get());
 
 		GCWManager* gcwMan = player->getZone()->getGCWManager();
 
-		if (gcwMan == nullptr)
+		if (gcwMan == NULL)
 			return;
 
 		int index = Integer::valueOf(args->get(0).toString());

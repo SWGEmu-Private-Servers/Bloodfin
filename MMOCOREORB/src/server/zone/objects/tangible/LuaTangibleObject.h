@@ -32,16 +32,11 @@ namespace tangible {
 		int setPvpStatusBit(lua_State *L);
 		int getPvpStatusBitmask(lua_State *L);
 		int isChangingFactionStatus(lua_State* L);
-		int setFutureFactionStatus(lua_State* L);
-		int isOnLeave(lua_State* L);
-		int isOvert(lua_State* L);
-		int isCovert(lua_State* L);
 		int setCustomizationVariable(lua_State *L);
 		int getPaletteColorCount(lua_State *L);
 		int setConditionDamage(lua_State *L);
 		int setMaxCondition(lua_State *L);
 		int setFaction(lua_State *L);
-		int setFactionStatus(lua_State* L);
 		int getFaction(lua_State *L);
 		int isImperial(lua_State *L);
 		int isRebel(lua_State *L);
@@ -51,15 +46,6 @@ namespace tangible {
 		int getLuaStringData(lua_State *L);
 		int setLuaStringData(lua_State *L);
 		int deleteLuaStringData(lua_State *L);
-		int setOptionBit(lua_State* L);
-		int clearOptionBit(lua_State* L);
-		int hasOptionBit(lua_State* L);
-		int getCraftersName(lua_State* L);
-		int getJunkDealerNeeded(lua_State* L);
-		int getJunkValue(lua_State* L);
-		int isBroken(lua_State* L);
-		int isSliced(lua_State* L);
-		int isNoTrade(lua_State* L);
 
 	protected:
 		TangibleObject* realObject;

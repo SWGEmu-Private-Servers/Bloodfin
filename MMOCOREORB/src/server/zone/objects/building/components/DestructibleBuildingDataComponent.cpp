@@ -5,38 +5,12 @@
  *      Author: pete
  */
 #include "DestructibleBuildingDataComponent.h"
+#include "server/zone/managers/gcw/GCWManager.h"
 
 void DestructibleBuildingDataComponent::setState(int state) {
 	if (state >= INVULNERABLE && state <= REBOOTSEQUENCE)
 		intCurrentState = state;
 }
-
-void DestructibleBuildingDataComponent::writeJSON(nlohmann::json& j) const {
-	BuildingDataComponent::writeJSON(j);
-
-	SERIALIZE_JSON_MEMBER(dnaStrand);
-	SERIALIZE_JSON_MEMBER(dnaLocks);
-	SERIALIZE_JSON_MEMBER(currentDnaChain);
-	SERIALIZE_JSON_MEMBER(powerSwitchRules);
-	SERIALIZE_JSON_MEMBER(powerSwitchStates);
-	SERIALIZE_JSON_MEMBER(intCurrentState);
-	SERIALIZE_JSON_MEMBER(terminalDamaged);
-	SERIALIZE_JSON_MEMBER(inRepair);
-	SERIALIZE_JSON_MEMBER(turretSlots);
-	SERIALIZE_JSON_MEMBER(minefieldSlots);
-	SERIALIZE_JSON_MEMBER(scannerSlots);
-	SERIALIZE_JSON_MEMBER(lastVulnerableTime);
-	SERIALIZE_JSON_MEMBER(nextVulnerableTime);
-	SERIALIZE_JSON_MEMBER(vulnerabilityEndTime);
-	SERIALIZE_JSON_MEMBER(placementTime);
-	SERIALIZE_JSON_MEMBER(lastResetTime);
-	SERIALIZE_JSON_MEMBER(uplinkBand);
-	SERIALIZE_JSON_MEMBER(activeDefenses);
-	SERIALIZE_JSON_MEMBER(defenseAddedThisVuln);
-	SERIALIZE_JSON_MEMBER(terminalsSpawned);
-	SERIALIZE_JSON_MEMBER(baseTerminals);
-}
-
 
 void DestructibleBuildingDataComponent::initializeTransientMembers() {
 	uplinkBand = System::random(0x9);
@@ -144,7 +118,7 @@ int DestructibleBuildingDataComponent::writeObjectMembers(ObjectOutputStream* st
 	_name.toBinaryStream(stream);
 	_offset = stream->getOffset();
 	stream->writeInt(0);
-	TypeInfo<Vector<uint64>  >::toBinaryStream(&turretSlots, stream);
+	TypeInfo<Vector<uint64>  >::toBinaryStream(&turretSlots,stream);
 	_totalSize = (uint32) (stream->getOffset() - (_offset + 4));
 	stream->writeInt(_offset, _totalSize);
 
@@ -152,7 +126,7 @@ int DestructibleBuildingDataComponent::writeObjectMembers(ObjectOutputStream* st
 	_name.toBinaryStream(stream);
 	_offset = stream->getOffset();
 	stream->writeInt(0);
-	TypeInfo<Vector<uint64>  >::toBinaryStream(&minefieldSlots, stream);
+	TypeInfo<Vector<uint64>  >::toBinaryStream(&minefieldSlots,stream);
 	_totalSize = (uint32) (stream->getOffset() - (_offset + 4));
 	stream->writeInt(_offset, _totalSize);
 
@@ -160,7 +134,7 @@ int DestructibleBuildingDataComponent::writeObjectMembers(ObjectOutputStream* st
 	_name.toBinaryStream(stream);
 	_offset = stream->getOffset();
 	stream->writeInt(0);
-	TypeInfo<Vector<uint64>  >::toBinaryStream(&scannerSlots, stream);
+	TypeInfo<Vector<uint64>  >::toBinaryStream(&scannerSlots,stream);
 	_totalSize = (uint32) (stream->getOffset() - (_offset + 4));
 	stream->writeInt(_offset, _totalSize);
 
@@ -187,53 +161,61 @@ bool DestructibleBuildingDataComponent::readObjectMember(ObjectInputStream* stre
 	if (name == "placementTime") {
 		TypeInfo<Time >::parseFromBinaryStream(&placementTime, stream);
 		return true;
+	}
 
-	} else if (name == "nextVulnerableTime") {
+	if (name == "nextVulnerableTime") {
 		TypeInfo<Time >::parseFromBinaryStream(&nextVulnerableTime, stream);
 		return true;
-
-	} else if (name == "lastResetTime") {
+	}
+	if (name == "lastResetTime") {
 		TypeInfo<Time >::parseFromBinaryStream(&lastResetTime, stream);
 		return true;
+	}
 
-	} else if (name == "lastVulnerableTime") {
+	if (name == "lastVulnerableTime") {
 		TypeInfo<Time >::parseFromBinaryStream(&lastVulnerableTime, stream);
 		return true;
+	}
 
-	} else if (name == "vulnerabilityEndTime") {
+	if (name == "vulnerabilityEndTime") {
 		TypeInfo<Time >::parseFromBinaryStream(&vulnerabilityEndTime, stream);
 		return true;
-
-	} else if (name == "inRepair") {
+	}
+	if (name == "inRepair") {
 		TypeInfo<bool >::parseFromBinaryStream(&inRepair, stream);
 		return true;
+	}
 
-	} else if (name == "terminalDamaged") {
+	if (name == "terminalDamaged") {
 		TypeInfo<bool >::parseFromBinaryStream(&terminalDamaged, stream);
 		return true;
+	}
 
-	} else if (name == "intCurrentState") {
+	if (name == "intCurrentState") {
 		TypeInfo<int >::parseFromBinaryStream(&intCurrentState, stream);
 		return true;
+	}
 
-	} else if (name == "turretSlots") {
+	if (name == "turretSlots") {
 		TypeInfo<Vector<uint64> >::parseFromBinaryStream(&turretSlots, stream);
 		return true;
+	}
 
-	} else if (name == "minefieldSlots") {
+	if (name == "minefieldSlots") {
 		TypeInfo<Vector<uint64> >::parseFromBinaryStream(&minefieldSlots, stream);
 		return true;
+	}
 
-	} else if (name == "scannerSlots") {
+	if (name == "scannerSlots") {
 		TypeInfo<Vector<uint64> >::parseFromBinaryStream(&scannerSlots, stream);
 		return true;
-
-	} else if (name == "activeDefenses") {
-		TypeInfo<bool >::parseFromBinaryStream(&activeDefenses, stream);
+	}
+	if (name == "activeDefenses") {
+		TypeInfo<bool>::parseFromBinaryStream(&activeDefenses, stream);
 		return true;
-
-	} else if (name == "defenseAddedThisVuln") {
-		TypeInfo<bool >::parseFromBinaryStream(&defenseAddedThisVuln, stream);
+	}
+	if (name == "defenseAddedThisVuln") {
+		TypeInfo<bool>::parseFromBinaryStream(&defenseAddedThisVuln, stream);
 		return true;
 	}
 

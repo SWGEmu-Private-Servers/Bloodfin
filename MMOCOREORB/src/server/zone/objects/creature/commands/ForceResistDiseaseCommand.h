@@ -5,6 +5,8 @@
 #ifndef FORCERESISTDISEASECOMMAND_H_
 #define FORCERESISTDISEASECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class ForceResistDiseaseCommand : public JediQueueCommand {
 public:
 
@@ -12,6 +14,8 @@ public:
 		: JediQueueCommand(name, server) {
 
 		buffCRC = BuffCRC::JEDI_RESIST_DISEASE;
+
+		overrideableCRCs.add(BuffCRC::JEDI_RESIST_DISEASE);
 
 		skillMods.put("resistance_disease", 25);
 		skillMods.put("absorption_disease", 25);

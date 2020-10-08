@@ -6,6 +6,7 @@
 #define IMAGEDESIGNCOMMAND_H_
 
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/packets/object/ImageDesignMessage.h"
 #include "server/zone/objects/player/sessions/ImageDesignSession.h"
 
 class ImagedesignCommand : public QueueCommand {
@@ -36,10 +37,10 @@ public:
 		//return SUCCESS;
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
-		CreatureObject* playerTarget = nullptr;
+		CreatureObject* playerTarget = NULL;
 		CreatureObject* designer = cast<CreatureObject*>( creature);
 
-		if (object == nullptr || !object->isPlayerCreature())
+		if (object == NULL || !object->isPlayerCreature())
 			playerTarget = designer;
 		else
 			playerTarget = cast<CreatureObject*>( object.get());
@@ -60,7 +61,7 @@ public:
 		if (designer != playerTarget) {
 			StringIdChatParameter stringIdNotGrp;
 			stringIdNotGrp.setStringId("@image_designer:not_in_same_group");
-			stringIdNotGrp.setTT(playerTarget->getObjectID());
+			stringIdNotGrp.setTT(playerTarget);
 
 			if (!designer->isGrouped() || designer->getGroupID() != playerTarget->getGroupID()) {
 				//You must be within the same group as %TT in order to use your Image Design abilites.
@@ -71,9 +72,9 @@ public:
 
 		/*BuildingObject* buildingObj = cast<BuildingObject*>( designer->getParentRecursively(SceneObject::SALONBUILDING));
 
-		if (buildingObj == nullptr) {
+		if (buildingObj == NULL) {
 			designer->sendSystemMessage("You must be inside an Image Design tent in order to perform that action.");
-			if(buildingObj != nullptr) {
+			if(buildingObj != NULL) {
 				int i = buildingObj->getGameObjectType();
 				System::out << String::valueOf(i) << endl;
 			}
@@ -82,7 +83,7 @@ public:
 
 		buildingObj = cast<BuildingObject*>( playerTarget->getRootParent());
 
-		if (buildingObj == nullptr || buildingObj->getGameObjectType() != BuildingObject::SALONBUILDING) {
+		if (buildingObj == NULL || buildingObj->getGameObjectType() != BuildingObject::SALONBUILDING) {
 			playerTarget->sendSystemMessage("You must be inside an Image Design tent in order to be Image Designed.");
 			designer->sendSystemMessage("Your current target is not currently inside a valid Image Design tent.");
 			return GENERALERROR;
@@ -91,7 +92,7 @@ public:
 		if (playerTarget->containsActiveSession(SessionFacadeType::IMAGEDESIGN) && playerTarget != designer) {
 			StringIdChatParameter stringId;
 			stringId.setStringId("@image_designer:outstanding_offer"); //%TT already has an outstanding Image Design offer.
-			stringId.setTT(playerTarget->getObjectID());
+			stringId.setTT(playerTarget);
 
 			designer->sendSystemMessage(stringId);
 
@@ -101,7 +102,7 @@ public:
 		ManagedReference<Facade*> facade = designer->getActiveSession(SessionFacadeType::IMAGEDESIGN);
 		ManagedReference<ImageDesignSession*> session = dynamic_cast<ImageDesignSession*>(facade.get());
 
-		if (session != nullptr) {
+		if (session != NULL) {
 			designer->sendSystemMessage("@image_designer:already_image_designing");
 			return GENERALERROR;
 		}

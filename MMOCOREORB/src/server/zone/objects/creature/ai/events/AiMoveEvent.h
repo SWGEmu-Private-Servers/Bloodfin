@@ -10,6 +10,7 @@
 
 #include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/managers/creature/AiMap.h"
+#include "server/zone/objects/creature/ai/PatrolPoint.h"
 
 namespace server {
 namespace zone {
@@ -61,7 +62,7 @@ public:
 
 		ManagedReference<AiAgent*> strongRef = creature.get();
 
-		if (strongRef == nullptr)
+		if (strongRef == NULL)
 			return;
 
 		Locker locker(strongRef);
@@ -74,21 +75,15 @@ public:
 
 		ManagedReference<AiAgent*> strongRef = creature.get();
 
-		auto zone = strongRef->getZone();
-
-		if (zone != nullptr) {
-			setCustomTaskQueue(zone->getZoneName());
-		}
-
 		try {
 			Task::schedule(delay);
 
-			if (strongRef != nullptr) {
-				if (strongRef->getFollowObject() != nullptr && !hasFollowObject) {
+			if (strongRef != NULL) {
+				if (strongRef->getFollowObject().get() != NULL && !hasFollowObject) {
 					AiMap::instance()->moveEventsWithFollowObject.increment();
 
 					hasFollowObject = true;
-				} else if (strongRef->getFollowObject() == nullptr && hasFollowObject) {
+				} else if (strongRef->getFollowObject().get() == NULL && hasFollowObject) {
 					AiMap::instance()->moveEventsWithFollowObject.decrement();
 
 					hasFollowObject = false;
@@ -132,7 +127,7 @@ public:
 	}
 
 	void clearCreatureObject() {
-		creature = nullptr;
+		creature = NULL;
 	}
 
 };

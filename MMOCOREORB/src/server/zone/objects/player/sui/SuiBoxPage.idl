@@ -6,6 +6,7 @@ package server.zone.objects.player.sui;
 
 import server.zone.objects.creature.CreatureObject;
 import engine.service.proto.BaseMessage;
+import engine.lua.LuaObject;
 import server.zone.objects.player.sui.SuiBox;
 include server.zone.objects.player.sui.SuiPageData;
 
@@ -22,7 +23,6 @@ class SuiBoxPage extends SuiBox {
 		pageData.setPageId(super.boxID);
 	}
 
-	@local
 	public native BaseMessage generateMessage();
 
 	public boolean isSuiBoxPage() {

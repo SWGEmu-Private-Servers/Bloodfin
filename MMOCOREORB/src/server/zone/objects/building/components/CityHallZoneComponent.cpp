@@ -12,26 +12,19 @@
 #include "server/zone/managers/city/CityManager.h"
 #include "server/zone/ZoneServer.h"
 
-void CityHallZoneComponent::destroyObjectFromWorld(SceneObject* sceneObject, bool sendSelfDestroy) const {
-	ZoneServer* zoneServer = sceneObject->getZoneServer();
-
-	if (zoneServer == nullptr || zoneServer->isServerShuttingDown()) {
-		ZoneComponent::destroyObjectFromWorld(sceneObject, sendSelfDestroy);
-		return;
-	}
-
+void CityHallZoneComponent::destroyObjectFromWorld(SceneObject* sceneObject, bool sendSelfDestroy) {
 	ManagedReference<CityRegion*> cityRegion = sceneObject->getCityRegion().get();
 
-	if (cityRegion != nullptr ) {
+	if (cityRegion != NULL ) {
 		Locker clocker(cityRegion, sceneObject);
 
 		if (cityRegion->getCityHall() == sceneObject) {
-			cityRegion->setCityHall(nullptr);
+			cityRegion->setCityHall(NULL);
 		}
 
 		clocker.release();
 
-		CityManager* cityManager = zoneServer->getCityManager();
+		CityManager* cityManager = sceneObject->getZoneServer()->getCityManager();
 
 		cityManager->destroyCity(cityRegion);
 	}

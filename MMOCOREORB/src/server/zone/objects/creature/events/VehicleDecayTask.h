@@ -5,8 +5,8 @@
 #ifndef VEHICLEDECAYTASK_H_
 #define VEHICLEDECAYTASK_H_
 
-#include "server/zone/objects/tangible/TangibleObject.h"
-#include "templates/creature/VehicleObjectTemplate.h"
+#include "server/zone/objects/creature/VehicleObject.h"
+#include "server/zone/templates/tangible/VehicleObjectTemplate.h"
 
 class VehicleDecayTask : public Task {
 	ManagedWeakReference<TangibleObject*> vehicleObj;
@@ -21,12 +21,12 @@ public:
 	void run() {
 		ManagedReference<TangibleObject*> vehicle = vehicleObj.get();
 
-		if (vehicle == nullptr)
+		if (vehicle == NULL)
 			return;
 
 		Reference<VehicleObjectTemplate*> vehicleTemplate = cast<VehicleObjectTemplate*>(vehicle->getObjectTemplate());
 
-		if (vehicleTemplate == nullptr)
+		if (vehicleTemplate == NULL)
 			return;
 
 		Locker locker(vehicle);

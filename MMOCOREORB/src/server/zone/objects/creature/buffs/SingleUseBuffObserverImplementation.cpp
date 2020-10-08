@@ -9,6 +9,7 @@
 #include "server/zone/objects/creature/buffs/SingleUseBuff.h"
 
 #include "server/zone/managers/objectcontroller/ObjectController.h"
+//#include "server/zone/Zone.h"
 #include "server/zone/ZoneServer.h"
 
 #include "server/zone/objects/creature/commands/QueueCommand.h"
@@ -16,17 +17,17 @@
 int SingleUseBuffObserverImplementation::notifyObserverEvent(unsigned int eventType, Observable* observable, ManagedObject* arg1, int64 arg2) {
 	ManagedReference<SingleUseBuff* > buff = this->buff.get();
 
-	if (buff == nullptr)
+	if (buff == NULL)
 		return 1;
 
-	ManagedReference<CreatureObject*> player = buff->getPlayer();
-	if (player == nullptr)
+	ManagedReference<CreatureObject*> player = buff.get()->getPlayer();
+	if (player == NULL)
 		return 1;
 
 	ManagedReference<ObjectController*> objectController = player->getZoneServer()->getObjectController();
 
-	unsigned int commandCRC = buff->getCommandCRC();
-	const QueueCommand* queueCommand = objectController->getQueueCommand(commandCRC);
+	unsigned int commandCRC = buff.get()->getCommandCRC();
+	QueueCommand* queueCommand = objectController->getQueueCommand(commandCRC);
 
 	SceneObject* creature = cast<SceneObject*>( observable);
 
@@ -34,3 +35,6 @@ int SingleUseBuffObserverImplementation::notifyObserverEvent(unsigned int eventT
 
 	return 0;
 }
+
+
+

@@ -1,9 +1,10 @@
 package server.zone.objects.player.sessions;
 
 import engine.util.Facade;
-include server.zone.objects.creature.CreatureObject;
-include server.zone.objects.region.CityRegion;
-include server.zone.objects.scene.SceneObject;
+import server.zone.objects.creature.CreatureObject;
+import server.zone.objects.region.CityRegion;
+import server.zone.objects.scene.SceneObject;
+import server.zone.objects.structure.StructureObject;
 include server.zone.objects.scene.SessionFacadeType;
 
 class CityRemoveMilitiaSession extends Facade {
@@ -37,10 +38,7 @@ class CityRemoveMilitiaSession extends Facade {
 	public native int initializeSession();
 
 	public int cancelSession() {
-		CreatureObject creature = creatureObject;
-
-		if (creature)
-			creature.dropActiveSession(SessionFacadeType.CITYMILITIA);
+		creatureObject.dropActiveSession(SessionFacadeType.CITYMILITIA);
 		
 		return 0;
 	}

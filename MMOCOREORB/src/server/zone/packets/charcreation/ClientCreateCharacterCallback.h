@@ -8,7 +8,7 @@
 #ifndef CLIENTCREATECHARACTERCALLBACK_H_
 #define CLIENTCREATECHARACTERCALLBACK_H_
 
-#include "server/zone/packets/MessageCallback.h"
+#include "../MessageCallback.h"
 
 class ClientCreateCharacterCallback : public MessageCallback {
 	String customization;
@@ -31,59 +31,61 @@ public:
 	ClientCreateCharacterCallback(ZoneClientSession* client, ZoneProcessServer* server) :
 		MessageCallback(client, server), species(0), height(0), tutflag(0) {
 
-		setCustomTaskQueue("slowQueue");
+		taskqueue = 8;
+
 	}
 
 	void parse(Message* message);
 
 	void run();
 
-	inline void getRaceFile(String& file) const {
+	inline void getRaceFile(String& file) {
 		file = racefile;
 	}
 
-	inline void getCustomizationString(String& customizationString) const {
+	inline void getCustomizationString(String& customizationString) {
 		customizationString = customization;
 	}
 
-	inline void getLocation(String& location) const {
+	inline void getLocation(String& location) {
 		location = ClientCreateCharacterCallback::location;
 	}
 
-	inline void getHairObject(String& hair) const {
+	inline void getHairObject(String& hair) {
 		hair = hairobj;
 	}
 
-	inline void getHairCustomization(String& hairCustomization) const {
+	inline void getHairCustomization(String& hairCustomization) {
 		hairCustomization = haircust;
 	}
 
-	inline void getSkill(String& profession) const {
+	inline void getSkill(String& profession) {
 		profession = this->profession;
 	}
 
-	inline float getHeight() const {
+	inline float getHeight() {
 		return height;
 	}
 
-	inline void getBiography(UnicodeString& biography) const {
+	inline void getBiography(UnicodeString& biography) {
 		biography = bio;
 	}
 
-	inline bool getTutorialFlag() const {
+	inline bool getTutorialFlag() {
 		if (tutflag)
 			return true;
 		else
 			return false;
 	}
 
-	inline void getCharacterName(UnicodeString& name) const {
+	inline void getCharacterName(UnicodeString& name) {
 		name = characterName;
 	}
 
-	inline int getSpecies() const {
+	inline int getSpecies() {
 		return species;
 	}
 };
+
 
 #endif /* CLIENTCREATECHARACTERCALLBACK_H_ */

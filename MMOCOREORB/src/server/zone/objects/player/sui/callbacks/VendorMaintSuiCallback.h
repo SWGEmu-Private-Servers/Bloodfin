@@ -21,25 +21,25 @@ public:
 	void run(CreatureObject* creature, SuiBox* sui, uint32 eventIndex, Vector<UnicodeString>* args) {
 		bool cancelPressed = (eventIndex == 1);
 
-		if (!sui->isInputBox() || creature == nullptr || cancelPressed || args->size() <= 0) {
+		if (!sui->isInputBox() || creature == NULL || cancelPressed || args->size() <= 0) {
 			return;
 		}
 
 		try {
 			int value = Integer::valueOf(args->get(0).toString());
 
-			ManagedReference<SceneObject*> vendor = sui->getUsingObject().get();
+			ManagedReference<SceneObject*> vendor = sui->getUsingObject();
 
-			if(vendor == nullptr)
+			if(vendor == NULL)
 				return;
 
 			DataObjectComponentReference* data = vendor->getDataObjectComponent();
-			if(data == nullptr || data->get() == nullptr || !data->get()->isVendorData()) {
+			if(data == NULL || data->get() == NULL || !data->get()->isVendorData()) {
 				return;
 			}
 
 			VendorDataComponent* vendorData = cast<VendorDataComponent*>(data->get());
-			if(vendorData == nullptr) {
+			if(vendorData == NULL) {
 				return;
 			}
 

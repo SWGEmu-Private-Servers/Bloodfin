@@ -9,6 +9,7 @@
 #define REGISTERVENDORSUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
 #include "server/zone/managers/vendor/VendorManager.h"
 
 class RegisterVendorSuiCallback : public SuiCallback {
@@ -26,15 +27,12 @@ public:
 		if (args->size() < 1)
 			return;
 
-		ManagedReference<SceneObject*> object = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> object = suiBox->getUsingObject();
 
-		if (object == nullptr || !object->isVendor())
+		if (!object->isVendor() || object == NULL)
 			return;
 
 		TangibleObject* vendor = cast<TangibleObject*>(object.get());
-
-		if (vendor == nullptr)
-			return;
 
 		SuiListBox* suiListBox = cast<SuiListBox*>( suiBox);
 

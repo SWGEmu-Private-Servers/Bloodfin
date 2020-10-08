@@ -7,6 +7,10 @@
 
 #include "server/zone/managers/objectcontroller/ObjectController.h"
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/packets/tangible/TangibleObjectDeltaMessage3.h"
+#include "server/zone/packets/player/PlayerObjectDeltaMessage6.h"
+
 class SetGodModeCommand : public QueueCommand {
 public:
 
@@ -26,7 +30,7 @@ public:
 		PermissionLevelList* permissionLevelList = PermissionLevelList::instance();
 		ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
 
-		if (ghost == nullptr) {
+		if (ghost == NULL) {
 			return GENERALERROR;
 		}
 
@@ -53,36 +57,29 @@ public:
 
 		ManagedReference<PlayerManager*> playerManager = server->getPlayerManager();
 		SkillManager* skillManager = server->getSkillManager();
-		ManagedReference<CreatureObject*> targetPlayer = creature;
+		ManagedReference<CreatureObject*> targetPlayer = playerManager->getPlayer(targetName);
 
-		if (targetName.toLowerCase() != "self")
-			targetPlayer = playerManager->getPlayer(targetName);
-
-		if (targetPlayer == nullptr)
+		if(targetPlayer == NULL)
 			return GENERALERROR;
 
 		Locker clocker(targetPlayer, creature);
 
 		ManagedReference<PlayerObject*> targetGhost = targetPlayer->getPlayerObject();
-		if (targetGhost != nullptr) {
+		if(targetGhost != NULL) {
 			int targetPermissionLevel = targetGhost->getAdminLevel();
 
-			if (targetPermissionLevel > ghostPermissionLevel)
-				return INSUFFICIENTPERMISSION;
-
-			if (param == "on" && targetPermissionLevel > 0) {
-				skillManager->removeAbility(targetGhost, "admin");
+			if(param == "on" && targetPermissionLevel > 0) {
 				skillManager->addAbility(targetGhost, "admin");
 				playerManager->updatePermissionName(targetPlayer, targetPermissionLevel);
-			} else if (param == "off" && targetPermissionLevel > 0) {
+			} else if(param == "off" && targetPermissionLevel > 0) {
 				skillManager->removeAbility(targetGhost, "admin");
 				playerManager->updatePermissionName(targetPlayer, targetPermissionLevel);
-			} else {
-				if (ghostPermissionLevel < permissionLevelList->getLevelNumber("admin")) {
+			} else  {
+				if(ghostPermissionLevel < permissionLevelList->getLevelNumber("admin")) {
 					creature->sendSystemMessage("Must have \"admin\" level permission to set permissions.");
 					return INSUFFICIENTPERMISSION;
 				}
-				if (permissionLevelList->containsLevel(param)) {
+				if(permissionLevelList->containsLevel(param)) {
 					int permissionLevel = permissionLevelList->getLevelNumber(param);
 					playerManager->updatePermissionLevel(targetPlayer, permissionLevel);
 					creature->sendSystemMessage("You have set " + targetPlayer->getFirstName()

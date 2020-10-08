@@ -5,6 +5,7 @@
 #ifndef SABERPOLEARMDERVISHCOMMAND_H_
 #define SABERPOLEARMDERVISHCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "JediCombatQueueCommand.h"
 
 class SaberPolearmDervishCommand : public JediCombatQueueCommand {
@@ -22,6 +23,10 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
 
 		if (isWearingArmor(creature)) {
 			return NOJEDIARMOR;

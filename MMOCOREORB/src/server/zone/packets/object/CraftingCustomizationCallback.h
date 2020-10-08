@@ -8,8 +8,12 @@
 #ifndef CRAFTINGCUSTOMIZATIONCALLBACK_H_
 #define CRAFTINGCUSTOMIZATIONCALLBACK_H_
 
+
+#include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "ObjectControllerMessageCallback.h"
+#include "server/zone/objects/tangible/tool/CraftingTool.h"
+
 
 class CraftingCustomizationCallback : public MessageCallback {
 	String name;
@@ -60,14 +64,19 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> player = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (player == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* player = cast<CreatureObject*>(scene.get());
+
+		if (player == NULL)
 			return;
 
 		Reference<CraftingSession*> session = player->getActiveSession(SessionFacadeType::CRAFTING).castTo<CraftingSession*>();
 
-		if (session == nullptr) {
+		if(session == NULL) {
 			warning("Trying to customize when no session exists");
 			return;
 		}

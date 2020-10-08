@@ -8,6 +8,7 @@
 #ifndef GROUPLOOTCOMMAND_H_
 #define GROUPLOOTCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/group/GroupObject.h"
 #include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/player/sui/callbacks/GroupLootRuleSuiCallback.h"
@@ -29,12 +30,12 @@ public:
 			return INVALIDLOCOMOTION;
 
 		ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return GENERALERROR;
 
 		//Check if player is in a group.
 		ManagedReference<GroupObject*> group = creature->getGroup();
-		if (group == nullptr) {
+		if (group == NULL) {
 			StringIdChatParameter groupOnly("group", "group_only"); //"You can only set or check group looting options if you are in a group."
 			creature->sendSystemMessage(groupOnly);
 			return GENERALERROR;
@@ -81,7 +82,7 @@ public:
 		sui->addMenuItem("Free For All"); //No string in client?
 		sui->addMenuItem("Master Looter"); //No string in client?
 		sui->addMenuItem("@ui_lottery:title"); //"Lottery"
-		sui->addMenuItem("@group:random"); //"Random"
+		sui->addMenuItem("@ui:random"); //"Random"
 
 		//Send group leader the SUI box.
 		ghost->addSuiBox(sui);

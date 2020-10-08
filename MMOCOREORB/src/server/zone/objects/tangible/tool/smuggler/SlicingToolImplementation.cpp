@@ -9,15 +9,17 @@
 
 #include "server/zone/objects/manufactureschematic/craftingvalues/CraftingValues.h"
 #include "server/zone/packets/scene/AttributeListMessage.h"
-#include "server/zone/objects/creature/CreatureObject.h"
-#include "templates/tangible/tool/SlicingToolTemplate.h"
+#include "server/zone/packets/tangible/TangibleObjectDeltaMessage3.h"
+
+#include "server/zone/templates/tangible/tool/SlicingToolTemplate.h"
+#include "server/zone/objects/player/sessions/SlicingSession.h"
 
 void SlicingToolImplementation::loadTemplateData(SharedObjectTemplate* templateData) {
 	TangibleObjectImplementation::loadTemplateData(templateData);
 
 	SlicingToolTemplate* slicingTempl = dynamic_cast<SlicingToolTemplate*> (templateData);
 
-	if (slicingTempl == nullptr)
+	if (slicingTempl == NULL)
 		return;
 
 	effectiveness = slicingTempl->getEffectiveness();
@@ -36,7 +38,7 @@ int SlicingToolImplementation::handleObjectMenuSelect(CreatureObject* player, by
 	ManagedReference<Facade*> facade = player->getActiveSession(SessionFacadeType::SLICING);
 	ManagedReference<SlicingSession*> session = dynamic_cast<SlicingSession*>(facade.get());
 
-	if (session == nullptr) {
+	if (session == NULL) {
 		player->sendSystemMessage("You must be in a slicing session in order to use that.");
 		return 0;
 	}

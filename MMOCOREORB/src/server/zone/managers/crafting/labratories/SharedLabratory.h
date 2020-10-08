@@ -8,10 +8,17 @@
 #ifndef SHAREDLABRATORY_H_
 #define SHAREDLABRATORY_H_
 
+#include "engine/engine.h"
 #include "server/zone/objects/manufactureschematic/ManufactureSchematic.h"
 #include "server/zone/objects/manufactureschematic/craftingvalues/CraftingValues.h"
+#include "server/zone/managers/skill/SkillModManager.h"
+#include "server/zone/managers/crafting/CraftingManager.h"
+#include "server/zone/objects/tangible/component/Component.h"
+#include "server/zone/objects/manufactureschematic/ingredientslots/ComponentSlot.h"
+#include "server/zone/objects/resource/ResourceContainer.h"
+#include "server/zone/objects/manufactureschematic/ingredientslots/ResourceSlot.h"
+#include "server/zone/managers/ZoneManager.h"
 #include "server/zone/objects/tangible/TangibleObject.h"
-
 namespace server {
 namespace zone {
 namespace managers {
@@ -28,6 +35,7 @@ public:
 	virtual void experimentRow(CraftingValues* craftingValues,int rowEffected, int pointsAttempted, float failure, int experimentationResult) = 0;
 	virtual void initialize(ZoneServer* server);
 	virtual float getWeightedValue(ManufactureSchematic* manufactureSchematic, int type);
+	virtual bool allowFactoryRun(ManufactureSchematic* manufactureSchematic);
 	virtual int getCreationCount(ManufactureSchematic* manufactureSchematic) = 0;
 	virtual int calculateAssemblySuccess(CreatureObject* player,DraftSchematic* draftSchematic, float effectiveness);
 protected:

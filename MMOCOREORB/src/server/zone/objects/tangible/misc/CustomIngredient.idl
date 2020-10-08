@@ -5,25 +5,21 @@
 package server.zone.objects.tangible.misc;
 
 import server.zone.objects.tangible.TangibleObject;
+import server.zone.objects.scene.SceneObject;
+import server.zone.Zone;
+import engine.lua.LuaObject;
 import server.zone.packets.scene.AttributeListMessage;
 import server.zone.objects.creature.CreatureObject;
-include templates.SharedObjectTemplate;
-import server.zone.packets.object.ObjectMenuResponse;
-include server.zone.objects.manufactureschematic.craftingvalues.CraftingValues;
-include system.util.VectorMap;
+import server.zone.ZoneServer;
 
 @lua
-@json
 class CustomIngredient extends TangibleObject {
 	@dereferenced
 	protected VectorMap<string, int> objectAttributes;
-	boolean isBaseIngredient;
 
 	public CustomIngredient() {
 		objectAttributes.setAllowOverwriteInsertPlan();
 		setLoggingName("CustomIngredient");
-
-		isBaseIngredient = false;
 	}
 
 	/**
@@ -34,7 +30,7 @@ class CustomIngredient extends TangibleObject {
 	 */
 	@local
 	public native void loadTemplateData(SharedObjectTemplate templateData);
-
+	
 	/**
 	 * Fills the attribute list message options that are sent to player creature
 	 * @pre { }
@@ -47,9 +43,6 @@ class CustomIngredient extends TangibleObject {
 	public native void fillAttributeList(AttributeListMessage msg, CreatureObject object);
 
 	public native void addAttribute(final string attribute, int value);
-
-	@local
-	public native void updateCraftingValues(CraftingValues values, boolean firstUpdate);
 
 	@dirty
 	public native void clearAttributes() {

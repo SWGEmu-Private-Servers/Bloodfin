@@ -4,6 +4,7 @@
 
 #include "server/zone/objects/tangible/wearables/RobeObject.h"
 #include "server/zone/objects/scene/components/AttributeListComponent.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
 
 class JediRobeAttributeListComponent: public AttributeListComponent {
 public:
@@ -14,14 +15,14 @@ public:
 	 * @post { this object is locked, menuResponse is complete}
 	 * @param menuResponse ObjectMenuResponse that will be sent to the client
 	 */
-	void fillAttributeList(AttributeListMessage* alm, CreatureObject* creature, SceneObject* object) const {
+	void fillAttributeList(AttributeListMessage* alm, CreatureObject* creature, SceneObject* object) {
 
 		ManagedReference<RobeObject*> robe = cast<RobeObject*> (object);
-		if (robe == nullptr) {
+		if (robe == NULL) {
 			return;
 		}
 
-		const auto skills = robe->getTemplateSkillMods();
+		VectorMap<String, int>* skills = robe->getTemplateSkillMods();
 
 		if (skills->contains("jedi_force_power_max")) {
 			int mod = skills->get("jedi_force_power_max");

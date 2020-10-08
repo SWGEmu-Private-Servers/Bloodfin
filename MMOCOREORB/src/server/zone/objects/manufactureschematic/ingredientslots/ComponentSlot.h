@@ -8,6 +8,7 @@
 #include "IngredientSlot.h"
 #include "server/zone/managers/object/ObjectManager.h"
 #include "server/zone/objects/factorycrate/FactoryCrate.h"
+#include "server/zone/packets/tangible/TangibleObjectDeltaMessage3.h"
 
 class ComponentSlot: public IngredientSlot {
 
@@ -39,7 +40,7 @@ public:
 	bool add(CreatureObject* player, SceneObject* satchel, ManagedReference<TangibleObject*> incomingTano) {
 
 		int currentQuantity = getSlotQuantity();
-		FactoryCrate* crate = nullptr;
+		FactoryCrate* crate = NULL;
 
 		/// If Full, don't add
 		if (currentQuantity >= requiredQuantity)
@@ -55,7 +56,7 @@ public:
 
 			TangibleObject* prototype = crate->getPrototype();
 
-			if (prototype == nullptr) {
+			if (prototype == NULL) {
 				error("Factory crate doesn't contain a prototype");
 				return false;
 			}
@@ -72,12 +73,12 @@ public:
 		if (requiresIdentical() && !contents.isEmpty()) {
 			TangibleObject* tano = contents.elementAt(0);
 
-			if(tano == nullptr) {
+			if(tano == NULL) {
 				error("Null items in contents when checking serial number");
 				return false;
 			}
 
-			if (crate != nullptr && crate->getPrototype()->getSerialNumber() != tano->getSerialNumber()) {
+			if (crate != NULL && crate->getPrototype()->getSerialNumber() != tano->getSerialNumber()) {
 				return false;
 			} else {
 
@@ -90,7 +91,7 @@ public:
 		int slotNeeds = requiredQuantity - currentQuantity;
 
 		/// Extract tano from crate and set it to the incoming object
-		if (crate != nullptr) {
+		if (crate != NULL) {
 
 			if (crate->getUseCount() >= slotNeeds)
 				incomingTano = crate->extractObject(slotNeeds);
@@ -98,36 +99,37 @@ public:
 				incomingTano = crate->extractObject(crate->getUseCount());
 		}
 
-		if (incomingTano == nullptr) {
-			error("Incoming object is nullptr");
+		if(incomingTano == NULL) {
+			error("Incoming object is NULL");
 			return false;
 		}
 
 		incomingTano->sendAttributeListTo(player);
 
 		ObjectManager* objectManager = ObjectManager::instance();
-		ManagedReference<TangibleObject*> itemToUse = cast<TangibleObject*>( objectManager->cloneObject(incomingTano));
-		Locker ilocker(itemToUse);
+		ManagedReference<TangibleObject*> itemToUse = NULL;
 
-		itemToUse->setParent(nullptr);
+		if(incomingTano->getUseCount() > slotNeeds) {
 
-		if (itemToUse->hasAntiDecayKit()) {
-			itemToUse->removeAntiDecayKit();
-		}
-
-		if (incomingTano->getUseCount() > slotNeeds) {
 			incomingTano->decreaseUseCount(slotNeeds);
+
+			itemToUse = cast<TangibleObject*>( objectManager->cloneObject(incomingTano));
+
+			Locker ilocker(itemToUse);
+
+			if (itemToUse->hasAntiDecayKit()) {
+				itemToUse->removeAntiDecayKit();
+			}
+
 			itemToUse->setUseCount((slotNeeds > 1 ? slotNeeds : 0), false);
+			itemToUse->setParent(NULL);
+			itemToUse->sendTo(player, true); // Without this, the new object does not appear in the crafting slot
+			itemToUse->sendAttributeListTo(player);
+
 		} else {
-			Locker tLocker(incomingTano);
-			incomingTano->destroyObjectFromWorld(true);
-			incomingTano->destroyObjectFromDatabase(true);
+
+			itemToUse = incomingTano;
 		}
-
-		itemToUse->sendTo(player, true); // Without this, the new object does not appear in the crafting slot
-		itemToUse->sendAttributeListTo(player);
-
-		ilocker.release();
 
 		Vector<ManagedReference<TangibleObject*> > itemsToAdd;
 
@@ -136,18 +138,18 @@ public:
 
 			ManagedReference<TangibleObject*> newTano = cast<TangibleObject*>( objectManager->cloneObject(itemToUse));
 
-			Locker tlocker(newTano);
+			Locker ilocker(newTano);
 
 			if (newTano->hasAntiDecayKit()) {
 				newTano->removeAntiDecayKit();
 			}
 
-			newTano->setParent(nullptr);
+			newTano->setParent(NULL);
 			newTano->setUseCount(0, false);
 			newTano->sendTo(player, true); // Without this, the new object does not appear in the crafting slot
 			itemsToAdd.add(newTano);
 
-			tlocker.release();
+			ilocker.release();
 
 			Locker itemToUseLocker(itemToUse);
 
@@ -173,14 +175,14 @@ public:
 		for(int i = 0; i < contents.size(); ++i) {
 			TangibleObject* object = contents.get(i);
 
-			if(object == nullptr) {
+			if(object == NULL) {
 				warning("Can't return object, object is null");
 				continue;
 			}
 
 			SceneObject* parent = player->getSlottedObject("inventory");
 
-			if(parent == nullptr) {
+			if(parent == NULL) {
 				warning("Can't return object, inventory is null");
 				continue;
 			}
@@ -199,7 +201,7 @@ public:
 		int quantity = 0;
 		for(int i = 0; i < contents.size(); ++i) {
 			TangibleObject* tano =  contents.elementAt(i);
-			if(tano != nullptr) {
+			if(tano != NULL) {
 				uint32 useCount = tano->getUseCount();
 
 				// Objects with 0 uses that have not been destroyed are still valid and "usable" one time only
@@ -224,7 +226,7 @@ public:
 	TangibleObject* getPrototype() {
 
 		if(contents.isEmpty())
-			return nullptr;
+			return NULL;
 
 		return contents.elementAt(0);
 	}
@@ -238,15 +240,11 @@ public:
 	}
 
 	Vector<uint64> getOIDVector() {
-		Vector<uint64> oids;
-		for (int i = 0; i < getSlotQuantity(); ++i) {
-			uint64 oid = contents.get(i)->getObjectID();
-
-			if (!oids.contains(oid))
-				oids.add(oid);
+		Vector<uint64> oid;
+		for(int i = 0; i < getSlotQuantity(); ++i) {
+			oid.add(getPrototype()->getObjectID());
 		}
-
-		return oids;
+		return oid;
 	}
 
 	// We add 1 for each item in the slot

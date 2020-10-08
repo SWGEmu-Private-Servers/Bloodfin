@@ -10,17 +10,17 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/tangible/components/vendor/VendorDataComponent.h"
 
-bool VendorContainerComponent::checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) const {
+bool VendorContainerComponent::checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) {
 
 	if (!sceneObject->isVendor())
 		return false;
 
 	DataObjectComponentReference* data = sceneObject->getDataObjectComponent();
-	if(data == nullptr || data->get() == nullptr || !data->get()->isVendorData())
+	if(data == NULL || data->get() == NULL || !data->get()->isVendorData())
 		return false;
 
 	VendorDataComponent* vendorData = cast<VendorDataComponent*>(data->get());
-	if(vendorData == nullptr)
+	if(vendorData == NULL)
 		return false;
 
 	if (vendorData->getOwnerId() != creature->getObjectID()) {

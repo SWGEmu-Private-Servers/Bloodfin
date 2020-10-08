@@ -13,6 +13,8 @@
 #ifndef AREATRACKTASK_H_
 #define AREATRACKTASK_H_
 
+#include "server/zone/packets/player/LogoutMessage.h"
+
 class AreaTrackTask: public Task {
 	ManagedReference<CreatureObject*> player;
 	int type;
@@ -32,11 +34,7 @@ public:
 
 			player->removePendingTask("areatrack");
 
-			if (!player->isPlayerCreature())
-				return;
-
-			Zone* zone = player->getZone();
-			if (zone == nullptr)
+			if(!player->isPlayerCreature())
 				return;
 
 			if (player->getDistanceTo(&initialPosition) > 1) {
@@ -69,11 +67,15 @@ public:
 			bool canGetDirection = player->hasSkill("outdoors_ranger_harvest_01");
 		    bool canGetDistance = player->hasSkill("outdoors_ranger_harvest_03");
 
+			Zone* zone = player->getZone();
+			if(zone == NULL)
+				return;
+
 			SortedVector<ManagedReference<QuadTreeEntry*> > objects(512, 512);
 			zone->getInRangeObjects(player->getPositionX(), player->getPositionY(), 512, &objects, true);
 
 			for (int i = 0; i < objects.size(); ++i) {
-				SceneObject* object = static_cast<SceneObject*>(objects.get(i).get());
+				SceneObject* object = cast<SceneObject*>(objects.get(i).get());
 				results.deleteAll();
 
 				if(object == player || !object->isCreatureObject()) {
@@ -81,7 +83,7 @@ public:
 				}
 
 				CreatureObject* creature = cast<CreatureObject*>(object);
-				if(creature == nullptr || creature->isInvisible())
+				if(creature == NULL || creature->isInvisible())
 					continue;
 
 				if(type == 0) {
@@ -92,7 +94,7 @@ public:
 				} else if(type == 1) {
 					if(!creature->isNonPlayerCreatureObject())
 						continue;
-					if(creature->isVendor() || creature->isProbotSpecies())
+					if(creature->isVendor() || creature->isJunkDealer() || creature->isProbotSpecies())
 						continue;
 				} else if(type == 2) {
 					if(!creature->isPlayerCreature())
@@ -130,13 +132,10 @@ public:
 
 	String getDirection(CreatureObject* tracker, CreatureObject* trackee) {
 		String direction;
-		auto trackeeWorldPosition = trackee->getWorldPosition();
-		auto trackerWorldPosition = tracker->getWorldPosition();
-
-		float trackerX = trackerWorldPosition.getX();
-		float trackerY = trackerWorldPosition.getY();
-		float trackeeX = trackeeWorldPosition.getX();
-		float trackeeY = trackeeWorldPosition.getY();
+		float trackerX = tracker->getPositionX();
+		float trackerY = tracker->getPositionY();
+		float trackeeX = trackee->getPositionX();
+		float trackeeY = trackee->getPositionY();
 
 		// transform points so the origin is the tracker's position
 		float transformedX = trackeeX - trackerX;

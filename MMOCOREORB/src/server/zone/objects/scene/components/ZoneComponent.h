@@ -32,11 +32,11 @@ using namespace server::zone::objects::scene;
 using namespace server::zone::objects::building;
 using namespace server::zone;
 
-#include "server/zone/QuadTreeEntry.h"
+#include "engine/util/u3d/QuadTreeEntry.h"
 
 class ZoneComponent : public SceneObjectComponent, public Logger {
 protected:
-	void insertChildObjectsToZone(SceneObject* sceneObject, Zone* zone) const;
+	void insertChildObjectsToZone(SceneObject* sceneObject, Zone* zone);
 
 public:
 	/**
@@ -45,7 +45,7 @@ public:
 	 * @post { this object is locked and inserted into zone }
 	 * @param zone Zone object where this object will be inserted
 	 */
-	virtual void notifyInsertToZone(SceneObject* sceneObject, Zone* zone) const;
+	virtual void notifyInsertToZone(SceneObject* sceneObject, Zone* zone);
 
 	/**
 	 * Switches zone and position of this object
@@ -56,16 +56,16 @@ public:
 	 * @param newPositionZ new position Z
 	 * @param newPositionY new position Y
 	 */
-	virtual void switchZone(SceneObject* sceneObject, const String& newTerrainName, float newPostionX, float newPositionZ, float newPositionY, uint64 parentID = 0, bool toggleInvisibility = false) const;
+	virtual void switchZone(SceneObject* sceneObject, const String& newTerrainName, float newPostionX, float newPositionZ, float newPositionY, uint64 parentID = 0, bool toggleInvisibility = false);
 
-	virtual void teleport(SceneObject* sceneObject, float newPositionX, float newPositionZ, float newPositionY, uint64 parentID = 0) const;
+	virtual void teleport(SceneObject* sceneObject, float newPositionX, float newPositionZ, float newPositionY, uint64 parentID = 0);
 
 	/**
 	 * Removes object from zone
 	 * @pre { this object is locked }
 	 * @post { this object is locked and not in zone}
 	 */
-	virtual void notifyRemoveFromZone(SceneObject* sceneObject) const;
+	virtual void notifyRemoveFromZone(SceneObject* sceneObject);
 
 	/**
 	 * Updates position of this object to the rest of in range objects
@@ -73,7 +73,7 @@ public:
 	 * @post { this object is locked, in range objects are updated with the new position }
 	 * @param lightUpdate if true a standalone message is sent to the in range objects
 	 */
-	virtual void updateZone(SceneObject* sceneObject, bool lightUpdate, bool sendPackets = true) const;
+	virtual void updateZone(SceneObject* sceneObject, bool lightUpdate, bool sendPackets = true);
 
 	/**
 	 * Updates position and/or parent of this object and to the rest of in range objects
@@ -82,29 +82,24 @@ public:
 	 * @param newParent cellObject where this object is
 	 * @param lightUpdate if true a standalone message is sent to the in range objects
 	 */
-	virtual void updateZoneWithParent(SceneObject* sceneObject, SceneObject* newParent, bool lightUpdate, bool sendPackets = true) const;
+	virtual void updateZoneWithParent(SceneObject* sceneObject, SceneObject* newParent, bool lightUpdate, bool sendPackets = true);
 
-	virtual void notifyPositionUpdate(SceneObject* sceneObject, QuadTreeEntry* entry) const {
+	virtual void notifyPositionUpdate(SceneObject* sceneObject, QuadTreeEntry* entry) {
 
 	}
 
-	virtual void notifySelfPositionUpdate(SceneObject* sceneObject) const;
+	virtual void notifySelfPositionUpdate(SceneObject* sceneObject);
 
-	virtual void notifyInsert(SceneObject* sceneObject, QuadTreeEntry* entry) const {
+	virtual void notifyInsert(SceneObject* sceneObject, QuadTreeEntry* entry) {
 	}
 
-	virtual void notifyDissapear(SceneObject* sceneObject, QuadTreeEntry* entry) const {
+	virtual void notifyDissapear(SceneObject* sceneObject, QuadTreeEntry* entry) {
 	}
 
-	void updateInRangeObjectsOnMount(SceneObject* sceneObject) const;
+	void updateInRangeObjectsOnMount(SceneObject* sceneObject);
 
-	virtual void destroyObjectFromWorld(SceneObject* sceneObject, bool sendSelfDestroy) const;
+	virtual void destroyObjectFromWorld(SceneObject* sceneObject, bool sendSelfDestroy);
 
-	void removeObjectFromZone(SceneObject* sceneObject, Zone* zone, SceneObject* par) const;
-
-	static void removeAllObjectsFromCOV(CloseObjectsVector *closeobjects,
-										SortedVector<ManagedReference<QuadTreeEntry *> > &closeSceneObjects,
-										SceneObject *sceneObject, SceneObject *vectorOwner);
 };
 
 

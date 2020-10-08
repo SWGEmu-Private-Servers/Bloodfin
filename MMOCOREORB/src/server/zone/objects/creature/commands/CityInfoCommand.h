@@ -5,6 +5,8 @@
 #ifndef CITYINFOCOMMAND_H_
 #define CITYINFOCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class CityInfoCommand : public QueueCommand {
 public:
 	CityInfoCommand(const String& name, ZoneProcessServer* server)
@@ -42,12 +44,12 @@ public:
 
 		}
 
-		if(creature->getZoneServer() == nullptr)
+		if(creature->getZoneServer() == NULL)
 			return GENERALERROR;
 
 		CityManager* cityManager = creature->getZoneServer()->getCityManager();
 
-		if(cityManager == nullptr)
+		if(cityManager == NULL)
 			return GENERALERROR;
 
 		cityManager->sendCityReport(creature, planet, rank);

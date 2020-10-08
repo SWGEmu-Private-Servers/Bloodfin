@@ -9,6 +9,7 @@
 #define PETRECOVERCOMMAND_H_
 
 #include "server/zone/objects/creature/commands/QueueCommand.h"
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/ai/AiAgent.h"
 
 class PetRecoverCommand : public QueueCommand {
@@ -20,19 +21,19 @@ public:
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
 
-		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().get().castTo<PetControlDevice*>();
-		if (controlDevice == nullptr)
+		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().castTo<PetControlDevice*>();
+		if (controlDevice == NULL)
 			return GENERALERROR;
 
 		if (!creature->isAiAgent())
 			return GENERALERROR;
 
 		ManagedReference<AiAgent*> pet = cast<AiAgent*>(creature);
-		if( pet == nullptr )
+		if( pet == NULL )
 			return GENERALERROR;
 
 		ManagedReference< CreatureObject*> player = pet->getLinkedCreature().get();
-		if( player == nullptr )
+		if( player == NULL )
 			return GENERALERROR;
 
 		Locker crossLocker(player, pet);

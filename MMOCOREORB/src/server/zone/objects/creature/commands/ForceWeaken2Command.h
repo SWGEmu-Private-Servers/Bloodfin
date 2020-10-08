@@ -7,7 +7,6 @@
 
 #include "server/zone/objects/scene/SceneObject.h"
 #include "ForcePowersQueueCommand.h"
-#include "server/zone/objects/creature/buffs/ForceWeakenDebuff.h"
 
 class ForceWeaken2Command : public ForcePowersQueueCommand {
 public:
@@ -25,34 +24,44 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
+
 		if (isWearingArmor(creature)) {
 			return NOJEDIARMOR;
 		}
 
 		ManagedReference<SceneObject*> targetObject = server->getZoneServer()->getObject(target);
 
-		if (targetObject == nullptr || !targetObject->isCreatureObject()) {
+		if (targetObject == NULL || !targetObject->isCreatureObject()) {
 			return INVALIDTARGET;
-		}
-
-		CreatureObject* creatureTarget = targetObject.castTo<CreatureObject*>();
-
-		if (creatureTarget->hasBuff(STRING_HASHCODE("forceweaken1")) || creatureTarget->hasBuff(STRING_HASHCODE("forceweaken2"))) {
-			return ALREADYAFFECTEDJEDIPOWER;
 		}
 
 		int res = doCombatAction(creature, target);
 
 		if (res == SUCCESS) {
-			Locker clocker(creatureTarget, creature);
 
-			ManagedReference<Buff*> buff = new ForceWeakenDebuff(creatureTarget, getNameCRC(), 400, 600, 120);
+			// Setup debuff.
 
-			Locker locker(buff);
+			ManagedReference<CreatureObject*> creatureTarget = targetObject.castTo<CreatureObject*>();
 
-			creatureTarget->addBuff(buff);
+			if (creatureTarget != NULL) {
+				Locker clocker(creatureTarget, creature);
 
-			CombatManager::instance()->broadcastCombatSpam(creature, creatureTarget, nullptr, 0, "cbt_spam", combatSpam + "_hit", 1);
+				ManagedReference<Buff*> buff = new Buff(creatureTarget, getNameCRC(), 120, BuffType::JEDI);
+
+				Locker locker(buff);
+
+				buff->setAttributeModifier(CreatureAttribute::HEALTH, -600);
+				buff->setAttributeModifier(CreatureAttribute::ACTION, -600);
+				buff->setAttributeModifier(CreatureAttribute::MIND, -600);
+
+				creatureTarget->addBuff(buff);
+
+				CombatManager::instance()->broadcastCombatSpam(creature, creatureTarget, NULL, 0, "cbt_spam", combatSpam + "_hit", 1);
+			}
+
 		}
 
 		return res;

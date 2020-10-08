@@ -8,10 +8,11 @@
 #include "HolocronManager.h"
 #include "server/zone/ZoneClientSession.h"
 #include "server/zone/ZoneServer.h"
-//#include "server/zone/packets/ui/CreateTicketResponseMessage.h"
+#include "server/zone/packets/ui/CreateTicketResponseMessage.h"
 #include "server/zone/packets/ui/RequestCategoriesResponseMessage.h"
 #include "server/db/MantisDatabase.h"
-#include "server/login/account/AccountManager.h"
+#include "server/login/account/Account.h"
+#include "server/zone/managers/player/PlayerManager.h"
 #include "BugCategory.h"
 
 void HolocronManager::loadBugCategories() {
@@ -19,7 +20,7 @@ void HolocronManager::loadBugCategories() {
 
 	String query = "SELECT `category` FROM `" + MantisDatabase::getTablePrefix() + "project_category_table` WHERE project_id = 1;";
 
-	Reference<ResultSet*> result = nullptr;
+	Reference<ResultSet*> result = NULL;
 
 	try {
 		result = MantisDatabase::instance()->executeQuery(query);
@@ -37,8 +38,8 @@ void HolocronManager::loadBugCategories() {
 		info(e.getMessage(), true);
 	}
 
-	if (result != nullptr) {
-		result = nullptr;
+	if (result != NULL) {
+		result = NULL;
 	}
 }
 
@@ -59,7 +60,7 @@ void HolocronManager::submitTicket(ZoneClientSession* client, const UnicodeStrin
 	StringBuffer query;
 	query << "INSERT INTO `" << MantisDatabase::getTablePrefix() << "bug_text_table` (`description`, `steps_to_reproduce`, `additional_information`) VALUES ('" << sanitizedBody << "', '', '" << summary << "');";
 
-	Reference<ResultSet*> result = nullptr;
+	Reference<ResultSet*> result = NULL;
 
 	try {
 		result = MantisDatabase::instance()->executeQuery(query.toString());
@@ -85,8 +86,8 @@ void HolocronManager::submitTicket(ZoneClientSession* client, const UnicodeStrin
 		info(e.getMessage(), true);
 	}
 
-	if (result != nullptr) {
-		result = nullptr;
+	if (result != NULL) {
+		result = NULL;
 	}
 
 	//TODO: Find out why this is causing a crash!
@@ -96,12 +97,12 @@ void HolocronManager::submitTicket(ZoneClientSession* client, const UnicodeStrin
 
 uint32 HolocronManager::getReporterId(ZoneClientSession* client) {
 
-	if(processor->getZoneServer() == nullptr)
+	if(processor->getZoneServer() == NULL)
 		return 0;
 
-	ManagedReference<Account*> account = AccountManager::getAccount(client->getAccountID());
+	ManagedReference<Account*> account = processor->getPlayerManager()->getAccount(client->getAccountID());
 
-	if (account == nullptr)
+	if (account == NULL)
 		return 0;
 
 	uint32 reporterId = 0;
@@ -109,7 +110,7 @@ uint32 HolocronManager::getReporterId(ZoneClientSession* client) {
 	StringBuffer query;
 	query << "SELECT `id` FROM `" << MantisDatabase::getTablePrefix() << "user_table` WHERE `username` = '" << account->getUsername() << "' LIMIT 1;";
 
-	Reference<ResultSet*> result = nullptr;
+	Reference<ResultSet*> result = NULL;
 
 	try {
 		result = MantisDatabase::instance()->executeQuery(query.toString());
@@ -121,8 +122,8 @@ uint32 HolocronManager::getReporterId(ZoneClientSession* client) {
 		info(e.getMessage(), true);
 	}
 
-	if (result != nullptr) {
-		result = nullptr;
+	if (result != NULL) {
+		result = NULL;
 	}
 
 	return reporterId;

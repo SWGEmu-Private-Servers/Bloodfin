@@ -11,20 +11,25 @@
 #include "server/zone/objects/waypoint/WaypointObject.h"
 #include "server/zone/Zone.h"
 #include "server/zone/ZoneServer.h"
+#include "server/zone/managers/object/ObjectManager.h"
+#include "server/zone/managers/mission/MissionManager.h"
 #include "server/zone/managers/planet/PlanetManager.h"
-#include "terrain/manager/TerrainManager.h"
+#include "server/zone/managers/terrain/TerrainManager.h"
 #include "server/zone/objects/mission/MissionObject.h"
+#include "server/zone/objects/mission/MissionObserver.h"
+#include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/tangible/weapon/WeaponObject.h"
 
 void ReconMissionObjectiveImplementation::activate() {
 	MissionObjectiveImplementation::activate();
 	ManagedReference<MissionObject* > mission = this->mission.get();
 
-	if (mission == nullptr)
+	if (mission == NULL)
 		return;
 
 	ManagedReference<ZoneServer*> zoneServer = Core::lookupObject<ZoneServer>("ZoneServer");
 
-	if (locationActiveArea == nullptr) {
+	if (locationActiveArea == NULL) {
 		locationActiveArea = ( zoneServer->createObject(STRING_HASHCODE("object/mission_recon_area.iff"), 1)).castTo<MissionReconActiveArea*>();
 		Locker locker(locationActiveArea);
 		locationActiveArea->setMissionObjective(_this.getReferenceUnsafeStaticCast());
@@ -35,23 +40,17 @@ void ReconMissionObjectiveImplementation::activate() {
 
 		Zone* zone = zoneServer->getZone(planetName);
 
-		if (zone != nullptr) {
-			Reference<MissionReconActiveArea* > area = locationActiveArea;
+		Locker locker(locationActiveArea);
 
-			Core::getTaskManager()->executeTask([zone, area, this, mission] () {
-				Locker locker(area);
+		locationActiveArea->initializePosition(mission->getStartPositionX(), 0, mission->getStartPositionY());
+		locationActiveArea->setRadius(32.f);
 
-				area->initializePosition(mission->getStartPositionX(), 0, mission->getStartPositionY());
-				area->setRadius(32.f);
-
-				if (zone != nullptr) {
-					zone->transferObject(area, -1, true);
-				} else {
-					error("Failed to insert recon location to zone.");
-					abort();
-					return;
-				}
-			}, "ReconMissionObjectiveActivateLambda");
+		if (zone != NULL) {
+			zone->transferObject(locationActiveArea, -1, true);
+		} else {
+			error("Failed to insert recon location to zone.");
+			abort();
+			return;
 		}
 	}
 
@@ -69,27 +68,27 @@ void ReconMissionObjectiveImplementation::activate() {
 void ReconMissionObjectiveImplementation::abort() {
 	MissionObjectiveImplementation::abort();
 
-	if (locationActiveArea != nullptr) {
+	if (locationActiveArea != NULL) {
 		Reference<MissionReconActiveArea* > area = locationActiveArea;
 
-		Core::getTaskManager()->executeTask([=] () {
-			Locker locker(area);
+		EXECUTE_TASK_1(area, {
+				Locker locker(area_p);
 
-			area->destroyObjectFromWorld(true);
-			area->destroyObjectFromDatabase(true);
-		}, "DestroyReconMissionAreaLambda");
+				area_p->destroyObjectFromWorld(true);
+				area_p->destroyObjectFromDatabase(true);
+		});
 	}
 }
 
 void ReconMissionObjectiveImplementation::complete() {
 	Reference<MissionReconActiveArea* > area = locationActiveArea;
 
-	Core::getTaskManager()->executeTask([=] () {
-		Locker locker(area);
+	EXECUTE_TASK_1(area, {
+			Locker locker(area_p);
 
-		area->destroyObjectFromWorld(true);
-		area->destroyObjectFromDatabase(true);
-	}, "DestroyReconMissionAreaLambda2");
+			area_p->destroyObjectFromWorld(true);
+			area_p->destroyObjectFromDatabase(true);
+	});
 
 	MissionObjectiveImplementation::complete();
 }
@@ -98,15 +97,15 @@ Vector3 ReconMissionObjectiveImplementation::getEndPosition() {
 	ManagedReference<MissionObject* > mission = this->mission.get();
 
 	Vector3 missionEndPoint;
-	if(mission == nullptr)
+	if(mission == NULL)
 		return missionEndPoint;
 
 	missionEndPoint.setX(mission->getStartPositionX());
 	missionEndPoint.setY(mission->getStartPositionY());
 
-	Zone* zone =  getPlayerOwner()->getZone();
+	Zone* zone =  getPlayerOwner().get()->getZone();
 
-	if (zone != nullptr) {
+	if (zone != NULL) {
 		TerrainManager* terrain = zone->getPlanetManager()->getTerrainManager();
 		missionEndPoint.setZ(terrain->getHeight(missionEndPoint.getX(), missionEndPoint.getY()));
 	}

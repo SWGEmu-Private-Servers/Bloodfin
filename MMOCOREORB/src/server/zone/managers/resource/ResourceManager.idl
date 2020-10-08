@@ -5,34 +5,42 @@
 package server.zone.managers.resource;
 
 import engine.core.ManagedObject;
+import engine.lua.Lua;
 import engine.log.Logger;
 import server.zone.ZoneServer;
+import server.zone.Zone;
 import server.zone.ZoneProcessServer;
+import server.zone.managers.object.ObjectManager;
+import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.resource.ResourceContainer;
+import engine.service.proto.BaseMessage;
 import engine.util.Observer;
 import engine.util.Observable;
 import server.zone.objects.player.sui.listbox.SuiListBox;
 
 include server.zone.managers.resource.resourcespawner.ResourceSpawner;
+include server.zone.managers.resource.resourcespawner.resourcetree.ResourceTree;
+include server.zone.packets.resource.ResourceListForSurveyMessage;
 include server.zone.objects.resource.ResourceSpawn;
-include server.zone.objects.transaction.TransactionLog;
-include system.util.Vector;
 
 /**
  * The resource manager handles all aspects of in game resources
  * within the Core3 environment
  */
-@dirty
 class ResourceManager extends Observer implements Logger {
 	private transient ZoneProcessServer processor;
-	private transient ZoneServer zoneServer;
+	@weakReference
+	private ZoneServer zoneServer;
 	private transient ResourceSpawner resourceSpawner;
+	private transient ObjectManager objectManager;
 	private transient int shiftInterval;
+	private transient Lua lua;
 	
 	public static final int RESOURCE_DEED_QUANTITY = 30000;
 	
-	public ResourceManager(ZoneServer server, ZoneProcessServer impl) {
+	public ResourceManager(ZoneServer server, ZoneProcessServer impl, 
+			ObjectManager objectMan) {
 
 		Logger.setLoggingName("ResourceManager");
 		
@@ -41,8 +49,9 @@ class ResourceManager extends Observer implements Logger {
 		
 		zoneServer = server;
 		processor = impl;
+		objectManager = objectMan;
 	
-		resourceSpawner = new ResourceSpawner(server, impl);
+		resourceSpawner = new ResourceSpawner(server, impl, objectMan);
 	
 		Logger.info("ResourceManager started");
 	}
@@ -61,9 +70,7 @@ class ResourceManager extends Observer implements Logger {
 	public native void sendSample(CreatureObject playerCreature, final string resname, final string sampleAnimation);
 	
 	public native ResourceContainer harvestResource(CreatureObject player, final string type, final int quantity);
-
-	@local
-	public native boolean harvestResourceToPlayer(@dereferenced TransactionLog trx, CreatureObject player, ResourceSpawn resourceSpawn, final int quantity);
+	public native boolean harvestResourceToPlayer(CreatureObject player, ResourceSpawn resourceSpawn, final int quantity);
 	
 	public native unsigned int getAvailablePowerFromPlayer(CreatureObject player);
 	public native void removePowerFromPlayer(CreatureObject player, unsigned int power);
@@ -76,7 +83,8 @@ class ResourceManager extends Observer implements Logger {
 
 	public native ResourceSpawn getCurrentSpawn(final string restype, final string zoneName);
 	public native ResourceSpawn getResourceSpawn(final string spawnName);
-
+	
+	private native boolean loadConfigFile();
 	private native boolean loadConfigData();
 	private native void loadDefaultConfig();
 	private native void loadSurveyData();
@@ -107,9 +115,5 @@ class ResourceManager extends Observer implements Logger {
 		return resourceSpawner;
 	}
 
-	@dirty
-	public ZoneServer getZoneServer() {
-		return zoneServer;
-	}
 }
 

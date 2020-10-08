@@ -5,6 +5,7 @@
 #ifndef HAVECONSENTCOMMAND_H_
 #define HAVECONSENTCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/player/sui/callbacks/RevokeConsentSuiCallback.h"
 
@@ -27,20 +28,19 @@ public:
 		if (!creature->isPlayerCreature())
 			return GENERALERROR;
 
-		PlayerObject* ghost = creature->getPlayerObject();
+		CreatureObject* player = cast<CreatureObject*>(creature);
 
-		if (ghost == nullptr)
-			return GENERALERROR;
+		PlayerObject* ghost = player->getPlayerObject();
 
-		ghost->closeSuiWindowType(SuiWindowType::MEDIC_CONSENT);
+		ghost->closeSuiWindowType(SuiWindowType::CLONE_REQUEST);
 
 		if (ghost->getConsentListSize() <= 0) {
-			creature->sendSystemMessage("@error_message:consent_to_empty"); //You have not granted consent to anyone.
+			player->sendSystemMessage("@error_message:consent_to_empty"); //You have not granted consent to anyone.
 			return GENERALERROR;
 		}
 
-		Reference<SuiListBox*> consentBox = new SuiListBox(creature, SuiWindowType::MEDIC_CONSENT);
-		ZoneServer* server = creature->getZoneServer();
+		Reference<SuiListBox*> consentBox = new SuiListBox(player, SuiWindowType::MEDIC_CONSENT);
+		ZoneServer* server = player->getZoneServer();
 		consentBox->setCallback(new RevokeConsentSuiCallback(server));
 		consentBox->setPromptTitle("@ui:consent_title");
 		consentBox->setPromptText("All players whom you have given your consent to are listed below.\n\nHighlight a player's name and click OK to revoke consent.");
@@ -53,8 +53,8 @@ public:
 				consentBox->addMenuItem(entryName);
 		}
 
-		ghost->addSuiBox(consentBox);
-		creature->sendMessage(consentBox->generateMessage());
+		player->getPlayerObject()->addSuiBox(consentBox);
+		player->sendMessage(consentBox->generateMessage());
 
 		return SUCCESS;
 	}

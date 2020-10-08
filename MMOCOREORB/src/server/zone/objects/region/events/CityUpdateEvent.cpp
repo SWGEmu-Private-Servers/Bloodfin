@@ -13,25 +13,15 @@
 CityUpdateEvent::CityUpdateEvent(CityRegion* city, ZoneServer* zserv) : Task() {
 	cityRegion = city;
 	zoneServer = zserv;
-
-	setCustomTaskQueue("slowQueue");
 }
 
 void CityUpdateEvent::run() {
-	if (zoneServer == nullptr || zoneServer->isServerShuttingDown())
-		return;
-
 	ManagedReference<CityRegion*> city = cityRegion.get();
 
-	if (city == nullptr)
+	if (city == NULL)
 		return;
 
 	Locker locker(city);
-
-	if (zoneServer->isServerLoading()) {
-		city->rescheduleUpdateEvent(10000);
-		return;
-	}
 
 	CityManager* cityManager = zoneServer->getCityManager();
 	cityManager->processCityUpdate(city);

@@ -3,7 +3,6 @@
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
 #include "server/zone/objects/player/PlayerObject.h"
-#include "server/zone/objects/transaction/TransactionLog.h"
 
 class ReactionFinePaymentSuiCallback : public SuiCallback {
 
@@ -16,21 +15,21 @@ public:
 	void run(CreatureObject* creature, SuiBox* sui, uint32 eventIndex, Vector<UnicodeString>* args) {
 		bool cancelPressed = (eventIndex == 1);
 
-		if (!sui->isMessageBox() || creature == nullptr)
+		if (!sui->isMessageBox() || creature == NULL)
 			return;
 
 		if(!creature->isPlayerCreature())
 			return;
 
-		ManagedReference<SceneObject*> object = sui->getUsingObject().get();
+		ManagedReference<SceneObject*> object = sui->getUsingObject();
 		ManagedReference<PlayerObject*> playerObject = creature->getPlayerObject();
 
-		if (object == nullptr || playerObject == nullptr)
+		if (object == NULL || playerObject == NULL)
 			return;
 
 		ManagedReference<CreatureObject*> emoteTarget = (object).castTo<CreatureObject*>();
 
-		if (emoteTarget == nullptr)
+		if (emoteTarget == NULL)
 			return;
 
 		int playerCredits = creature->getCashCredits();
@@ -39,7 +38,7 @@ public:
 		ChatManager* chatManager = server->getChatManager();
 		ReactionManager* reactionManager = server->getReactionManager();
 
-		if (chatManager == nullptr || reactionManager == nullptr)
+		if (chatManager == NULL || reactionManager == NULL)
 			return;
 
 		Locker clocker(emoteTarget, creature);
@@ -47,16 +46,15 @@ public:
 		if (totalFine > playerCredits) {
 			if (totalFine > 1000000) {
 				totalFine = 1000000;
-				chatManager->broadcastChatMessage(emoteTarget, reactionManager->getReactionQuip(41), 0, 0, emoteTarget->getMoodID());
+				chatManager->broadcastChatMessage(emoteTarget, reactionManager->getReactionQuip(41), 0, 0, 0);
 			}
 
-			TransactionLog trx(creature, TrxCode::FINES, playerCredits, true);
 			creature->subtractCashCredits(playerCredits);
 			playerObject->subtractFromReactionFines(playerCredits);
 
 			emoteTarget->doAnimation("point_accusingly");
 			String quip = reactionManager->getReactionQuip(6 + System::random(6));
-			chatManager->broadcastChatMessage(emoteTarget, quip, 0, 0, emoteTarget->getMoodID());
+			chatManager->broadcastChatMessage(emoteTarget, quip, 0, 0, 0);
 
 		} else {
 			int randomQuip = System::random(5);
@@ -72,13 +70,12 @@ public:
 				tauntMsg = "point_accusingly";
 				randomQuip = 42 + System::random(3);
 			}
-			TransactionLog trx(creature, TrxCode::FINES, totalFine, true);
 			creature->subtractCashCredits(totalFine);
 			playerObject->setReactionFines(0);
 
 			emoteTarget->doAnimation(tauntMsg);
 			String quip = reactionManager->getReactionQuip(randomQuip);
-			chatManager->broadcastChatMessage(emoteTarget, quip, 0, 0, emoteTarget->getMoodID());
+			chatManager->broadcastChatMessage(emoteTarget, quip, 0, 0, 0);
 
 		}
 

@@ -7,6 +7,7 @@
 
 #include "server/zone/objects/tangible/InstrumentObserver.h"
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/tangible/Instrument.h"
 
 int InstrumentObserverImplementation::notifyObserverEvent(unsigned int eventType, Observable* observable, ManagedObject* arg1, int64 arg2) {
@@ -14,15 +15,11 @@ int InstrumentObserverImplementation::notifyObserverEvent(unsigned int eventType
 		return 0;
 	}
 
-	SceneObject* creature = cast<SceneObject*>(observable);
-
-	if (creature == nullptr) {
-		return 0;
-	}
+	SceneObject* creature = cast<SceneObject*>( observable);
 
 	ManagedReference<Instrument* > instrument = this->instrument.get();
 
-	if (instrument == nullptr || instrument->getZone() == nullptr) {
+	if (instrument == NULL || instrument->getZone() == NULL) {
 		if (eventType == ObserverEventType::OBJECTREMOVEDFROMZONE) {
 			creature->dropObserver(ObserverEventType::POSITIONCHANGED, _this.getReferenceUnsafeStaticCast());
 		} else if (eventType == ObserverEventType::POSITIONCHANGED) {

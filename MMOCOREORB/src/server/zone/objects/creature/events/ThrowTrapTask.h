@@ -8,6 +8,8 @@
 #ifndef THROWTRAPTASK_H_
 #define THROWTRAPTASK_H_
 
+#include "engine/util/u3d/Coordinate.h"
+#include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/managers/combat/CombatManager.h"
 
@@ -41,7 +43,7 @@ public:
 	}
 
 	void run() {
-		if (player == nullptr || target == nullptr)
+		if (player == NULL || target == NULL)
 			return;
 
 		Locker locker2(player);
@@ -57,7 +59,7 @@ public:
 
 		if(hit) {
 
-			if(buff != nullptr) {
+			if(buff != NULL) {
 				Locker buffLocker(buff);
 
 				target->addBuff(buff);
@@ -68,7 +70,7 @@ public:
 			//Not sure on exact xp value, estimate now and update later
 			int xp = target->getLevel() * 15;
 			ManagedReference<PlayerManager*> playerManager = player->getZoneServer()->getPlayerManager();
-			if(playerManager != nullptr)
+			if(playerManager != NULL)
 				playerManager->awardExperience(player, "trapping", xp, true);
 		}
 

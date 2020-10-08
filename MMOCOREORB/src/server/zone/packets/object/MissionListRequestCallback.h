@@ -36,14 +36,19 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> player = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (player == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* player = cast<CreatureObject*>(scene.get());
+
+		if (player == NULL)
 			return;
 
 		ManagedReference<SceneObject*> terminal = server->getZoneServer()->getObject(terminalObjectID);
 
-		if (terminal == nullptr) {
+		if (terminal == NULL) {
 			player->sendSystemMessage("@skill_teacher:skill_terminal_disabled");
 			return;
 		}
@@ -55,7 +60,9 @@ public:
 
 		MissionManager* manager = server->getZoneServer()->getMissionManager();
 		manager->handleMissionListRequest(missionTerminal, player, unk2);
+
 	}
+
 
 };
 

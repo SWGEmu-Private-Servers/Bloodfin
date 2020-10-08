@@ -6,6 +6,7 @@
 #define DROIDSTIMPACKMODULEDATACOMPONENT_H_
 
 #include "BaseDroidModuleComponent.h"
+#include "engine/core/ManagedReference.h"
 #include "server/zone/objects/tangible/pharmaceutical/StimPack.h"
 
 namespace server {
@@ -24,47 +25,27 @@ protected:
 	int loaded;
 public:
 	int rate;
-
 	DroidStimpackModuleDataComponent();
-
 	~DroidStimpackModuleDataComponent();
-
-	String getModuleName() const;
-
+	String getModuleName();
 	void initializeTransientMembers();
-
 	void fillAttributeList(AttributeListMessage* msg, CreatureObject* droid);
-
 	int getBatteryDrain();
-
-	String toString() const;
-
+	String toString();
+	// crafting droid module specific
 	void onCall();
-
 	void onStore();
-
 	bool isStackable() { return true; }
-
 	void copy(BaseDroidModuleComponent* other);
-
 	void addToStack(BaseDroidModuleComponent* other);
-
 	void updateCraftingValues(CraftingValues* values, bool firstUpdate);
-
 	void fillObjectMenuResponse(SceneObject* droidObject, ObjectMenuResponse* menuResponse, CreatureObject* player);
-
 	int handleObjectMenuSelect(CreatureObject* player, byte selectedID, PetControlDevice* controller);
-
-	void initialize(DroidObject* droid);
-
+	void initialize(CreatureObject* droid);
 	void sendLoadUI(CreatureObject* player);
-
 	void handleInsertStimpack(CreatureObject* player, StimPack* pack);
-
 	void countUses();
-
 	StimPack* compatibleStimpack(float power);
-
 	StimPack* findStimPack();
 };
 

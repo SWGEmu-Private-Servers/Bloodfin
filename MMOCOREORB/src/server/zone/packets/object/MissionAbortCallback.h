@@ -10,6 +10,7 @@
 
 
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/creature/CreatureObject.h"
 #include "ObjectControllerMessageCallback.h"
 #include "server/zone/managers/mission/MissionManager.h"
 #include "server/zone/objects/mission/MissionObject.h"
@@ -34,14 +35,19 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> player = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (player == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* player = cast<CreatureObject*>(scene.get());
+
+		if (player == NULL)
 			return;
 
 		ManagedReference<SceneObject*> mission = server->getZoneServer()->getObject(missionObjectID);
 
-		if (mission == nullptr)
+		if (mission == NULL)
 			return;
 
 		if (!mission->isMissionObject())

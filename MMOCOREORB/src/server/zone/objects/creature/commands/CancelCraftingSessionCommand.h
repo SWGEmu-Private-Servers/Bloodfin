@@ -5,6 +5,8 @@
 #ifndef CANCELCRAFTINGSESSIONCOMMAND_H_
 #define CANCELCRAFTINGSESSIONCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/tangible/tool/CraftingTool.h"
 #include "server/zone/objects/player/sessions/crafting/CraftingSession.h"
 
 class CancelCraftingSessionCommand : public QueueCommand {
@@ -28,12 +30,12 @@ public:
 
 		Reference<CraftingSession*> session = creature->getActiveSession(SessionFacadeType::CRAFTING).castTo<CraftingSession*>();
 
-		if(session == nullptr) {
+		if(session == NULL) {
 			return GENERALERROR;
 		}
 
 		Locker locker(session);
-		session->cancelSessionCommand();
+		session->cancelSession();
 
 		return SUCCESS;
 	}

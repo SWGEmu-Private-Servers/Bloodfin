@@ -1,10 +1,16 @@
 #ifndef SAMPLEDEEDTASK_H_
 #define SAMPLEDEEDTASK_H_
 
+#include "server/zone/managers/resource/ResourceManager.h"
+#include "server/zone/managers/combat/CombatManager.h"
+#include "server/zone/managers/creature/CreatureManager.h"
 #include "server/zone/managers/creature/DnaManager.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/tangible/deed/pet/PetDeed.h"
-#include "templates/params/creature/CreatureAttribute.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
+#include "server/zone/templates/mobile/CreatureTemplate.h"
+#include "server/zone/templates/tangible/DnaSampleTemplate.h"
+#include "server/zone/objects/tangible/component/genetic/GeneticComponent.h"
 #include "engine/engine.h"
 
 class SampleDeedTask : public Task {
@@ -24,7 +30,7 @@ public:
 	}
 
 	void run() {
-		if (deed == nullptr || player == nullptr)
+		if (deed == NULL || player == NULL)
 			return;
 
 		Locker locker(player);
@@ -86,8 +92,8 @@ public:
 					award(cl,rollMod);
 					if (count >= maxSamples ){
 						// nuke deed you killed it
-						ManagedReference<SceneObject*> deedContainer = deed->getParent().get();
-						if (deedContainer != nullptr) {
+						ManagedReference<SceneObject*> deedContainer = deed->getParent();
+						if (deedContainer != NULL) {
 							deed->destroyObjectFromWorld(true);
 						}
 						deed->destroyObjectFromDatabase(true);
@@ -101,7 +107,7 @@ public:
 	void award(int cl, float rollMod) {
 		int xp = DnaManager::instance()->generateXp(cl);
 		ManagedReference<PlayerManager*> playerManager = player->getZoneServer()->getPlayerManager();
-		if(playerManager != nullptr)
+		if(playerManager != NULL)
 			playerManager->awardExperience(player, "bio_engineer_dna_harvesting", xp, true);
 		int quality = deed->getQuality();
 		int newQuality = quality;

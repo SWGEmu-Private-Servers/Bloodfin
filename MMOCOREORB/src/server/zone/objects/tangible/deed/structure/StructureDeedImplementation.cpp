@@ -6,26 +6,27 @@
  */
 
 #include "server/zone/objects/tangible/deed/structure/StructureDeed.h"
-#include "templates/tangible/StructureDeedTemplate.h"
+#include "server/zone/templates/tangible/StructureDeedTemplate.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/manufactureschematic/craftingvalues/CraftingValues.h"
-#include "templates/tangible/SharedStructureObjectTemplate.h"
-#include "templates/manager/TemplateManager.h"
-#include "server/zone/managers/components/ComponentManager.h"
+#include "server/zone/templates/tangible/SharedStructureObjectTemplate.h"
+#include "server/zone/managers/templates/TemplateManager.h"
 
 void StructureDeedImplementation::initializeTransientMembers() {
 	DeedImplementation::initializeTransientMembers();
 
 	StructureDeedTemplate* templ = dynamic_cast<StructureDeedTemplate*>(templateObject.get());
 
-	if (templ != nullptr)
-		placeStructureComponent = ComponentManager::instance()->getComponent<PlaceStructureComponent*>(templ->getStructurePlacementComponent());
+	if (templ != NULL)
+		placeStructureComponent = templ->getStructurePlacementComponent();
 
 	setLoggingName("StructureDeed");
 }
 
 int StructureDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte selectedID) {
+
 	if (selectedID == 20) {
+
 		if (!isASubChildOf(player))
 			return 0;
 
@@ -46,7 +47,7 @@ void StructureDeedImplementation::fillAttributeList(AttributeListMessage* alm, C
 
 	SharedStructureObjectTemplate* structureTemplate = dynamic_cast<SharedStructureObjectTemplate*>(templateManager->getTemplate(structureCRC));
 
-	if (structureTemplate == nullptr)
+	if (structureTemplate == NULL)
 		return;
 
 	//Base Maintenance Rate

@@ -1,7 +1,7 @@
 #ifndef XPPURCHASEATTIBUTELISTCOMPONENT_H_
 #define XPPURCHASEATTIBUTELISTCOMPONENT_H_
 
-#include "templates/tangible/XpPurchaseTemplate.h"
+#include "server/zone/templates/tangible/XpPurchaseTemplate.h"
 #include "server/zone/managers/stringid/StringIdManager.h"
 
 class XpPurchaseAttributeListComponent: public AttributeListComponent {
@@ -13,10 +13,10 @@ public:
 	 * @post { this object is locked, menuResponse is complete}
 	 * @param menuResponse ObjectMenuResponse that will be sent to the client
 	 */
-	void fillAttributeList(AttributeListMessage* alm, CreatureObject* creature, SceneObject* object) const {
+	void fillAttributeList(AttributeListMessage* alm, CreatureObject* creature, SceneObject* object) {
 
 		XpPurchaseTemplate* templateData = cast<XpPurchaseTemplate*> (object->getObjectTemplate());
-		if (templateData == nullptr) {
+		if (templateData == NULL) {
 			return;
 		}
 

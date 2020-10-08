@@ -4,39 +4,38 @@
 
 package server.zone.objects.player.sui;
 
+
+import engine.lua.LuaObject;
 import server.zone.objects.scene.SceneObject;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.player.PlayerObject;
+import server.zone.objects.creature.CreatureObject;
+import system.io.StringTokenizer;
 import engine.service.proto.BaseMessage;
 
 include server.zone.packets.ui.SuiCreatePageMessage;
 include server.zone.objects.player.sui.SuiWindowType;
 include server.zone.objects.player.sui.SuiCallback;
 
-include engine.core.ManagedObject;
-include engine.log.Logger;
-
-include system.util.Vector;
-
 class SuiBox extends ManagedObject implements Logger {
 	@weakReference
 	protected CreatureObject player;
-
+	
 	@local
 	protected SuiCallback suiCallback;
 
 	protected unsigned int boxID;
-
+	
 	@weakReference
 	protected SceneObject usingObject;
 
 	protected string handlerStr;
-
+	
 	protected string cancelButtonText;
 	protected boolean cancelButton;
 	protected string okButtonText;
 	protected boolean okButton;
-
+	
 	protected string otherButtonText;
 	protected boolean otherButton;
 
@@ -51,14 +50,14 @@ class SuiBox extends ManagedObject implements Logger {
 
 	@dereferenced
 	protected Vector<string> headerSets;
-
+	
 	@dereferenced
 	protected Vector<string> optionSets;
-
+	
 	protected int hdrOptCount; //header option count
-
+	
 	protected boolean hasGenerated;
-
+	
 	public static final int INPUTBOX = 0;
 	public static final int LISTBOX = 1;
 	public static final int MESSAGEBOX = 2;
@@ -72,34 +71,28 @@ class SuiBox extends ManagedObject implements Logger {
 	public static final int KEYPAD = 21;
 
 	public static final int QUESTPOPUP = 30;
-
+	
 	public SuiBox(CreatureObject play, unsigned int windowtype, unsigned int boxtype) {
 		player = play;
-	
+		
 		forceCloseDistance = 32;
 
 		boxType = boxtype;
 
 		windowType = windowtype;
-
+		
 		initialize();
 	}
-
+	
 	public void initialize() {
 		Logger.setLoggingName("SuiBox");
+		
+		PlayerObject ghost = player.getPlayerObject();
 
-		CreatureObject strongRef = player;
-
-		if (strongRef) {
-			PlayerObject ghost = strongRef.getPlayerObject();
-
-			if (ghost) {
-				boxID = ghost.getNewSuiBoxID(windowType);
-			}
-		}
+		boxID = ghost.getNewSuiBoxID(windowType);
 
 		handlerStr = "msgSelected";
-
+		
 		cancelButtonText = "@cancel";
 		cancelButton = false;
 
@@ -111,20 +104,20 @@ class SuiBox extends ManagedObject implements Logger {
 
 		hdrOptCount = 0; //header option count
 		hasGenerated = false;
-
+		
 		suiCallback = null;
 	}
-
+	
 	public void finalize() {
 		//Logger.info("deleting sui box", true);
 	}
-
+	
 	public void initializeTransientMembers() {
 		super.initializeTransientMembers();
 		
 		//Logger.setLoggingName("SuiBox");
 	}
-
+	
 
 	/**
 	 * Call after all Header settings have been added with addHeader()
@@ -133,9 +126,8 @@ class SuiBox extends ManagedObject implements Logger {
 	 * the object with clearOptions()
 	 * \sa addHeader(), clearOptions()
 	 */
-	@local
 	public native void generateHeader(SuiCreatePageMessage message);
-
+	
 	/**
 	 * Call after all Body Settings have been added with addSetting() and the header has been generated
 	 * Generates the UI-Body of the packet, SuiCreatePageMessage, based on the optionSets vector.
@@ -143,19 +135,16 @@ class SuiBox extends ManagedObject implements Logger {
 	 * reset the object with clearOptions()
 	 * \sa addSetting(), clearOptions()
 	 */
-	@local
 	public native void generateBody(SuiCreatePageMessage message);
-
+	
 
 	/**
 	 * Call after generating both the header and body.
 	 * Footer of SuiCreatePageMessage is largely unknown. Subject to change based on research. See trac
 	 * \param type Type of footer to place into packet
 	 */
-	@local
 	public native void generateFooter(SuiCreatePageMessage message, int type = 0);
-
-	@local
+	
 	public abstract BaseMessage generateMessage() {
 		return null;
 	}
@@ -164,9 +153,8 @@ class SuiBox extends ManagedObject implements Logger {
 	 * Use to close the UI object on the client.
 	 * Sends the SuiForceClosePage packet to the client.
 	 */
-	@local
 	public native BaseMessage generateCloseMessage();
-
+	
 	/**
 	 * Use to add a UI-body option that will be included in UI generation
 	 * See trac documentation of SuiCreatePageMessage for when to use
@@ -178,7 +166,7 @@ class SuiBox extends ManagedObject implements Logger {
 	 * \param value The value of the setting being modified
 	 */
 	public native void addSetting(final string optType, final string variable, final string setting, final string value);
-
+	
 	/**
 	 * Use to add a UI-Header that will eventually be included in the UI generation.
 	 * See trac documentation of SuiCreatePageMessage for when to use
@@ -188,13 +176,13 @@ class SuiBox extends ManagedObject implements Logger {
 	 * \param type Data type of the UI variable being declared
 	 */
 	public native void addHeader(final string variable, final string type);
-
+	
 	public void clearOptions() {
 		headerSets.removeAll();
 		hdrOptCount = 0;
 		optionSets.removeAll();
 	}
-
+	
 	public int compareTo(SuiBox obj) {
 		unsigned int id = obj.getBoxID();
 
@@ -205,11 +193,11 @@ class SuiBox extends ManagedObject implements Logger {
 		else
 			return 0;
 	}
-
+	
 	public boolean hasGeneratedMessage() {
 		return hasGenerated;
 	}
-
+	
 	public void setPromptTitle(final string name) {
 		promptTitle = name;
 	}
@@ -217,11 +205,11 @@ class SuiBox extends ManagedObject implements Logger {
 	public void setPromptText(final string name) {
 		promptText = name;
 	}
-
+	
 	public string getPromptTitle() {
 		return promptTitle;
 	}
-
+	
 	public void setHandlerText(final string text) {
 		handlerStr = text;
 	}
@@ -229,7 +217,7 @@ class SuiBox extends ManagedObject implements Logger {
 	public void setWindowType(unsigned int type) {
 		windowType = type;
 	}
-
+	
 	public void setBoxType(int type) {
 		boxType = type;
 	}
@@ -261,12 +249,12 @@ class SuiBox extends ManagedObject implements Logger {
 	public abstract boolean isSlicingBox() {
 		return false;
 	}
-
+	
 	public abstract boolean isCharacterBuilderBox() {
 		return false;
 	}
 
-	public abstract boolean isColorPicker() {
+	public boolean isColorPicker() {
 		return false;
 	}
 
@@ -275,7 +263,7 @@ class SuiBox extends ManagedObject implements Logger {
 	public native void setOtherButton(boolean value, final string backText);
 
 	public native void setOkButton(boolean value, final string okText);
-
+	
 	public native void setForceCloseDistance(float dist);
 
 	public native void setForceCloseDisabled();
@@ -292,21 +280,21 @@ class SuiBox extends ManagedObject implements Logger {
 	public int getWindowType() {
 		return windowType;
 	}
-
+	
 	@weakReference
 	public SceneObject getUsingObject() {
 		return usingObject;
 	}
-
+	
 	public void setUsingObject(SceneObject object) {
 		usingObject = object;
 	}
-
+	
 	@local
 	public void setCallback(SuiCallback callback) {
 		suiCallback = callback;
 	}
-
+	
 	@local
 	public SuiCallback getCallback() {
 		return suiCallback;

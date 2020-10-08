@@ -9,7 +9,10 @@
 #define OBJECTCONTROLLERMESSAGECALLBACK_H_
 
 #include "server/zone/MessageCallbackFactory.h"
-#include "server/zone/packets/MessageCallback.h"
+
+#include "../MessageCallback.h"
+
+#include "server/zone/managers/objectcontroller/ObjectController.h"
 
 class ObjectControllerMessageCallback : public MessageCallback {
 	uint32 priority;
@@ -22,26 +25,26 @@ public:
 	ObjectControllerMessageCallback(ZoneClientSession* client, ZoneProcessServer* server) :
 		MessageCallback(client, server), priority(0), type(0), objectID(0) {
 
-		objectControllerCallback = nullptr;
+		objectControllerCallback = NULL;
+		
+		taskqueue = 2;
 	}
 
-	static UniqueReference<MessageCallbackFactory<MessageCallback* (ObjectControllerMessageCallback*), uint32>*> objectMessageControllerFactory;
-
-	const char* getTaskName();
+	static MessageCallbackFactory<MessageCallback* (ObjectControllerMessageCallback*), uint32>* objectMessageControllerFactory;
 
 	void parse(Message* message);
 
 	void run();
 
-	inline uint32 getPriority() const {
+	inline uint32 getPriority() {
 		return priority;
 	}
 
-	inline uint32 getType() const {
+	inline uint32 getType() {
 		return type;
 	}
 
-	inline uint64 getObjectID() const {
+	inline uint64 getObjectID() {
 		return objectID;
 	}
 

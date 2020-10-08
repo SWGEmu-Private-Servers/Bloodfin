@@ -16,7 +16,3 @@ void StaticObjectImplementation::sendBaselinesTo(SceneObject* player) {
 	BaseMessage* stao6 = new StaticObjectMessage6(_this.getReferenceUnsafeStaticCast());
 	player->sendMessage(stao6);
 }
-
-StaticObject* StaticObjectImplementation::asStaticObject() {
-	return _this.getReferenceUnsafeStaticCast();
-}

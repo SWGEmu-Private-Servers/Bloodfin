@@ -13,6 +13,7 @@
 #ifndef LOGOUTSERVERCOMMAND_H_
 #define LOGOUTSERVERCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/player/events/LogoutTask.h"
 
 class LogoutServerCommand : public QueueCommand {
@@ -40,7 +41,7 @@ public:
 
 		Reference<Task*> logoutTask = creature->getPendingTask("logout");
 
-		if (logoutTask != nullptr) {
+		if (logoutTask != NULL) {
 			creature->error("WARNING: LogoutServer command called while logout task already pending!");
 			return GENERALERROR;
 		}

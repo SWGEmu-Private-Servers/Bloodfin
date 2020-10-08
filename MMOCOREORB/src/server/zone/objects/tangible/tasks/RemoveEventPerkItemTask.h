@@ -12,7 +12,7 @@ namespace tangible {
 namespace tasks {
 
 class RemoveEventPerkItemTask : public Task {
-	ManagedWeakReference<TangibleObject*> tano;
+	ManagedReference<TangibleObject*> tano;
 
 public:
 	RemoveEventPerkItemTask(TangibleObject* obj) {
@@ -20,19 +20,15 @@ public:
 	}
 
 	void run() {
-		Reference<TangibleObject*> tano = this->tano.get();
-
-		if (tano == nullptr) {
+		if (tano == NULL) {
 			return;
 		}
 
 		Locker locker(tano);
 
 		if (tano->getServerObjectCRC() == 0x46BD798B) { // Jukebox
-			Jukebox* jbox = tano.castTo<Jukebox*>();
-
-			if (jbox != nullptr)
-				jbox->stopPlaying();
+			Jukebox* jbox = cast<Jukebox*>(tano.get());
+			jbox->stopPlaying();
 		}
 
 		tano->destroyObjectFromWorld(true);

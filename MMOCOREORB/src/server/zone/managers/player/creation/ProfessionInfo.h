@@ -8,7 +8,8 @@
 #ifndef PROFESSIONINFO_H_
 #define PROFESSIONINFO_H_
 
-#include "templates/IffTemplate.h"
+#include "engine/engine.h"
+#include "server/zone/templates/IffTemplate.h"
 
 namespace server {
 namespace zone {

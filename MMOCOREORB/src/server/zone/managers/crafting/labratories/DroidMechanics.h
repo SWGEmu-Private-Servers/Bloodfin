@@ -1,6 +1,9 @@
 #ifndef DROID_MECHANICS_H
 #define DROID_MECHANICS_H
 
+#include "SharedLabratory.h"
+#include "engine/engine.h"
+#include "server/zone/managers/creature/DnaManager.h"
 #include "server/zone/objects/creature/ai/DroidObject.h"
 
 namespace server {
@@ -64,8 +67,6 @@ public:
 	static float determineMinDamage(int droidType, int rating) {
 		if (rating == 0)
 			return 1;
-		if (rating > 600)
-			rating = 600;
 		if(droidType == DroidObject::R_SERIES)
 			return ((int)((rating/600.0) * 80.0)) + 80;
 		if(droidType == DroidObject::LE_REPAIR)
@@ -77,8 +78,6 @@ public:
 	static float determineMaxDamage(int droidType, int rating) {
 		if (rating == 0)
 			return 1;
-		if (rating > 600)
-			rating = 600;
 		if(droidType == DroidObject::R_SERIES)
 			return ((int)((rating/600.0) * 85.0)) + 85;
 		if(droidType == DroidObject::LE_REPAIR)
@@ -105,5 +104,4 @@ public:
 }
 
 using namespace server::zone::managers::crafting::labratories;
-
 #endif /* DROID_MECHANICS_H */

@@ -38,24 +38,29 @@ public:
 	StimPack* findStimPack(CreatureObject* creature) const {
 		SceneObject* inventory = creature->getSlottedObject("inventory");
 
-		if (inventory != nullptr) {
+		if (inventory != NULL) {
 			for (int i = 0; i < inventory->getContainerObjectsSize(); ++i) {
 				SceneObject* item = inventory->getContainerObject(i);
 
-				if (!item->isPharmaceuticalObject())
+				if (!item->isTangibleObject())
 					continue;
 
-				PharmaceuticalObject* pharma = cast<PharmaceuticalObject*>(item);
+				TangibleObject* tano = cast<TangibleObject*>( item);
 
-				if (pharma->isPetStimPack()) {
-					StimPack* stimPack = cast<StimPack*>(pharma);
+				if (tano->isPharmaceuticalObject()) {
+					PharmaceuticalObject* pharma = cast<PharmaceuticalObject*>( tano);
 
-					return stimPack;
+					if (pharma->isPetStimPack()) {
+						StimPack* stimPack = cast<StimPack*>( pharma);
+
+						return stimPack;
+					}
+
 				}
 			}
 		}
 
-		return nullptr;
+		return NULL;
 	}
 
 	bool canPerformSkill(CreatureObject* creature, CreatureObject* pet, StimPack* stimPack, int mindCostNew) const {
@@ -64,7 +69,7 @@ public:
 			return false;
 		}
 
-		if (stimPack == nullptr) {
+		if (stimPack == NULL) {
 			creature->sendSystemMessage("@healing_response:healing_response_60"); //No valid medicine found.
 			return false;
 		}
@@ -79,15 +84,7 @@ public:
 			return false;
 		}
 
-		Vector<byte> atts = stimPack->getAttributes();
-		bool needsHeals = false;
-
-		for (int i = 0; i < atts.size(); i++) {
-			if (pet->hasDamage(atts.get(i)))
-				needsHeals = true;
-		}
-
-		if (!needsHeals) {
+		if (!pet->hasDamage(CreatureAttribute::HEALTH) && !pet->hasDamage(CreatureAttribute::ACTION) && !pet->hasDamage(CreatureAttribute::MIND)) {
 			StringBuffer message;
 			message << pet->getDisplayedName() << " has no damage to heal.";
 			creature->sendSystemMessage(message.toString());
@@ -136,7 +133,7 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object == nullptr || !object->isCreature()) {
+		if (object == NULL || !object->isCreature()) {
 			creature->sendSystemMessage("Invalid Target.");
 			return GENERALERROR;
 		}
@@ -151,12 +148,12 @@ public:
 		}
 
 		PetControlDevice* pcd = pet->getControlDevice().get().castTo<PetControlDevice*>();
-		if (pcd == nullptr || pcd->getPetType() != PetManager::CREATUREPET) {
+		if (pcd == NULL || pcd->getPetType() != PetManager::CREATUREPET) {
 			creature->sendSystemMessage("Invalid Target.");
 			return GENERALERROR;
 		}
 
-		if(!checkDistance(creature, pet, range))
+		if (!creature->isInRange(pet, range + pet->getTemplateRadius() + creature->getTemplateRadius()))
 			return TOOFAR;
 
 		uint64 objectID = 0;
@@ -168,14 +165,14 @@ public:
 
 		}
 
-		ManagedReference<StimPack*> stimPack = nullptr;
+		ManagedReference<StimPack*> stimPack = NULL;
 
 		if (objectID == 0) {
 			stimPack = findStimPack(creature);
 		} else {
 			SceneObject* inventory = creature->getSlottedObject("inventory");
 
-			if (inventory != nullptr) {
+			if (inventory != NULL) {
 				stimPack = inventory->getContainerObject(objectID).castTo<StimPack*>();
 			}
 		}
@@ -185,34 +182,12 @@ public:
 		if (!canPerformSkill(creature, pet, stimPack, mindCostNew))
 			return GENERALERROR;
 
-		uint32 stimPower = stimPack->calculatePower(creature, pet);
+		uint32 stimPower = 0;
+		stimPower = stimPack->calculatePower(creature, pet);
 
-		Vector<byte> atts = stimPack->getAttributes();
-		int healthHealed = 0, actionHealed = 0, mindHealed = 0;
-		bool notifyObservers = true;
-
-
-		if (atts.contains(CreatureAttribute::HEALTH)) {
-			healthHealed = pet->healDamage(creature, CreatureAttribute::HEALTH, stimPower);
-			notifyObservers = false;
-		}
-
-		if (atts.contains(CreatureAttribute::ACTION)) {
-			if (notifyObservers) {
-				actionHealed = pet->healDamage(creature, CreatureAttribute::ACTION, stimPower);
-				notifyObservers = false;
-			} else {
-				actionHealed = pet->healDamage(creature, CreatureAttribute::ACTION, stimPower, true, false);
-			}
-		}
-
-		if (atts.contains(CreatureAttribute::MIND)) {
-			if (notifyObservers) {
-				mindHealed = pet->healDamage(creature, CreatureAttribute::MIND, stimPower);
-			} else {
-				mindHealed = pet->healDamage(creature, CreatureAttribute::MIND, stimPower, true, false);
-			}
-		}
+		int healthHealed = pet->healDamage(creature, CreatureAttribute::HEALTH, stimPower);
+		int actionHealed = pet->healDamage(creature, CreatureAttribute::ACTION, stimPower, true, false);
+		int mindHealed = pet->healDamage(creature, CreatureAttribute::MIND, stimPower, true, false);
 
 		if (creature->isPlayerCreature()) {
 			PlayerManager* playerManager = server->getPlayerManager();

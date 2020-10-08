@@ -5,8 +5,10 @@
 #ifndef TELLPETCOMMAND_H_
 #define TELLPETCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/objects/player/PlayerObject.h"
+#include "server/zone/objects/intangible/PetControlDevice.h"
 #include "server/zone/managers/creature/PetManager.h"
 
 class TellpetCommand : public QueueCommand {
@@ -26,14 +28,14 @@ public:
 			return INVALIDLOCOMOTION;
 
 		ManagedReference<PlayerObject*> player = creature->getPlayerObject();
-		if( player == nullptr )
+		if( player == NULL )
 			return GENERALERROR;
 
 		// Send message to all player's pets within range
 		for (int i = 0; i < player->getActivePetsSize(); ++i) {
 
 			ManagedReference<AiAgent*> pet = player->getActivePet(i);
-			if (pet != nullptr) {
+			if (pet != NULL) {
 
 				if( creature->isInRange( pet, 150.0 ) ){
 

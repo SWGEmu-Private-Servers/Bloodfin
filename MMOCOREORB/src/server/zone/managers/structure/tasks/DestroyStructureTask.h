@@ -8,27 +8,22 @@
 #ifndef DESTROYSTRUCTURETASK_H_
 #define DESTROYSTRUCTURETASK_H_
 
-#include "server/zone/Zone.h"
+#include "engine/engine.h"
 #include "server/zone/objects/structure/StructureObject.h"
 #include "server/zone/objects/cell/CellObject.h"
-#include "server/zone/objects/player/PlayerObject.h"
-#include "server/zone/objects/building/BuildingObject.h"
+#include "server/zone/objects/tangible/components/vendor/VendorDataComponent.h"
 #include "server/zone/packets/object/PlayClientEffectObjectMessage.h"
 #include "server/zone/packets/scene/PlayClientEffectLocMessage.h"
 
 class DestroyStructureTask : public Task {
 protected:
 	ManagedReference<StructureObject*> structureObject;
-	bool playEffect;
-	bool killOccupants;
+	bool destroyQuestStructure;
 
 public:
-	DestroyStructureTask(StructureObject* structure, bool doEffect = false, bool killStuff = false) {
+	DestroyStructureTask(StructureObject* structure, bool destroyQuest = false) {
 		structureObject = structure;
-		playEffect = doEffect;
-		killOccupants = killStuff;
-
-		setCustomTaskQueue("slowQueue");
+		destroyQuestStructure = destroyQuest;
 	}
 
 	void run() {
@@ -36,12 +31,12 @@ public:
 
 		ManagedReference<Zone*> zone = structureObject->getZone();
 
-		if (zone == nullptr)
+		if (zone == NULL)
 			return;
 
 		ZoneServer* zoneServer = structureObject->getZoneServer();
 
-		if (zoneServer != nullptr && zoneServer->isServerLoading()) {
+		if (zoneServer != NULL && zoneServer->isServerLoading()) {
 			schedule(1000);
 
 			return;
@@ -51,9 +46,12 @@ public:
 		float y = structureObject->getPositionY();
 		float z = zone->getHeight(x, y);
 
-		if (playEffect)
+		if (destroyQuestStructure)
 		{
-			PlayClientEffectLoc* explodeLoc = new PlayClientEffectLoc("clienteffect/combat_explosion_lair_large.cef", structureObject->getZone()->getZoneName(), structureObject->getPositionX(), structureObject->getPositionZ(), structureObject->getPositionY());
+			PlayClientEffectObjectMessage* explode = new PlayClientEffectObjectMessage(structureObject, "clienteffect/lair_damage_heavy.cef", "");
+			structureObject->broadcastMessage(explode, false);
+
+			PlayClientEffectLoc* explodeLoc = new PlayClientEffectLoc("clienteffect/lair_damage_heavy.cef", structureObject->getZone()->getZoneName(), structureObject->getPositionX(), structureObject->getPositionZ(), structureObject->getPositionY());
 			structureObject->broadcastMessage(explodeLoc, false);
 		}
 
@@ -64,7 +62,7 @@ public:
 			for (uint32 i = 1; i <= buildingObject->getTotalCellNumber(); ++i) {
 				ManagedReference<CellObject*> cellObject = buildingObject->getCell(i);
 
-				if (cellObject == nullptr)
+				if (cellObject == NULL)
 					continue;
 
 				int childObjects = cellObject->getContainerObjectsSize();
@@ -74,8 +72,12 @@ public:
 
 				//Traverse the vector backwards since the size will change as objects are removed.
 				for (int j = childObjects - 1; j >= 0; --j) {
+					ReadLocker rlocker(cellObject->getContainerLock());
+
 					ManagedReference<SceneObject*> obj =
 							cellObject->getContainerObject(j);
+
+					rlocker.release();
 
 					if (obj->isPlayerCreature() || obj->isPet()) {
 						CreatureObject* playerCreature =
@@ -86,10 +88,10 @@ public:
 						try {
 							Locker plocker(playerCreature);
 
-							if (killOccupants) {
-								playerCreature->inflictDamage(playerCreature, 0, 9999999, true, true);
-								playerCreature->inflictDamage(playerCreature, 3, 9999999, true, true);
-								playerCreature->inflictDamage(playerCreature, 6, 9999999, true, true);
+							if (destroyQuestStructure) {
+								playerCreature->inflictDamage(structureObject, 0, 9999999, true, true);
+								playerCreature->inflictDamage(structureObject, 3, 9999999, true, true);
+								playerCreature->inflictDamage(structureObject, 6, 9999999, true, true);
 							}
 
 							playerCreature->teleport(x, z, y, 0);
@@ -108,23 +110,18 @@ public:
 		ManagedReference<SceneObject*> owner = zone->getZoneServer()->getObject(
 				structureObject->getOwnerObjectID());
 
-		if (owner != nullptr) {
+		if (owner != NULL) {
 			ManagedReference<SceneObject*> ghost = owner->getSlottedObject("ghost");
 
-			if (ghost != nullptr && ghost->isPlayerObject()) {
+			if (ghost != NULL && ghost->isPlayerObject()) {
 				PlayerObject* playerObject = cast<PlayerObject*>(ghost.get());
 				playerObject->removeOwnedStructure(structureObject);
-
-				uint64 waypointID = structureObject->getWaypointID();
-
-				if (waypointID != 0)
-					playerObject->removeWaypoint(waypointID, true, true);
 			}
 		}
 
+		structureObject->destroyObjectFromDatabase(true);
 		structureObject->destroyObjectFromWorld(true);
 		structureObject->notifyObservers(ObserverEventType::OBJECTDESTRUCTION, structureObject, 0);
-		structureObject->destroyObjectFromDatabase(true);
 	}
 };
 

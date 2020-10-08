@@ -4,21 +4,25 @@
 
 package server.zone.objects.mission;
 
+import engine.util.Observer;
+import engine.util.Observable;
 import server.zone.objects.mission.MissionObject;
 import server.zone.objects.mission.MissionObjective;
+import server.zone.objects.mission.MissionObserver;
+import server.zone.objects.scene.SceneObject;
+import server.zone.objects.creature.ai.AiAgent;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.tangible.TangibleObject;
-import server.zone.objects.creature.ai.AiAgent;
+include server.zone.templates.TemplateReference;
+import server.zone.templates.SharedObjectTemplate;
+import server.zone.objects.area.MissionSpawnActiveArea;
+include server.zone.managers.mission.spawnmaps.NpcSpawnPoint;
 
-@json
 class DeliverMissionObjective extends MissionObjective {
 	protected TangibleObject item;
 
-	@weakReference
-	protected AiAgent targetSpawn;
-
-	@weakReference
-	protected AiAgent destinationSpawn;
+	protected NpcSpawnPoint targetSpawnPoint;
+	protected NpcSpawnPoint destinationSpawnPoint;
 
 	protected int objectiveStatus;
 
@@ -71,14 +75,14 @@ class DeliverMissionObjective extends MissionObjective {
 	public abstract native boolean updateMissionTarget(CreatureObject player);
 
 	@dirty
-	@weakReference
-	public AiAgent getTargetSpawn() {
-		return targetSpawn;
+	@local
+	public NpcSpawnPoint getTargetSpawnPoint() {
+		return targetSpawnPoint;
 	}
 
 	@dirty
-	@weakReference
-	public AiAgent getDestinationSpawn() {
-		return destinationSpawn;
+	@local
+	public NpcSpawnPoint getDestinationSpawnPoint() {
+		return destinationSpawnPoint;
 	}
 }

@@ -3,15 +3,13 @@
 		See file COPYING for copying conditions.*/
 
 #include "NpcSpawnPoint.h"
-#include "server/zone/ZoneProcessServer.h"
 #include "server/zone/managers/mission/spawnmaps/events/DespawnMissionNpcTask.h"
 #include "server/zone/managers/name/NameManager.h"
-#include "server/zone/objects/creature/ai/AiAgent.h"
 
 NpcSpawnPoint::NpcSpawnPoint() {
 	inUseByNumberOfMissions = 0;
 	spawnType = 0;
-	despawnMissionNpcTask = nullptr;
+	despawnMissionNpcTask = NULL;
 	npcSpawned = false;
 }
 
@@ -31,9 +29,6 @@ NpcSpawnPoint::NpcSpawnPoint(CreatureObject* player, const String& spawnTypes) {
 	if (st.contains("bhtarget")) {
 		spawnType |= BHTARGETSPAWN;
 	}
-	if (st.contains("lambda")) {
-		spawnType |= LAMBDASHUTTLESPAWN;
-	}
 	if (st.contains("nospawn")) {
 		//No spawn overrides all other spawn types.
 		spawnType = NOSPAWN;
@@ -42,7 +37,7 @@ NpcSpawnPoint::NpcSpawnPoint(CreatureObject* player, const String& spawnTypes) {
 	position.setY(player->getPosition().getY());
 	direction.setHeadingDirection(player->getDirection()->getRadians());
 	inUseByNumberOfMissions = 0;
-	despawnMissionNpcTask = nullptr;
+	despawnMissionNpcTask = NULL;
 	npcSpawned = false;
 }
 
@@ -56,7 +51,7 @@ void NpcSpawnPoint::readObject(LuaObject* luaObject) {
 	position.setZ(0);
 	direction.setHeadingDirection(radians);
 	inUseByNumberOfMissions = 0;
-	despawnMissionNpcTask = nullptr;
+	despawnMissionNpcTask = NULL;
 	npcSpawned = false;
 }
 
@@ -82,7 +77,7 @@ void NpcSpawnPoint::allocateNpc(TerrainManager* terrainManager, CreatureManager*
 	inUseByNumberOfMissions++;
 
 	if (inUseByNumberOfMissions > 0) {
-		if (despawnMissionNpcTask != nullptr && despawnMissionNpcTask->isScheduled()) {
+		if (despawnMissionNpcTask != NULL && despawnMissionNpcTask->isScheduled()) {
 			despawnMissionNpcTask->cancel();
 		}
 
@@ -91,7 +86,7 @@ void NpcSpawnPoint::allocateNpc(TerrainManager* terrainManager, CreatureManager*
 			String deliverNpc = "deliver_npc";
 			float z = terrainManager->getHeight(position.getX(), position.getY());
 			npc = cast<AiAgent*>(creatureManager->spawnCreature(deliverNpc.hashCode(), 0, position.getX(), z, position.getY(), 0));
-			if (npc != nullptr) {
+			if (npc != NULL) {
 				npc->updateDirection(direction.getW(), direction.getX(), direction.getY(), direction.getZ());
 				//Set the name of the NPC.
 				NameManager* nm = npc->getZoneProcessServer()->getNameManager();
@@ -108,7 +103,7 @@ void NpcSpawnPoint::freeNpc(Reference<MissionManager*> missionManager) {
 	inUseByNumberOfMissions--;
 
 	if (inUseByNumberOfMissions == 0) {
-		if (despawnMissionNpcTask == nullptr) {
+		if (despawnMissionNpcTask == NULL) {
 			despawnMissionNpcTask = new DespawnMissionNpcTask(missionManager, this);
 		}
 
@@ -123,10 +118,9 @@ void NpcSpawnPoint::freeNpc(Reference<MissionManager*> missionManager) {
 
 void NpcSpawnPoint::despawnNpc() {
 	npcSpawned = false;
-	if (npc != nullptr) {
+	if (npc != NULL) {
 		Locker locker(npc);
 
 		npc->scheduleDespawn(1);
-		npc = nullptr;
 	}
 }

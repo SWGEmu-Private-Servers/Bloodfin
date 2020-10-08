@@ -8,6 +8,7 @@
 #ifndef PROFESSIONDEFAULTSINFO_H_
 #define PROFESSIONDEFAULTSINFO_H_
 
+#include "engine/engine.h"
 #include "server/zone/objects/creature/variables/Skill.h"
 #include "server/zone/managers/skill/SkillManager.h"
 
@@ -25,14 +26,10 @@ class ProfessionDefaultsInfo : public Object {
 
 public:
 	ProfessionDefaultsInfo() : Object() {
-		skill = nullptr;
+		skill = NULL;
 
 		professionItems.setNoDuplicateInsertPlan();
 		professionMods.setNoDuplicateInsertPlan();
-	}
-
-	~ProfessionDefaultsInfo() {
-
 	}
 
 	void readObject(IffStream* iffStream) {
@@ -88,23 +85,19 @@ public:
 		professionMods.put(idx, value);
 	}
 
-	const SortedVector<String>* getProfessionItems(const String& clientTemplate) const {
+	SortedVector<String>* getProfessionItems(const String& clientTemplate) {
 		if (!professionItems.contains(clientTemplate))
-			return nullptr;
+			return NULL;
 
 		return &professionItems.get(clientTemplate);
 	}
 
-	const Skill* getSkill() const {
+	Skill* getSkill() {
 		return skill;
 	}
 
-	int getAttributeMod(uint8 idx) const {
+	int getAttributeMod(uint8 idx) {
 		return professionMods.get(idx);
-	}
-
-	inline const Vector<String>* getStartingItems() const {
-		return &startingItems;
 	}
 
 	inline Vector<String>* getStartingItems() {

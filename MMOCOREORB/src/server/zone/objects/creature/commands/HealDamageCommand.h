@@ -5,13 +5,13 @@
 #ifndef HEALDAMAGECOMMAND_H_
 #define HEALDAMAGECOMMAND_H_
 
-#include "server/zone/objects/building/BuildingObject.h"
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/tangible/pharmaceutical/StimPack.h"
 #include "server/zone/objects/tangible/pharmaceutical/RangedStimPack.h"
 #include "server/zone/ZoneServer.h"
 #include "server/zone/managers/player/PlayerManager.h"
 #include "server/zone/objects/creature/events/InjuryTreatmentTask.h"
+#include "server/zone/objects/creature/buffs/Buff.h"
 #include "server/zone/objects/creature/buffs/DelayedBuff.h"
 #include "server/zone/packets/object/CombatAction.h"
 #include "server/zone/managers/collision/CollisionManager.h"
@@ -41,7 +41,7 @@ public:
 		if (creature->hasBuff(BuffCRC::FOOD_HEAL_RECOVERY)) {
 			DelayedBuff* buff = cast<DelayedBuff*>( creature->getBuff(BuffCRC::FOOD_HEAL_RECOVERY));
 
-			if (buff != nullptr) {
+			if (buff != NULL) {
 				float percent = buff->getSkillModifierValue("heal_recovery");
 
 				delay = round(delay * (100.0f - percent) / 100.0f);
@@ -85,8 +85,8 @@ public:
 	StimPack* findStimPack(CreatureObject* creature) const {
 		SceneObject* inventory = creature->getSlottedObject("inventory");
 
-		if (inventory == nullptr)
-			return nullptr;
+		if (inventory == NULL)
+			return NULL;
 
 		int medicineUse = creature->getSkillMod("healing_ability");
 		int combatMedicineUse = creature->getSkillMod("combat_healing_ability");
@@ -96,27 +96,31 @@ public:
 		for (int i = 0; i < inventory->getContainerObjectsSize(); ++i) {
 			SceneObject* item = inventory->getContainerObject(i);
 
-			if (!item->isPharmaceuticalObject())
+			if (!item->isTangibleObject())
 				continue;
 
-			PharmaceuticalObject* pharma = cast<PharmaceuticalObject*>(item);
+			TangibleObject* tano = cast<TangibleObject*>( item);
 
-			if (melee && pharma->isStimPack() && !pharma->isRangedStimPack() && !pharma->isPetStimPack() && !pharma->isDroidRepairKit()) {
-				StimPack* stimPack = cast<StimPack*>(pharma);
+			if (tano->isPharmaceuticalObject()) {
+				PharmaceuticalObject* pharma = cast<PharmaceuticalObject*>( tano);
 
-				if (stimPack->getMedicineUseRequired() <= medicineUse)
-					return stimPack;
-			}
+				if (melee && pharma->isStimPack() && !pharma->isRangedStimPack() && !pharma->isPetStimPack() && !pharma->isDroidRepairKit()) {
+					StimPack* stimPack = cast<StimPack*>(pharma);
 
-			if (pharma->isRangedStimPack()) {
-				RangedStimPack* stimPack = cast<RangedStimPack*>(pharma);
+					if (stimPack->getMedicineUseRequired() <= medicineUse)
+						return stimPack;
+				}
 
-				if (stimPack->getMedicineUseRequired() <= combatMedicineUse && stimPack->getRange(creature))
-					return stimPack;
+				if (pharma->isRangedStimPack()) {
+					RangedStimPack* stimPack = cast<RangedStimPack*>(pharma);
+
+					if (stimPack->getMedicineUseRequired() <= combatMedicineUse && stimPack->getRange(creature))
+						return stimPack;
+				}
 			}
 		}
 
-		return nullptr;
+		return NULL;
 	}
 
 	bool checkTarget(CreatureObject* creature, CreatureObject* creatureTarget) const {
@@ -142,7 +146,7 @@ public:
 			return false;
 		}
 
-		if (stimPack == nullptr) {
+		if (stimPack == NULL) {
 			creature->sendSystemMessage("@healing_response:healing_response_60"); //No valid medicine found.
 			return false;
 		}
@@ -152,25 +156,12 @@ public:
 			return false;
 		}
 
-		if (creature != creatureTarget && checkForArenaDuel(creatureTarget)) {
-			creature->sendSystemMessage("@jedi_spam:no_help_target"); // You are not permitted to help that target.
-			return false;
-		}
-
 		if (!creatureTarget->isHealableBy(creature)) {
 			creature->sendSystemMessage("@healing:pvp_no_help"); //It would be unwise to help such a patient.
 			return false;
 		}
 
-		Vector<byte> atts = stimPack->getAttributes();
-		bool needsHeals = false;
-
-		for (int i = 0; i < atts.size(); i++) {
-			if (creatureTarget->hasDamage(atts.get(i)))
-				needsHeals = true;
-		}
-
-		if (!needsHeals) {
+		if (!creatureTarget->hasDamage(CreatureAttribute::HEALTH) && !creatureTarget->hasDamage(CreatureAttribute::ACTION)) {
 			if (creatureTarget == creature) {
 				creature->sendSystemMessage("@healing_response:healing_response_61"); //You have no damage to heal.
 			} else if (creatureTarget->isPlayerCreature()) {
@@ -200,7 +191,7 @@ public:
 		return true;
 	}
 
-	void sendHealMessage(CreatureObject* creature, CreatureObject* creatureTarget, int healthDamage, int actionDamage, int mindDamage) const {
+	void sendHealMessage(CreatureObject* creature, CreatureObject* creatureTarget, uint32 healthDamage, uint32 actionDamage) const {
 		if (!creature->isPlayerCreature())
 			return;
 
@@ -208,20 +199,12 @@ public:
 
 		StringBuffer msgPlayer, msgTarget, msgBody, msgTail;
 
-		if (healthDamage > 0 && actionDamage > 0 && mindDamage > 0) {
-			msgBody << healthDamage << " health, " << actionDamage << " action, and " << mindDamage << " mind";
-		} else if (healthDamage > 0 && actionDamage > 0) {
+		if (healthDamage > 0 && actionDamage > 0) {
 			msgBody << healthDamage << " health and " << actionDamage << " action";
-		} else if (healthDamage > 0 && mindDamage > 0) {
-			msgBody << healthDamage << " health and " << mindDamage << " mind";
-		} else if (actionDamage > 0 && mindDamage > 0) {
-			msgBody << actionDamage << " action and " << mindDamage << " mind";
 		} else if (healthDamage > 0) {
 			msgBody << healthDamage << " health";
 		} else if (actionDamage > 0) {
 			msgBody << actionDamage << " action";
-		} else if (mindDamage > 0) {
-			msgBody << mindDamage << " mind";
 		} else {
 			return; //No damage to heal.
 		}
@@ -258,48 +241,24 @@ public:
 		playerManager->awardExperience(player, type, amount, true);
 	}
 
-	void doAreaMedicActionTarget(CreatureObject* creature, CreatureObject* targetCreature, StimPack* stimPack) const {
-		if (stimPack->isRangedStimPack()) {
-			RangedStimPack* rangeStim = cast<RangedStimPack*>(stimPack);
+	void doAreaMedicActionTarget(CreatureObject* creature, CreatureObject* targetCreature, PharmaceuticalObject* pharma) const {
+		if (pharma->isRangedStimPack()) {
+			RangedStimPack* rangeStim = cast<RangedStimPack*>( pharma);
 
-			if (rangeStim == nullptr)
+			if (rangeStim == NULL)
 				return;
 
 			uint32 stimPower = rangeStim->calculatePower(creature, targetCreature);
 
-			Vector<byte> atts = stimPack->getAttributes();
-			int healthHealed = 0, actionHealed = 0, mindHealed = 0;
-			bool notifyObservers = true;
-
-
-			if (atts.contains(CreatureAttribute::HEALTH)) {
-				healthHealed = targetCreature->healDamage(creature, CreatureAttribute::HEALTH, stimPower);
-				notifyObservers = false;
-			}
-
-			if (atts.contains(CreatureAttribute::ACTION)) {
-				if (notifyObservers) {
-					actionHealed = targetCreature->healDamage(creature, CreatureAttribute::ACTION, stimPower);
-					notifyObservers = false;
-				} else {
-					actionHealed = targetCreature->healDamage(creature, CreatureAttribute::ACTION, stimPower, true, false);
-				}
-			}
-
-			if (atts.contains(CreatureAttribute::MIND)) {
-				if (notifyObservers) {
-					mindHealed = targetCreature->healDamage(creature, CreatureAttribute::MIND, stimPower);
-				} else {
-					mindHealed = targetCreature->healDamage(creature, CreatureAttribute::MIND, stimPower, true, false);
-				}
-			}
+			uint32 healthHealed = targetCreature->healDamage(creature, CreatureAttribute::HEALTH, stimPower);
+			uint32 actionHealed = targetCreature->healDamage(creature, CreatureAttribute::ACTION, stimPower);
 
 			if (creature->isPlayerCreature()) {
 				PlayerManager* playerManager = server->getZoneServer()->getPlayerManager();
 				playerManager->sendBattleFatigueMessage(creature, targetCreature);
 			}
 
-			sendHealMessage(creature, targetCreature, healthHealed, actionHealed, mindHealed);
+			sendHealMessage(creature, targetCreature, healthHealed, actionHealed);
 
 			if (targetCreature != creature && !targetCreature->isPet())
 				awardXp(creature, "medical", (healthHealed + actionHealed)); //No experience for healing yourself or pets.
@@ -308,13 +267,12 @@ public:
 		}
 	}
 
-	void handleArea(CreatureObject* creature, CreatureObject* areaCenter, StimPack* pharma, float range) const {
-
-		// TODO: Replace this with a CombatManager::getAreaTargets() call
+	void handleArea(CreatureObject* creature, CreatureObject* areaCenter, StimPack* pharma,
+			float range) const {
 
 		Zone* zone = creature->getZone();
 
-		if (zone == nullptr)
+		if (zone == NULL)
 			return;
 
 		try {
@@ -323,10 +281,10 @@ public:
 			CloseObjectsVector* closeObjectsVector = (CloseObjectsVector*) areaCenter->getCloseObjects();
 
 			SortedVector<QuadTreeEntry*> closeObjects;
-			closeObjectsVector->safeCopyReceiversTo(closeObjects, CloseObjectsVector::CREOTYPE);
+			closeObjectsVector->safeCopyTo(closeObjects);
 
 			for (int i = 0; i < closeObjects.size(); i++) {
-				SceneObject* object = static_cast<SceneObject*>( closeObjects.get(i));
+				SceneObject* object = cast<SceneObject*>( closeObjects.get(i));
 
 				if (!object->isPlayerCreature() && !object->isPet())
 					continue;
@@ -334,7 +292,7 @@ public:
 				if (object == areaCenter || object->isDroidObject())
 					continue;
 
-				if (areaCenter->getWorldPosition().distanceTo(object->getWorldPosition()) - object->getTemplateRadius() > range)
+				if (!areaCenter->isInRange(object, range))
 					continue;
 
 				CreatureObject* creatureTarget = cast<CreatureObject*>( object);
@@ -343,34 +301,6 @@ public:
 					continue;
 
 				if (!creatureTarget->isHealableBy(creature))
-					continue;
-
-				if (creature->isPlayerCreature() && object->getParentID() != 0 && creature->getParentID() != object->getParentID()) {
-					Reference<CellObject*> targetCell = object->getParent().get().castTo<CellObject*>();
-
-					if (targetCell != nullptr) {
-						if (object->isPlayerCreature()) {
-							auto perms = targetCell->getContainerPermissions();
-
-							if (!perms->hasInheritPermissionsFromParent()) {
-								if (!targetCell->checkContainerPermission(creature, ContainerPermissions::WALKIN))
-									continue;
-							}
-						}
-
-						ManagedReference<SceneObject*> parentSceneObject = targetCell->getParent().get();
-
-						if (parentSceneObject != nullptr) {
-							BuildingObject* buildingObject = parentSceneObject->asBuildingObject();
-
-							if (buildingObject != nullptr && !buildingObject->isAllowedEntry(creature))
-								continue;
-						}
-					}
-				}
-
-
-				if (creature != creatureTarget && checkForArenaDuel(creatureTarget))
 					continue;
 
 				//zone->runlock();
@@ -406,14 +336,14 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object != nullptr) {
+		if (object != NULL) {
 			if (!object->isCreatureObject()) {
 				TangibleObject* tangibleObject = dynamic_cast<TangibleObject*>(object.get());
 
-				if (tangibleObject != nullptr && tangibleObject->isAttackableBy(creature)) {
+				if (tangibleObject != NULL && tangibleObject->isAttackableBy(creature)) {
 					object = creature;
 				} else {
-					creature->sendSystemMessage("@healing_response:healing_response_62"); //Target must be a player or a creature pet in order to heal damage.
+					creature->sendSystemMessage("@healing_response:healing_response_62"); //Target must be a player or a creature pet in order to heal damage. 
 					return GENERALERROR;
 				}
 			}
@@ -444,7 +374,7 @@ public:
 		} else {
 			SceneObject* inventory = creature->getSlottedObject("inventory");
 
-			if (inventory != nullptr) {
+			if (inventory != NULL) {
 				stimPack = inventory->getContainerObject(pharmaceuticalObjectID).castTo<StimPack*>();
 			}
 		}
@@ -459,77 +389,25 @@ public:
 		if (stimPack->isRangedStimPack())
 			rangeToCheck = (cast<RangedStimPack*>(stimPack.get()))->getRange();
 
-		if(!checkDistance(creature, targetCreature, rangeToCheck))
+		if (!creature->isInRange(targetCreature, rangeToCheck + targetCreature->getTemplateRadius() + creature->getTemplateRadius()))
 			return TOOFAR;
 
 		if (creature != targetCreature && !CollisionManager::checkLineOfSight(creature, targetCreature)) {
-			creature->sendSystemMessage("@healing:no_line_of_sight"); // You cannot see your target.
+			creature->sendSystemMessage("@container_error_message:container18");
 			return GENERALERROR;
-		}
-
-		if (creature->isPlayerCreature() && targetCreature->getParentID() != 0 && creature->getParentID() != targetCreature->getParentID()) {
-			Reference<CellObject*> targetCell = targetCreature->getParent().get().castTo<CellObject*>();
-
-			if (targetCell != nullptr) {
-				if (!targetCreature->isPlayerCreature()) {
-					auto perms = targetCell->getContainerPermissions();
-
-					if (!perms->hasInheritPermissionsFromParent()) {
-						if (!targetCell->checkContainerPermission(creature, ContainerPermissions::WALKIN)) {
-							creature->sendSystemMessage("@combat_effects:cansee_fail"); // You cannot see your target.
-							return GENERALERROR;
-						}
-					}
-				}
-
-				ManagedReference<SceneObject*> parentSceneObject = targetCell->getParent().get();
-
-				if (parentSceneObject != nullptr) {
-					BuildingObject* buildingObject = parentSceneObject->asBuildingObject();
-
-					if (buildingObject != nullptr && !buildingObject->isAllowedEntry(creature)) {
-						creature->sendSystemMessage("@combat_effects:cansee_fail"); // You cannot see your target.
-						return GENERALERROR;
-					}
-				}
-			}
 		}
 
 		uint32 stimPower = stimPack->calculatePower(creature, targetCreature);
 
-		Vector<byte> atts = stimPack->getAttributes();
-		int healthHealed = 0, actionHealed = 0, mindHealed = 0;
-		bool notifyObservers = true;
-
-
-		if (atts.contains(CreatureAttribute::HEALTH)) {
-			healthHealed = targetCreature->healDamage(creature, CreatureAttribute::HEALTH, stimPower);
-			notifyObservers = false;
-		}
-
-		if (atts.contains(CreatureAttribute::ACTION)) {
-			if (notifyObservers) {
-				actionHealed = targetCreature->healDamage(creature, CreatureAttribute::ACTION, stimPower);
-				notifyObservers = false;
-			} else {
-				actionHealed = targetCreature->healDamage(creature, CreatureAttribute::ACTION, stimPower, true, false);
-			}
-		}
-
-		if (atts.contains(CreatureAttribute::MIND)) {
-			if (notifyObservers) {
-				mindHealed = targetCreature->healDamage(creature, CreatureAttribute::MIND, stimPower);
-			} else {
-				mindHealed = targetCreature->healDamage(creature, CreatureAttribute::MIND, stimPower, true, false);
-			}
-		}
+		uint32 healthHealed = targetCreature->healDamage(creature, CreatureAttribute::HEALTH, stimPower);
+		uint32 actionHealed = targetCreature->healDamage(creature, CreatureAttribute::ACTION, stimPower, true, false);
 
 		if (creature->isPlayerCreature()) {
 			PlayerManager* playerManager = server->getPlayerManager();
 			playerManager->sendBattleFatigueMessage(creature, targetCreature);
 		}
 
-		sendHealMessage(creature, targetCreature, healthHealed, actionHealed, mindHealed);
+		sendHealMessage(creature, targetCreature, healthHealed, actionHealed);
 
 		creature->inflictDamage(creature, CreatureAttribute::MIND, mindCostNew, false);
 
@@ -547,7 +425,7 @@ public:
 		}
 
 		if (stimPack->isRangedStimPack()) {
-			doAnimationsRange(creature, targetCreature, stimPack->getObjectID(), creature->getWorldPosition().distanceTo(targetCreature->getWorldPosition()));
+			doAnimationsRange(creature, targetCreature, stimPack->getObjectID(), creature->getDistanceTo(targetCreature));
 		} else {
 			doAnimations(creature, targetCreature);
 		}

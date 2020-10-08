@@ -3,6 +3,7 @@
 #define PETRECHARGEOTHERCOMMAND_H_
 
 #include "server/zone/objects/creature/commands/QueueCommand.h"
+#include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/objects/creature/ai/DroidObject.h"
 
 class PetRechargeOtherCommand : public QueueCommand {
@@ -14,9 +15,9 @@ public:
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
 
-		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().get().castTo<PetControlDevice*>();
+		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().castTo<PetControlDevice*>();
 
-		if (controlDevice == nullptr)
+		if (controlDevice == NULL)
 			return GENERALERROR;
 
 		// Droid specific command
@@ -24,18 +25,18 @@ public:
 			return GENERALERROR;
 
 		ManagedReference<DroidObject*> droidPet = cast<DroidObject*>(creature);
-		if( droidPet == nullptr )
+		if( droidPet == NULL )
 			return GENERALERROR;
 
 		// Target must be a droid
 		Reference<DroidObject*> targetDroid = server->getZoneServer()->getObject(target, true).castTo<DroidObject*>();
-		if (targetDroid == nullptr || !targetDroid->isDroidObject() ) {
+		if (targetDroid == NULL || !targetDroid->isDroidObject() ) {
 			droidPet->showFlyText("npc_reaction/flytext","confused", 204, 0, 0);  // "?!!?!?!"
 			return GENERALERROR;
 		}
 
 		// Check range between droids
-		if (!checkDistance(droidPet, targetDroid, 30.0f)){ // Same range as auto-repair
+		if (!droidPet->isInRange(targetDroid, 30.0f)){ // Same range as auto-repair
 			droidPet->showFlyText("npc_reaction/flytext","confused", 204, 0, 0);  // "?!!?!?!"
 			return GENERALERROR;
 		}

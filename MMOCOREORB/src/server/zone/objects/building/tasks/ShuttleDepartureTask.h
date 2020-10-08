@@ -8,6 +8,7 @@
 #ifndef SHUTTLEDEPARTURETASK_H_
 #define SHUTTLEDEPARTURETASK_H_
 
+#include "server/zone/objects/player/sui/SuiCallback.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "engine/engine.h"
 
@@ -30,7 +31,7 @@ public:
 	void run() {
 		ManagedReference<CreatureObject*> strongReference = shuttleObject.get();
 
-		if (strongReference == nullptr) {
+		if (strongReference == NULL) {
 			return;
 		}
 
@@ -54,7 +55,7 @@ public:
 	bool isLanded() {
 		ManagedReference<CreatureObject*> strongReference = shuttleObject.get();
 
-		if (strongReference == nullptr) {
+		if (strongReference == NULL) {
 			return false;
 		}
 
@@ -71,7 +72,7 @@ public:
 	bool isLanding() {
 		ManagedReference<CreatureObject*> strongReference = shuttleObject.get();
 
-		if (strongReference == nullptr) {
+		if (strongReference == NULL) {
 			return false;
 		}
 

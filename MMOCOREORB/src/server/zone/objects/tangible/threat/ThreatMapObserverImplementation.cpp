@@ -9,49 +9,45 @@
 #include "server/zone/objects/tangible/threat/ThreatMapObserver.h"
 #include "ThreatMap.h"
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "templates/params/ObserverEventType.h"
+#include "server/zone/objects/scene/ObserverEventType.h"
 
 int ThreatMapObserverImplementation::notifyObserverEvent(uint32 eventType, Observable* observable, ManagedObject* arg1, int64 arg2) {
+	if (eventType != ObserverEventType::HEALINGPERFORMED) {
+		return 0;
+	}
+
 	ManagedReference<TangibleObject*> strongRef = self.get();
 
-	if (strongRef == nullptr)
+	if (strongRef == NULL) {
+		return 1;
+	}
+
+	CreatureObject* originator = cast<CreatureObject*>(observable);
+
+	if (originator == NULL )
 		return 1;
 
-	if (eventType != ObserverEventType::HEALINGRECEIVED)
-		return 0;
+	Locker crossLocker(strongRef, originator);
 
-	Reference<CreatureObject*> healTarget = cast<CreatureObject*>(observable);
+	ThreatMap* threatMap = strongRef->getThreatMap();
 
-	if (healTarget == nullptr)
-		return 0;
+	if (threatMap != NULL) {
+		int findIndex = threatMap->find(originator);
 
-	Reference<CreatureObject*> healer = cast<CreatureObject*>(arg1);
+		if (findIndex >= 0) {
+			ThreatMapEntry& entry = threatMap->get(findIndex);
 
-	if (healer == nullptr)
-		return 0;
+			if (entry.getTotalDamage() == entry.getNonAggroDamage())
+				return 1;
 
-	Core::getTaskManager()->executeTask([=]{
-		Locker locker(strongRef);
-
-		ThreatMap* threatMap = strongRef->getThreatMap();
-
-		if (threatMap != nullptr) {
-			int targetIndex = threatMap->find(healTarget);
-			int healerIndex = threatMap->find(healer);
-
-			if (targetIndex >= 0) {
-				ThreatMapEntry& entry = threatMap->get(targetIndex);
-
-				if (entry.getAggroMod() == 0) {
-					return;
-				}
-			} else if (healerIndex < 0) {
-				return;
-			}
-
-			threatMap->addHeal(healer, arg2);
+		} else {
+			return 1;
 		}
-	}, "updateThreatMapHeal");
 
-	return 0;
+		CreatureObject* target = cast<CreatureObject*>(arg1);
+		if (target != NULL)
+			threatMap->addHeal(target, arg2);
+	}
+
+	return 1;
 }

@@ -19,7 +19,7 @@ public:
 	 * @post { this object is locked, menuResponse is complete}
 	 * @param menuResponse ObjectMenuResponse that will be sent to the client
 	 */
-	void fillAttributeList(AttributeListMessage* alm, CreatureObject* player, SceneObject* sceneObject) const {
+	void fillAttributeList(AttributeListMessage* alm, CreatureObject* player, SceneObject* sceneObject) {
 
 		if(!sceneObject->isTangibleObject())
 			return;
@@ -30,11 +30,11 @@ public:
 			return;
 
 		DataObjectComponent* data = tano->getDataObjectComponent()->get();
-		if(data == nullptr || !data->isDataStorageUnitData())
+		if(data == NULL || !data->isDataStorageUnitData())
 			return;
 
 		DataStorageUnitDataComponent* dsuData = cast<DataStorageUnitDataComponent*>(data);
-		if( dsuData == nullptr )
+		if( dsuData == NULL )
 			return;
 
 		// ID is an integer from 1 to 12

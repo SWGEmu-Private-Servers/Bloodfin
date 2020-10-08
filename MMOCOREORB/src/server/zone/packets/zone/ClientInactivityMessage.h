@@ -8,7 +8,7 @@
 #ifndef CLIENTINACTIVITYMESSAGE_H_
 #define CLIENTINACTIVITYMESSAGE_H_
 
-#include "server/zone/packets/MessageCallback.h"
+#include "../MessageCallback.h"
 
 class ClientInactivityMessageCallback : public MessageCallback {
 	byte flag;
@@ -24,9 +24,9 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> player = client->getPlayer();
+		ManagedReference<SceneObject*> player = client->getPlayer();
 
-		if (player != nullptr) {
+		if (player != NULL) {
 			StringBuffer msg;
 			msg << "ClientInactivityMessage with flag " << hex << flag << " received";
 			player->info(msg.toString());

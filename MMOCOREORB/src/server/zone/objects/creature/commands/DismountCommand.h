@@ -6,8 +6,9 @@
 #define DISMOUNTCOMMAND_H_
 
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/creature/VehicleObject.h"
 #include "server/zone/objects/intangible/ControlDevice.h"
-#include "templates/creature/SharedCreatureObjectTemplate.h"
+#include "server/zone/templates/tangible/SharedCreatureObjectTemplate.h"
 
 class DismountCommand : public QueueCommand {
 	Vector<uint32> restrictedBuffCRCs;
@@ -37,10 +38,11 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
-		ManagedReference<SceneObject*> mount = creature->getParent().get();
+		ManagedReference<SceneObject*> mount = creature->getParent();
 
-		if (mount == nullptr || !mount->isCreatureObject()) {
+		if (mount == NULL || !mount->isCreatureObject()) {
 			creature->clearState(CreatureState::RIDINGMOUNT);
+
 			return GENERALERROR;
 		}
 
@@ -48,7 +50,7 @@ public:
 			return GENERALERROR;
 		}
 
-		CreatureObject* vehicle = cast<CreatureObject*>(mount.get());
+		CreatureObject* vehicle = cast<CreatureObject*>( mount.get());
 
 		Locker clocker(vehicle, creature);
 
@@ -62,17 +64,17 @@ public:
 		if (vehicle != creature->getParent().get())
 			return GENERALERROR;
 
-		if (zone == nullptr)
+		if (zone == NULL)
 			return GENERALERROR;
 
 		ManagedReference<PlanetManager*> planetManager = zone->getPlanetManager();
 
-		if (planetManager == nullptr)
+		if (planetManager == NULL)
 			return GENERALERROR;
 
-		TerrainManager* terrainManager = planetManager->getTerrainManager();
+		ManagedReference<TerrainManager*> terrainManager = planetManager->getTerrainManager();
 
-		if (terrainManager == nullptr)
+		if (terrainManager == NULL)
 			return GENERALERROR;
 
 		zone->transferObject(creature, -1, false);
@@ -86,13 +88,13 @@ public:
 		clocker.release(); // Buff needs to be locked below
 
 		//reapply speed buffs if they exist
-		for (int i=0; i<restrictedBuffCRCs.size(); i++) {
+		for(int i=0; i<restrictedBuffCRCs.size(); i++) {
 
 			uint32 buffCRC = restrictedBuffCRCs.get(i);
 
-			if (creature->hasBuff(buffCRC)) {
+			if(creature->hasBuff(buffCRC)) {
 				ManagedReference<Buff*> buff = creature->getBuff(buffCRC);
-				if(buff != nullptr) {
+				if(buff != NULL) {
 					Locker lock(buff, creature);
 					buff->applyAllModifiers();
 				}
@@ -116,36 +118,33 @@ public:
 
 		playerManager->updateSwimmingState(creature, z);
 
-		ManagedReference<ControlDevice*> device = vehicle->getControlDevice().get();
+		ManagedReference<ControlDevice*> device = vehicle->getControlDevice();
 
-		if (device != nullptr && vehicle->getServerObjectCRC() == 0x32F87A54) { // Auto-store jetpack on dismount.
+		if (device != NULL && vehicle->getServerObjectCRC() == 0x32F87A54) // Auto-store jetpack on dismount.
 			device->storeObject(creature);
-			creature->sendSystemMessage("@pet/pet_menu:jetpack_dismount"); // "You have been dismounted from the jetpack, and it has been stored."
-		}
 
 		creature->updateToDatabase();
 
 		SharedObjectTemplate* templateData = creature->getObjectTemplate();
 		SharedCreatureObjectTemplate* playerTemplate = dynamic_cast<SharedCreatureObjectTemplate*> (templateData);
 
-		if (playerTemplate != nullptr) {
+		if (playerTemplate != NULL) {
 			Vector<FloatParam> speedTempl = playerTemplate->getSpeed();
 			creature->setRunSpeed(speedTempl.get(0));
-			creature->updateSpeedAndAccelerationMods(); // Reset Force Sensitive control mods to default.
 		}
 
 		creature->updateCooldownTimer("mount_dismount", 2000);
 
 		creature->removeMountedCombatSlow(false); // these are already removed off the player - Just remove it off the mount
 
-		if (vehicle->hasBuff(gallopCRC)) {
+		if(vehicle->hasBuff(gallopCRC)) {
 			ManagedReference<Buff*> buff = vehicle->getBuff(gallopCRC);
-			if (buff != nullptr) {
-				Core::getTaskManager()->executeTask([=] () {
-					Locker lock(vehicle);
-					Locker buffLocker(buff, vehicle);
-					buff->removeAllModifiers();
-				}, "RemoveGallopModsLambda");
+			if(buff != NULL) {
+				EXECUTE_TASK_2(buff, vehicle, {
+					Locker lock(vehicle_p);
+					Locker buffLocker(buff_p, vehicle_p);
+					buff_p->removeAllModifiers();
+				});
 			}
 		}
 

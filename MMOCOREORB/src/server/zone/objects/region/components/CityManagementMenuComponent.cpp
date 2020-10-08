@@ -7,6 +7,7 @@
 
 #include "CityManagementMenuComponent.h"
 #include "server/zone/objects/region/CityRegion.h"
+#include "server/zone/Zone.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/managers/city/CityManager.h"
@@ -16,16 +17,16 @@
 #define CITY_DEBUG
 #endif
 
-void CityManagementMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
-	ManagedReference<CityRegion*> city = sceneObject->getCityRegion().get();
+void CityManagementMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
+	ManagedReference<CityRegion*> city = sceneObject->getCityRegion();
 
-	if (city == nullptr) {
+	if (city == NULL) {
 		sceneObject->error("city region null in CityManagementMenuComponent::fillObjectMenuResponse");
 		return;
 	}
 
 	PlayerObject* ghost = player->getPlayerObject();
-	if (ghost == nullptr) {
+	if (ghost == NULL) {
 		return;
 	}
 
@@ -82,14 +83,14 @@ void CityManagementMenuComponent::fillObjectMenuResponse(SceneObject* sceneObjec
 	menuResponse->addRadialMenuItemToRadialID(216, 219, 3, "@city/city:treasury_taxes"); //Adjust Taxes
 }
 
-int CityManagementMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectID) const {
-	ManagedReference<CityRegion*> city = sceneObject->getCityRegion().get();
+int CityManagementMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectID) {
+	ManagedReference<CityRegion*> city = sceneObject->getCityRegion();
 
-	if (city == nullptr)
+	if (city == NULL)
 		return 1;
 
 	PlayerObject* ghost = player->getPlayerObject();
-	if (ghost == nullptr) {
+	if (ghost == NULL) {
 		return 1;
 	}
 

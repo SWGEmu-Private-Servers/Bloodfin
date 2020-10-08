@@ -22,9 +22,9 @@ public:
 	void run(CreatureObject* student, SuiBox* sui, uint32 eventIndex, Vector<UnicodeString>* args) {
 		bool cancelPressed = (eventIndex == 1);
 
-		ManagedReference<SceneObject*> usingObject = sui->getUsingObject().get();
+		ManagedReference<SceneObject*> usingObject = sui->getUsingObject();
 
-		if (usingObject == nullptr || !usingObject->isCreatureObject())
+		if (usingObject == NULL || !usingObject->isCreatureObject())
 			return;
 
 		CreatureObject* teacher = cast<CreatureObject*>(usingObject.get());

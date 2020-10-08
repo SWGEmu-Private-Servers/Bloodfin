@@ -4,19 +4,19 @@
 
 #include "DeliverMissionScreenHandler.h"
 #include "server/zone/objects/mission/DeliverMissionObjective.h"
-#include "server/zone/objects/creature/ai/AiAgent.h"
+#include "server/zone/managers/mission/spawnmaps/NpcSpawnPoint.h"
 
 const String DeliverMissionScreenHandler::STARTSCREENHANDLERID = "convoscreenstart";
 
 MissionObject* DeliverMissionScreenHandler::getRelevantMissionObject(CreatureObject* player, CreatureObject* npc) {
-	if (player == nullptr || npc == nullptr) {
-		return nullptr;
+	if (player == NULL || npc == NULL) {
+		return NULL;
 	}
 
 	SceneObject* datapad = player->getSlottedObject("datapad");
 
-	if (datapad == nullptr) {
-		return nullptr;
+	if (datapad == NULL) {
+		return NULL;
 	}
 
 	int datapadSize = datapad->getContainerObjectsSize();
@@ -25,13 +25,13 @@ MissionObject* DeliverMissionScreenHandler::getRelevantMissionObject(CreatureObj
 		if (datapad->getContainerObject(i)->isMissionObject()) {
 			Reference<MissionObject*> mission = datapad->getContainerObject(i).castTo<MissionObject*>();
 
-			if (mission != nullptr && (mission->getTypeCRC() == MissionTypes::DELIVER ||
+			if (mission != NULL && (mission->getTypeCRC() == MissionTypes::DELIVER ||
 					mission->getTypeCRC() == MissionTypes::CRAFTING)) {
 				DeliverMissionObjective* objective = cast<DeliverMissionObjective*>(mission->getMissionObjective());
-				if (objective != nullptr) {
+				if (objective != NULL) {
 					//Check if it is target or destination NPC
-					if (isTargetNpc(objective, npc) ||
-							isDestinationNpc(objective, npc)) {
+					if (isTargetNpc(objective, npc->getPosition()) ||
+							isDestinationNpc(objective, npc->getPosition())) {
 						return mission;
 					}
 				}
@@ -40,36 +40,33 @@ MissionObject* DeliverMissionScreenHandler::getRelevantMissionObject(CreatureObj
 	}
 
 	//No relevant mission found.
-	return nullptr;
+	return NULL;
 }
 
-bool DeliverMissionScreenHandler::isTargetNpc(DeliverMissionObjective* objective, CreatureObject* npc) {
-	ManagedReference<AiAgent*> targetNpc = objective->getTargetSpawn();
-
-	if (targetNpc == nullptr) {
-		return false;
-	}
-
-	return targetNpc == npc;
+bool DeliverMissionScreenHandler::isTargetNpc(DeliverMissionObjective* objective, const Vector3& npcPosition) {
+	return isSameSpawnPoint(objective->getTargetSpawnPoint()->getPosition()->getX(), objective->getTargetSpawnPoint()->getPosition()->getY(), npcPosition);
 }
 
-bool DeliverMissionScreenHandler::isDestinationNpc(DeliverMissionObjective* objective, CreatureObject* npc) {
-	ManagedReference<AiAgent*> destinationNpc = objective->getDestinationSpawn();
+bool DeliverMissionScreenHandler::isDestinationNpc(DeliverMissionObjective* objective, const Vector3& npcPosition) {
+	return isSameSpawnPoint(objective->getDestinationSpawnPoint()->getPosition()->getX(), objective->getDestinationSpawnPoint()->getPosition()->getY(), npcPosition);
+}
 
-	if (destinationNpc == nullptr) {
-		return false;
+bool DeliverMissionScreenHandler::isSameSpawnPoint(const float& positionX, const float& positionY, const Vector3& comparisonPosition) {
+	if (positionX == comparisonPosition.getX() &&
+			positionY == comparisonPosition.getY()) {
+		//Spawn point is the same.
+		return true;
 	}
-
-	return destinationNpc == npc;
+	return false;
 }
 
 void DeliverMissionScreenHandler::performPickupConversation(ConversationScreen* conversationScreen, MissionObject* mission) {
 	if (mission->getTypeCRC() == MissionTypes::DELIVER) {
 		switch (mission->getFaction()) {
-		case Factions::FACTIONIMPERIAL:
+		case FactionManager::FACTIONIMPERIAL:
 			conversationScreen->setDialogText("@mission/mission_deliver_imperial_easy:m" + String::valueOf(mission->getMissionNumber()) + "p");
 			break;
-		case Factions::FACTIONREBEL:
+		case FactionManager::FACTIONREBEL:
 			conversationScreen->setDialogText("@mission/mission_deliver_rebel_easy:m" + String::valueOf(mission->getMissionNumber()) + "p");
 			break;
 		default:
@@ -78,10 +75,10 @@ void DeliverMissionScreenHandler::performPickupConversation(ConversationScreen* 
 		}
 	} else {
 		switch (mission->getFaction()) {
-		case Factions::FACTIONIMPERIAL:
+		case FactionManager::FACTIONIMPERIAL:
 			conversationScreen->setDialogText("@mission/mission_npc_crafting_imperial_easy:m" + String::valueOf(mission->getMissionNumber()) + "p");
 			break;
-		case Factions::FACTIONREBEL:
+		case FactionManager::FACTIONREBEL:
 			conversationScreen->setDialogText("@mission/mission_npc_crafting_rebel_easy:m" + String::valueOf(mission->getMissionNumber()) + "p");
 			break;
 		default:
@@ -94,10 +91,10 @@ void DeliverMissionScreenHandler::performPickupConversation(ConversationScreen* 
 void DeliverMissionScreenHandler::performDeliverConversation(ConversationScreen* conversationScreen, MissionObject* mission) {
 	if (mission->getTypeCRC() == MissionTypes::DELIVER) {
 		switch (mission->getFaction()) {
-		case Factions::FACTIONIMPERIAL:
+		case FactionManager::FACTIONIMPERIAL:
 			conversationScreen->setDialogText("@mission/mission_deliver_imperial_easy:m" + String::valueOf(mission->getMissionNumber()) + "r");
 			break;
-		case Factions::FACTIONREBEL:
+		case FactionManager::FACTIONREBEL:
 			conversationScreen->setDialogText("@mission/mission_deliver_rebel_easy:m" + String::valueOf(mission->getMissionNumber()) + "r");
 			break;
 		default:
@@ -106,10 +103,10 @@ void DeliverMissionScreenHandler::performDeliverConversation(ConversationScreen*
 		}
 	} else {
 		switch (mission->getFaction()) {
-		case Factions::FACTIONIMPERIAL:
+		case FactionManager::FACTIONIMPERIAL:
 			conversationScreen->setDialogText("@mission/mission_npc_crafting_imperial_easy:m" + String::valueOf(mission->getMissionNumber()) + "r");
 			break;
-		case Factions::FACTIONREBEL:
+		case FactionManager::FACTIONREBEL:
 			conversationScreen->setDialogText("@mission/mission_npc_crafting_rebel_easy:m" + String::valueOf(mission->getMissionNumber()) + "r");
 			break;
 		default:
@@ -123,20 +120,20 @@ ConversationScreen* DeliverMissionScreenHandler::handleScreen(CreatureObject* co
 	//Get relevant mission object if it exists.
 	MissionObject* mission = getRelevantMissionObject(conversingPlayer, conversingNPC);
 
-	if (mission == nullptr) {
+	if (mission == NULL) {
 		//NPC is not related to any mission for this player.
 		int randomAnswer = System::random(4);
 		conversationScreen->setDialogText("@mission/mission_generic:deliver_incorrect_player_" + String::valueOf(randomAnswer));
 	} else {
 		//NPC is related to a mission for this player.
 		Reference<DeliverMissionObjective*> objective = cast<DeliverMissionObjective*>(mission->getMissionObjective());
-		if (objective != nullptr) {
+		if (objective != NULL) {
 			Locker locker(objective, conversingPlayer);
 
 			//Run mission logic.
 
 			String text;
-			if (isTargetNpc(objective, conversingNPC)) {
+			if (isTargetNpc(objective, conversingNPC->getPosition())) {
 				//Target NPC.
 				if (objective->getObjectiveStatus() == DeliverMissionObjective::INITSTATUS) {
 					//Update mission objective status.

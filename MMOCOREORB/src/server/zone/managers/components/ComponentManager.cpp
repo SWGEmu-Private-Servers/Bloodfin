@@ -15,7 +15,6 @@
 #include "server/zone/objects/scene/components/AttributeListComponent.h"
 #include "server/zone/objects/tangible/components/vendor/VendorContainerComponent.h"
 #include "server/zone/objects/building/components/GCWBaseContainerComponent.h"
-#include "server/zone/objects/building/components/EnclaveContainerComponent.h"
 #include "server/zone/objects/tangible/components/vendor/VendorZoneComponent.h"
 #include "server/zone/objects/tangible/components/vendor/VendorMenuComponent.h"
 #include "server/zone/objects/tangible/components/vendor/VendorDataComponent.h"
@@ -52,6 +51,9 @@
 #include "server/zone/objects/tangible/components/HolocronMenuComponent.h"
 #include "server/zone/objects/tangible/components/WaypointDatapadMenuComponent.h"
 #include "server/zone/objects/tangible/components/ForceCrystalMenuComponent.h"
+#include "server/zone/objects/tangible/components/ForceShrineMenuComponent.h"
+#include "server/zone/objects/tangible/components/DarkFrsMenuComponent.h"
+#include "server/zone/objects/tangible/components/LightFrsMenuComponent.h"
 #include "server/zone/objects/tangible/components/RobeObjectMenuComponent.h"
 #include "server/zone/objects/tangible/components/generic/ArtCrateMenuComponent.h"
 #include "server/zone/objects/tangible/components/WeaponObjectMenuComponent.h"
@@ -74,7 +76,6 @@
 #include "server/zone/objects/tangible/deed/components/PlaceCityHallComponent.h"
 #include "server/zone/objects/tangible/deed/components/PlaceGCWBaseComponent.h"
 #include "server/zone/objects/tangible/deed/components/PlaceDecorationComponent.h"
-#include "server/zone/objects/tangible/terminal/components/EnclaveTerminalMenuComponent.h"
 #include "server/zone/objects/tangible/terminal/components/DestructibleBuildingMenuComponent.h"
 #include "server/zone/objects/tangible/terminal/components/StructureTerminalMenuComponent.h"
 #include "server/zone/objects/tangible/terminal/components/HQMenuComponent.h"
@@ -93,6 +94,7 @@
 #include "server/zone/objects/tangible/components/ElevatorDownMenuComponent.h"
 #include "server/zone/objects/region/components/CityManagementMenuComponent.h"
 #include "server/zone/objects/region/components/CityVotingMenuComponent.h"
+#include "server/zone/objects/scene/components/DataObjectComponent.h"
 #include "server/zone/objects/tangible/components/generic/ShellfishHarvesterMenuComponent.h"
 #include "server/zone/objects/tangible/components/generic/DataStorageUnitDataComponent.h"
 #include "server/zone/objects/tangible/components/generic/DiceDataComponent.h"
@@ -104,8 +106,6 @@
 #include "server/zone/objects/tangible/firework/components/FireworkShowMenuComponent.h"
 #include "server/zone/objects/tangible/firework/components/FireworkShowDataComponent.h"
 #include "server/zone/objects/structure/components/StructureZoneComponent.h"
-#include "server/zone/objects/structure/components/GarageZoneComponent.h"
-#include "server/zone/objects/structure/components/GarageDataComponent.h"
 #include "server/zone/objects/creature/components/TrainerMenuComponent.h"
 #include "server/zone/objects/creature/components/SarlaccMenuComponent.h"
 #include "server/zone/objects/creature/components/PetMenuComponent.h"
@@ -115,7 +115,6 @@
 #include "server/zone/objects/tangible/components/ArmorObjectMenuComponent.h"
 #include "server/zone/objects/tangible/components/PlaceableLootContainerComponent.h"
 #include "server/zone/objects/tangible/components/ScavengerChestContainerComponent.h"
-#include "server/zone/objects/tangible/components/ScavengerDroidContainerComponent.h"
 #include "server/zone/objects/tangible/tool/recycle/RecycleToolContainerComponent.h"
 #include "server/zone/objects/structure/components/DecorationDataComponent.h"
 #include "server/zone/objects/tangible/components/CityDecorationMenuComponent.h"
@@ -147,6 +146,23 @@
 #include "server/zone/objects/tangible/components/droid/DroidMerchantModuleDataComponent.h"
 #include "server/zone/objects/tangible/components/droid/DroidCombatModuleDataComponent.h"
 #include "server/zone/objects/tangible/components/droid/DroidPlaybackModuleDataComponent.h"
+#include "server/zone/objects/tangible/components/PlagueisMenuComponent.h"
+#include "server/zone/objects/tangible/components/PlagueisAttributeListComponent.h"
+#include "server/zone/objects/tangible/components/PlagueisDataComponent.h"
+#include "server/zone/objects/tangible/components/HeroRingMenuComponent.h"
+#include "server/zone/objects/tangible/components/HeroRingAttributeListComponent.h"
+#include "server/zone/objects/tangible/components/HeroRingDataComponent.h"
+#include "server/zone/objects/tangible/components/ResarmMenuComponent.h"
+#include "server/zone/objects/tangible/components/ResarmAttributeListComponent.h"
+#include "server/zone/objects/tangible/components/ResarmDataComponent.h"
+#include "server/zone/objects/tangible/components/CyblegsMenuComponent.h"
+#include "server/zone/objects/tangible/components/CyblegsAttributeListComponent.h"
+#include "server/zone/objects/tangible/components/CyblegsDataComponent.h"
+#include "server/zone/objects/tangible/components/CybtorsoMenuComponent.h"
+#include "server/zone/objects/tangible/components/CybtorsoAttributeListComponent.h"
+#include "server/zone/objects/tangible/components/CybtorsoDataComponent.h"
+#include "server/zone/objects/tangible/components/generic/RemoteWookieeHoloMenuComponent.h"
+#include "server/zone/objects/tangible/components/generic/LifedayMenuComponent.h"
 #include "server/zone/objects/tangible/components/droid/DroidTrapModuleDataComponent.h"
 #include "server/zone/objects/tangible/components/droid/DroidHarvestModuleDataComponent.h"
 #include "server/zone/objects/tangible/components/droid/DroidPersonalityModuleDataComponent.h"
@@ -162,9 +178,9 @@ ComponentManager::ComponentManager() {
 	components.put("StructureZoneComponent", new StructureZoneComponent());
 	components.put("ShuttleZoneComponent", new ShuttleZoneComponent());
 	components.put("ShuttleInstallationZoneComponent", new ShuttleInstallationZoneComponent());
-	components.put("GarageZoneComponent", new GarageZoneComponent());
-	dataObjectFactory.registerObject<GarageDataComponent>("GarageDataComponent");
 
+	components.put("BuildingDataComponent", new BuildingDataComponent() );
+	components.put("DestructibleBuildingDataComponent", new DestructibleBuildingDataComponent());
 	dataObjectFactory.registerObject<BuildingDataComponent>("BuildingDataComponent");
 	dataObjectFactory.registerObject<DestructibleBuildingDataComponent>("DestructibleBuildingDataComponent");
 
@@ -199,9 +215,29 @@ ComponentManager::ComponentManager() {
 
 	components.put("RingObjectMenuComponent", new RingObjectMenuComponent());
 
+	components.put("RemoteWookieeHoloMenuComponent", new RemoteWookieeHoloMenuComponent());
+
+	components.put("LifedayMenuComponent", new LifedayMenuComponent());
+
+	components.put("PlagueisMenuComponent", new PlagueisMenuComponent());
+	components.put("PlagueisAttributeListComponent", new PlagueisAttributeListComponent());
+	dataObjectFactory.registerObject<PlagueisDataComponent>("PlagueisDataComponent");
+
 	components.put("HeroRingMenuComponent", new HeroRingMenuComponent());
 	components.put("HeroRingAttributeListComponent", new HeroRingAttributeListComponent());
 	dataObjectFactory.registerObject<HeroRingDataComponent>("HeroRingDataComponent");
+
+	components.put("ResarmMenuComponent", new ResarmMenuComponent());
+	components.put("ResarmAttributeListComponent", new ResarmAttributeListComponent());
+	dataObjectFactory.registerObject<ResarmDataComponent>("ResarmDataComponent");
+
+	components.put("CyblegsMenuComponent", new CyblegsMenuComponent());
+	components.put("CyblegsAttributeListComponent", new CyblegsAttributeListComponent());
+	dataObjectFactory.registerObject<CyblegsDataComponent>("CyblegsDataComponent");
+
+	components.put("CybtorsoMenuComponent", new CybtorsoMenuComponent());
+	components.put("CybtorsoAttributeListComponent", new CybtorsoAttributeListComponent());
+	dataObjectFactory.registerObject<CybtorsoDataComponent>("CybtorsoDataComponent");
 
 	components.put("JediRobeAttributeListComponent", new JediRobeAttributeListComponent());
 
@@ -257,6 +293,7 @@ ComponentManager::ComponentManager() {
 
 	dataObjectFactory.registerObject<TurretDataComponent>("TurretDataComponent");
 	dataObjectFactory.registerObject<MinefieldDataComponent>("MinefieldDataComponent");
+
 	dataObjectFactory.registerObject<DetectorDataComponent>("DetectorDataComponent");
 
 	components.put("CreatureHabitatMenuComponent", new CreatureHabitatMenuComponent());
@@ -268,6 +305,9 @@ ComponentManager::ComponentManager() {
 	components.put("LightsaberObjectMenuComponent", new LightsaberObjectMenuComponent());
 	components.put("RobeObjectMenuComponent", new RobeObjectMenuComponent());
 	components.put("ForceCrystalMenuComponent", new ForceCrystalMenuComponent());
+	components.put("ForceShrineMenuComponent", new ForceShrineMenuComponent());
+	components.put("LightFrsMenuComponent", new LightFrsMenuComponent());
+	components.put("DarkFrsMenuComponent", new DarkFrsMenuComponent());
 	components.put("SaberInventoryContainerComponent", new SaberInventoryContainerComponent());
 
 	components.put("VehicleCustomKitObjectMenuComponent", new VehicleCustomKitObjectMenuComponent());
@@ -296,16 +336,13 @@ ComponentManager::ComponentManager() {
 	components.put("PlaceDecorationComponent", new PlaceDecorationComponent());
 	components.put("CityDecorationMenuComponent", new CityDecorationMenuComponent());
 
-	components.put("EnclaveTerminalMenuComponent", new EnclaveTerminalMenuComponent());
-	components.put("EnclaveContainerComponent", new EnclaveContainerComponent());
-
 	// SE Goggles.
 	components.put("GogglesObjectMenuComponent", new GogglesObjectMenuComponent());
 	components.put("PlaceableLootContainerComponent", new PlaceableLootContainerComponent());
 
 	components.put("ScavengerChestContainerComponent", new ScavengerChestContainerComponent());
-	components.put("ScavengerDroidContainerComponent", new ScavengerDroidContainerComponent());
 
+	components.put("DecorationDataComponent", new DecorationDataComponent() );
 	dataObjectFactory.registerObject<DecorationDataComponent>("DecorationDataComponent");
 
 	components.put("DungeonTicketObjectAttributeListComponent", new DungeonTicketObjectAttributeListComponent());
@@ -315,16 +352,18 @@ ComponentManager::ComponentManager() {
 	components.put("FactionRecruiterContainerComponent", new FactionRecruiterContainerComponent());
 	components.put("CoaMessageFragmentMenuComponent", new CoaMessageFragmentMenuComponent());
 	components.put("CoaMessageMenuComponent", new CoaMessageMenuComponent());
+	components.put("CoaMessageDataComponent", new CoaMessageDataComponent() );
 	dataObjectFactory.registerObject<CoaMessageDataComponent>("CoaMessageDataComponent");
 	components.put("CoaEncodedDiskMenuComponent", new CoaEncodedDiskMenuComponent());
 
 	components.put("EventPerkMenuComponent", new EventPerkMenuComponent() );
+	components.put("EventPerkDataComponent", new EventPerkDataComponent() );
 	components.put("EventPerkAttributeListComponent", new EventPerkAttributeListComponent() );
 	dataObjectFactory.registerObject<EventPerkDataComponent>("EventPerkDataComponent");
 
 	components.put("FlagGameMenuComponent", new FlagGameMenuComponent() );
+	components.put("FlagGameDataComponent", new FlagGameDataComponent() );
 	dataObjectFactory.registerObject<FlagGameDataComponent>("FlagGameDataComponent");
-
 	// Droid components
 	dataObjectFactory.registerObject<DroidMaintenanceModuleDataComponent>("DroidMaintenanceModuleDataComponent");
 	dataObjectFactory.registerObject<DroidEffectsModuleDataComponent>("DroidEffectsModuleDataComponent");

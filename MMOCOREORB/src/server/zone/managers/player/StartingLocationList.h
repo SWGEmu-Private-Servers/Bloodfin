@@ -8,8 +8,10 @@
 #ifndef STARTINGLOCATIONLIST_H_
 #define STARTINGLOCATIONLIST_H_
 
+#include "engine/engine.h"
 #include "StartingLocation.h"
-#include "templates/datatables/DataTableIff.h"
+
+#include "server/zone/templates/datatables/DataTableIff.h"
 
 class StartingLocationList : public SortedVector<StartingLocation> {
 
@@ -28,7 +30,7 @@ public:
 		for (int i = 0; i < dtiff.getTotalRows(); ++i) {
 			DataTableRow* row = dtiff.getRow(i);
 
-			if (row == nullptr)
+			if (row == NULL)
 				continue;
 
 			StartingLocation loc;

@@ -6,7 +6,7 @@
 #define UPDATEVENDORTASK_H_
 
 #include "engine/engine.h"
-#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
 #include "server/zone/objects/tangible/components/vendor/VendorDataComponent.h"
 
 namespace server {
@@ -23,29 +23,26 @@ public:
 	UpdateVendorTask(SceneObject* vndr) {
 		vendor = vndr;
 
-		setCustomTaskQueue("slowQueue");
 	}
 
 	void run() {
 
 		ManagedReference<SceneObject*> strongRef = vendor.get();
 
-		if (strongRef == nullptr || strongRef->isBazaarTerminal())
+		if (strongRef == NULL || strongRef->isBazaarTerminal())
 			return;
 
 		Locker locker(strongRef);
 
 		DataObjectComponentReference* data = strongRef->getDataObjectComponent();
-		if(data == nullptr || data->get() == nullptr || !data->get()->isVendorData()) {
+		if(data == NULL || data->get() == NULL || !data->get()->isVendorData()) {
 			return;
 		}
 
 		VendorDataComponent* vendorData = cast<VendorDataComponent*>(data->get());
-		if(vendorData == nullptr) {
+		if(vendorData == NULL) {
 			return;
 		}
-
-		setTaskName((strongRef->getLoggingName() + " ran UpdateVendorTask of owner 0x" + String::hexvalueOf(vendorData->getOwnerId())).toCharArray());
 
 		vendorData->runVendorUpdate();
 	}

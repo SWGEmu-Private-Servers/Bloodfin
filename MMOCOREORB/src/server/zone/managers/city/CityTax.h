@@ -8,6 +8,8 @@
 #ifndef CITYTAX_H_
 #define CITYTAX_H_
 
+#include "engine/engine.h"
+
 class CityTax : public Object {
 	int minValue;
 	int maxValue;
@@ -65,41 +67,42 @@ public:
 		emailBody = luaObject->getStringField("emailBody");
 	}
 
-	inline int getMinValue() const {
+	inline int getMinValue() {
 		return minValue;
 	}
 
-	inline int getMaxValue() const {
+	inline int getMaxValue() {
 		return maxValue;
 	}
 
-	inline const String& getMenuText() const {
+	inline String& getMenuText() {
 		return menuText;
 	}
 
-	inline const String& getInputTitle() const {
+	inline String& getInputTitle() {
 		return inputTitle;
 	}
 
-	inline const String& getInputText() const {
+	inline String& getInputText() {
 		return inputText;
 	}
 
-	inline const String& getStatusPrompt() const {
+	inline String& getStatusPrompt() {
 		return statusPrompt;
 	}
 
-	inline const String& getSystemMessage() const {
+	inline String& getSystemMessage() {
 		return systemMessage;
 	}
 
-	inline const String& getEmailSubject() const {
+	inline String& getEmailSubject() {
 		return emailSubject;
 	}
 
-	inline const String& getEmailBody() const {
+	inline String& getEmailBody() {
 		return emailBody;
 	}
 };
+
 
 #endif /* CITYTAX_H_ */

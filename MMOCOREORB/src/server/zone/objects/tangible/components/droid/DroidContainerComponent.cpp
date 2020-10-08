@@ -8,17 +8,17 @@
 #include "server/zone/objects/creature/ai/DroidObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
 
-bool DroidContainerComponent::checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) const {
+bool DroidContainerComponent::checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) {
 
-	ManagedReference<SceneObject*> p = sceneObject->getParent().get();
+	ManagedReference<SceneObject*> p = sceneObject->getParent();
 
-	if (p == nullptr || !p->isDroidObject()) {
+	if (p == NULL || !p->isDroidObject()) {
 		return false;
 	}
 
 	DroidObject* droid = p.castTo<DroidObject*>();
 
-	if(droid == nullptr){
+	if(droid == NULL){
 		return false;
 	}
 
@@ -35,7 +35,7 @@ bool DroidContainerComponent::checkContainerPermission(SceneObject* sceneObject,
 	}
 	return false;
 }
-int DroidContainerComponent::canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) const {
+int DroidContainerComponent::canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) {
 	if (object->isContainerObject() && !object->isResourceContainer()) {
 		errorDescription = "@container_error_message:container12";
 		return TransferErrorCode::INVALIDTYPE;
@@ -51,7 +51,7 @@ int DroidContainerComponent::canAddObject(SceneObject* sceneObject, SceneObject*
 		return TransferErrorCode::CANTADD;
 	}
 
-	ManagedReference<SceneObject*> p = sceneObject->getParent().get();
+	ManagedReference<SceneObject*> p = sceneObject->getParent();
 	if (p) {
 		DroidObject* droid = p.castTo<DroidObject*>();
 		if (droid) {

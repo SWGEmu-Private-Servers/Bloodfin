@@ -5,34 +5,28 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 
 class StoreSpawnedChildrenTask : public Task {
-	ManagedWeakReference<CreatureObject*> play;
+	ManagedReference<CreatureObject*> player;
 	Vector<ManagedReference<CreatureObject*> > children;
 public:
-	StoreSpawnedChildrenTask(CreatureObject* creo,
-			Vector<ManagedReference<CreatureObject*> >&& ch) :
-		play(creo), children(std::move(ch)) {
+	StoreSpawnedChildrenTask(CreatureObject* creo, Vector<ManagedReference<CreatureObject*> >& ch) :
+		player(creo), children(ch) {
 
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> player = play.get();
-
-		if (player == nullptr)
-			return;
-
 		Locker locker(player);
 
 		for (int i = 0; i < children.size(); ++i) {
 			CreatureObject* child = children.get(i);
 
-			if (child == nullptr)
+			if (child == NULL)
 				continue;
 
 			Locker clocker(child, player);
 
 			ManagedReference<ControlDevice*> controlDevice = child->getControlDevice().get();
 
-			if (controlDevice != nullptr) {
+			if (controlDevice != NULL) {
 				Locker deviceLocker(controlDevice);
 				controlDevice->storeObject(player, true);
 			}

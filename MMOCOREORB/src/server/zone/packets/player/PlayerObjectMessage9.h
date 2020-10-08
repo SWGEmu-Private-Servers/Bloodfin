@@ -5,16 +5,19 @@
 #ifndef PLAYEROBJECTMESSAGE9_H_
 #define PLAYEROBJECTMESSAGE9_H_
 
-#include "server/zone/packets/BaseLineMessage.h"
+#include "../BaseLineMessage.h"
+
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/player/variables/AbilityList.h"
+
+//#include "../../objects/draftschematic/DraftSchematic.h"
 
 class PlayerObjectMessage9 : public BaseLineMessage {
 public:
 	PlayerObjectMessage9(PlayerObjectImplementation* play)
 			: BaseLineMessage(play->getObjectID(), 0x504C4159, 9, 0x13) {
 		// certifications && skills
-		const AbilityList* skills = play->getAbilityList();
+		AbilityList* skills = play->getAbilityList();
 		skills->insertToMessage(this);
 
 		// crafting states
@@ -25,7 +28,7 @@ public:
 		insertLong(0);
 
 		// datapad draft schematics
-		const DeltaVector<ManagedReference<DraftSchematic* > >* schematics = play->getSchematics();
+		DeltaVector<ManagedReference<DraftSchematic* > >* schematics = play->getSchematics();
 		schematics->insertToMessage(this);
 
 		// crafting?

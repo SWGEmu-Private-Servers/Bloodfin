@@ -5,6 +5,7 @@
 #ifndef EMBOLDENPETSCOMMAND_H_
 #define EMBOLDENPETSCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/intangible/PetControlDevice.h"
 #include "server/zone/managers/creature/PetManager.h"
 #include "server/zone/objects/creature/ai/AiAgent.h"
@@ -35,7 +36,7 @@ public:
 			return INVALIDSTATE;
 
 		ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
-		if( ghost == nullptr )
+		if( ghost == NULL )
 			return GENERALERROR;
 
 		// Check player mind
@@ -49,11 +50,11 @@ public:
 		for (int i = 0; i < ghost->getActivePetsSize(); ++i) {
 
 			ManagedReference<AiAgent*> pet = ghost->getActivePet(i);
-			if(pet == nullptr)
+			if(pet == NULL)
 				continue;
 
 			ManagedReference<PetControlDevice*> controlDevice = pet->getControlDevice().get().castTo<PetControlDevice*>();
-			if( controlDevice == nullptr )
+			if( controlDevice == NULL )
 				continue;
 
 			// Creatures only
@@ -66,7 +67,7 @@ public:
 					continue;
 
 				// Check range
-				if( !checkDistance(player, pet, 50.0f) )
+				if( !player->isInRange( pet, 50.0 ) )
 					continue;
 
 				// Check if pet already has buff
@@ -76,7 +77,7 @@ public:
 				}
 
 				// Check cooldown
-				if( pet->getCooldownTimerMap() == nullptr || !pet->getCooldownTimerMap()->isPast("emboldenPetsCooldown") )
+				if( pet->getCooldownTimerMap() == NULL || !pet->getCooldownTimerMap()->isPast("emboldenPetsCooldown") )
 					continue;
 
 				// Build 15% Health, Action, Mind buff

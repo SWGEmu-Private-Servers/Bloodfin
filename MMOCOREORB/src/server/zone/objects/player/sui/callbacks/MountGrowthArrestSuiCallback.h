@@ -3,6 +3,7 @@
 #define MOUNTGROWTHARRESTSUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/Zone.h"
 #include "server/zone/objects/intangible/PetControlDevice.h"
 
 namespace server {
@@ -32,7 +33,7 @@ public:
 
 		ManagedReference<PetControlDevice*> device = controlDevice.get();
 
-		if (device == nullptr || cancelPressed)
+		if (device == NULL || cancelPressed)
 			return;
 
 		if (args->size() < 1)
@@ -42,7 +43,7 @@ public:
 
 		ManagedReference<TangibleObject*> controlledObject = device->getControlledObject();
 
-		if (controlledObject == nullptr || !controlledObject->isCreature())
+		if (controlledObject == NULL || !controlledObject->isCreature())
 			return;
 
 		ManagedReference<Creature*> pet = cast<Creature*>(controlledObject.get());

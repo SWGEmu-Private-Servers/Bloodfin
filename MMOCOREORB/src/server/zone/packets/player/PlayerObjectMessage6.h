@@ -5,7 +5,8 @@
 #ifndef PLAYEROBJECTMESSAGE6_H_
 #define PLAYEROBJECTMESSAGE6_H_
 
-#include "server/zone/packets/BaseLineMessage.h"
+#include "../BaseLineMessage.h"
+
 #include "server/zone/objects/player/PlayerObject.h"
 
 class PlayerObjectMessage6 : public BaseLineMessage {
@@ -15,9 +16,9 @@ public:
 
 		insertInt(0);
 
-		uint8 privFlag = play->getPriviledgeFlag();
+		uint8 adminFlag = play->getAdminLevel();
 
-		insertByte(privFlag);  //Developer/CSR Flag
+		insertByte(adminFlag);  //Developer/CSR Flag
 
 		setSize();
 	}

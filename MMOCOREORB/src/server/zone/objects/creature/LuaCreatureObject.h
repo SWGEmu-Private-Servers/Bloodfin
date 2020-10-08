@@ -30,6 +30,8 @@ namespace creature {
 
 		int _setObject(lua_State* L);
 		// Methods we will need to use
+		int getBankCredits(lua_State *L);
+		int setBankCredits(lua_State* L);
 		int setHAM(lua_State* L);
 		int setBaseHAM(lua_State* L);
 		int setMaxHAM(lua_State* L);
@@ -72,17 +74,12 @@ namespace creature {
 		int isRebel(lua_State* L);
 		int isNeutral(lua_State* L);
 		int getFirstName(lua_State* L);
-		int getLastName(lua_State* L);
-		int setLastName(lua_State* L);
 		int isAiAgent(lua_State* L);
 		int setFactionRank(lua_State* L);
 		int getFactionRank(lua_State* L);
 		int getCashCredits(lua_State* L);
-		int getBankCredits(lua_State *L);
 		int subtractCashCredits(lua_State* L);
-		int subtractBankCredits(lua_State* L);
 		int addCashCredits(lua_State* L);
-		int addBankCredits(lua_State* L);
 		int removeScreenPlayState(lua_State* L);
 		int setLootRights(lua_State* L);
 		int isGrouped(lua_State* L);
@@ -90,6 +87,8 @@ namespace creature {
 		int getGroupSize(lua_State* L);
 		int getGroupMember(lua_State* L);
 		int setOptionsBitmask(lua_State* L);
+		int setOptionBit(lua_State* L);
+		int clearOptionBit(lua_State* L);
 		int addDotState(lua_State* L);
 		int checkCooldownRecovery(lua_State* L);
 		int addCooldown(lua_State* L);
@@ -115,14 +114,6 @@ namespace creature {
 		int enhanceCharacter(lua_State* L);
 		int setWounds(lua_State* L);
 		int setShockWounds(lua_State* L);
-		int getForceSensitiveSkillCount(lua_State* L);
-		int villageKnightPrereqsMet(lua_State* L);
-		int getDamageDealerList(lua_State* L);
-		int getHealingThreatList(lua_State* L);
-		int getSkillMod(lua_State* L);
-		int getGender(lua_State* L);
-		int isRidingMount(lua_State* L);
-		int dismount(lua_State* L);
 	private:
 		// The pointer to the 'real object' defined in object.cc
 		CreatureObject* realObject;

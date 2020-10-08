@@ -5,6 +5,7 @@
 #ifndef VOLLEYFIRECOMMAND_H_
 #define VOLLEYFIRECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "SquadLeaderCommand.h"
 #include "server/zone/managers/skill/SkillModManager.h"
 
@@ -22,6 +23,10 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
 
 		if (!creature->isPlayerCreature())
 			return GENERALERROR;
@@ -51,14 +56,14 @@ public:
 	}
 
 	bool attemptVolleyFire(CreatureObject* player, uint64* target, int skillMod) const {
-		if (player == nullptr)
+		if (player == NULL)
 			return false;
 
 		ManagedReference<WeaponObject*> weapon = player->getWeapon();
 
 		String skillCRC;
 
-		if (weapon != nullptr) {
+		if (weapon != NULL) {
 			if (!weapon->getCreatureAccuracyModifiers()->isEmpty()) {
 				skillCRC = weapon->getCreatureAccuracyModifiers()->get(0);
 
@@ -75,29 +80,31 @@ public:
 	}
 
 	bool doVolleyFire(CreatureObject* leader, GroupObject* group, uint64* target) const {
-		if (leader == nullptr || group == nullptr)
+		if (leader == NULL || group == NULL)
 			return false;
 
 		for (int i = 0; i < group->getGroupSize(); i++) {
-			ManagedReference<CreatureObject*> member = group->getGroupMember(i);
+			ManagedReference<SceneObject*> member = group->getGroupMember(i);
 
 			if (!member->isPlayerCreature() || !member->isInRange(leader, 128.0))
 				continue;
 
-			if (!isValidGroupAbilityTarget(leader, member, false))
+			ManagedReference<CreatureObject*> memberPlayer = cast<CreatureObject*>( member.get());
+
+			if (!isValidGroupAbilityTarget(leader, memberPlayer, false))
 				continue;
 
-			if (!member->isInCombat())
+			if (!memberPlayer->isInCombat())
 				continue;
 
-			Locker clocker(member, leader);
+			Locker clocker(memberPlayer, leader);
 
 			String queueAction = "volleyfireattack";
 			uint64 queueActionCRC = queueAction.hashCode();
 
-			member->executeObjectControllerAction(queueActionCRC, (uint64)target, "");
+			memberPlayer->executeObjectControllerAction(queueActionCRC, (uint64)target, "");
 
-			checkForTef(leader, member);
+			checkForTef(leader, memberPlayer);
 		}
 
 		return true;

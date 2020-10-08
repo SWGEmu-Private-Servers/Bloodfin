@@ -9,12 +9,15 @@ import engine.log.Logger;
 import server.zone.ZoneServer;
 import server.zone.Zone;
 import server.zone.objects.creature.CreatureObject;
+import server.chat.StringIdChatParameter;
+import system.util.SortedVector;
 import system.util.VectorMap;
 import system.util.Vector;
+import system.util.HashTable;
 import server.zone.objects.scene.SceneObject;
+import server.zone.objects.region.CityRegion;
 import server.zone.objects.waypoint.WaypointObject;
 import server.zone.objects.structure.StructureObject;
-include server.zone.objects.region.CityRegion;
 include server.chat.StringIdChatParameter;
 include server.zone.managers.city.CitiesAllowed;
 include server.zone.managers.city.CitySpecialization;
@@ -22,7 +25,6 @@ include server.zone.managers.city.CitySpecializationMap;
 include server.zone.managers.city.CityTax;
 include server.zone.managers.city.CityTaxMap;
 
-@dirty
 class CityManager extends ManagedService implements Logger {
 	private transient ZoneServer zoneServer;
 
@@ -82,8 +84,6 @@ class CityManager extends ManagedService implements Logger {
 	public native void loadLuaConfig();
 
 	public native void loadCityRegions();
-
-	public native void stop();
 
 	public native boolean validateCityName(final string name);
 
@@ -250,10 +250,10 @@ class CityManager extends ManagedService implements Logger {
 	public native boolean canSupportMoreMissionTerminals(CityRegion city);
 
 	@local
-	public native final CitySpecialization getCitySpecialization(final string cityspec);
+	public native CitySpecialization getCitySpecialization(final string cityspec); 
 
 	@local
-	public native final CityTax getCityTax(int idx);
+	public native CityTax getCityTax(int idx);
 
 	public native void sendChangeCityName(CityRegion city, CreatureObject mayor);
 

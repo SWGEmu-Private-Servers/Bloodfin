@@ -5,14 +5,20 @@
 #include "engine/engine.h"
 
 #include "server/zone/objects/tangible/tool/SurveyTool.h"
+#include "server/zone/Zone.h"
 #include "server/zone/managers/resource/ResourceManager.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
 #include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
 #include "server/zone/objects/player/sui/SuiWindowType.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
-#include "templates/tangible/tool/SurveyToolTemplate.h"
+#include "server/zone/templates/tangible/tool/SurveyToolTemplate.h"
+#include "server/zone/objects/waypoint/WaypointObject.h"
+#include "server/zone/managers/terrain/TerrainManager.h"
+#include "server/zone/managers/planet/PlanetManager.h"
+#include "server/zone/objects/area/ActiveArea.h"
 #include "server/zone/objects/tangible/tool/sui/SurveyToolSetRangeSuiCallback.h"
 #include "server/zone/objects/tangible/tool/sui/SurveyToolApproveRadioactiveSuiCallback.h"
 #include "server/zone/objects/player/sessions/survey/SurveySession.h"
@@ -22,7 +28,7 @@ void SurveyToolImplementation::loadTemplateData(SharedObjectTemplate* templateDa
 
 	SurveyToolTemplate* surveyToolData = dynamic_cast<SurveyToolTemplate*>(templateData);
 
-	if (surveyToolData == nullptr) {
+	if (surveyToolData == NULL) {
 		throw Exception("invalid template for SurveyTool");
 	}
 
@@ -50,7 +56,7 @@ int SurveyToolImplementation::handleObjectMenuSelect(CreatureObject* player, byt
 		if (selectedID == 20) { // use object
 			int range = getRange(player);
 
-			if(range <= 0 || range > 384) {
+			if(range <= 0 || range > 1024) {
 				sendRangeSui(player);
 				return 0;
 			}
@@ -58,7 +64,7 @@ int SurveyToolImplementation::handleObjectMenuSelect(CreatureObject* player, byt
 			Locker locker(_this.getReferenceUnsafeStaticCast());
 
 			ManagedReference<SurveySession*> session = player->getActiveSession(SessionFacadeType::SURVEY).castTo<SurveySession*>();
-			if(session == nullptr) {
+			if(session == NULL) {
 				session = new SurveySession(player);
 				session->initializeSession(_this.getReferenceUnsafeStaticCast());
 			}
@@ -66,7 +72,7 @@ int SurveyToolImplementation::handleObjectMenuSelect(CreatureObject* player, byt
 			session->setOpenSurveyTool(_this.getReferenceUnsafeStaticCast());
 
 			ManagedReference<ResourceManager*> resourceManager = cast<ResourceManager*>(server->getZoneServer()->getResourceManager());
-			if(resourceManager == nullptr) {
+			if(resourceManager == NULL) {
 				error("null resource manager");
 				return 0;
 			}
@@ -110,7 +116,7 @@ void SurveyToolImplementation::sendRangeSui(CreatureObject* player) {
 		suiToolRangeBox->addMenuItem("320m x 5pts", 4);
 
 	if (surveyMod >= 120)
-		suiToolRangeBox->addMenuItem("384m x 5pts", 5);
+		suiToolRangeBox->addMenuItem("1024m x 5pts", 5);
 
 	suiToolRangeBox->setUsingObject(_this.getReferenceUnsafeStaticCast());
 	suiToolRangeBox->setCallback(new SurveyToolSetRangeSuiCallback(server->getZoneServer()));
@@ -132,7 +138,7 @@ int SurveyToolImplementation::getRange(CreatureObject* player) {
 int SurveyToolImplementation::getSkillBasedRange(int skillLevel) {
 
 	if (skillLevel >= 120)
-		return 384;
+		return 1024;
 	else if (skillLevel >= 100)
 		return 320;
 	else if (skillLevel >= 75)

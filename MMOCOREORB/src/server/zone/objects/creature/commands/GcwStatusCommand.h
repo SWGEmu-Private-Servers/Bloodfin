@@ -5,8 +5,10 @@
 #ifndef GCWSTATUSCOMMAND_H_
 #define GCWSTATUSCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/Zone.h"
 #include "server/zone/managers/gcw/GCWManager.h"
+#include "server/chat/StringIdChatParameter.h"
 
 class GcwStatusCommand : public QueueCommand {
 public:
@@ -25,18 +27,18 @@ public:
 			return INVALIDLOCOMOTION;
 
 		Zone* zone = creature->getZone();
-		if (zone == nullptr)
+		if (zone == NULL)
 			return GENERALERROR;
 
 		GCWManager* gcwMan = zone->getGCWManager();
 
-		if (gcwMan == nullptr)
+		if (gcwMan == NULL)
 			return GENERALERROR;
 
 		// temporary for testing gcw bases
 		ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
 
-		if (ghost != nullptr && ghost->isPrivileged()) {
+		if (ghost != NULL && ghost->isPrivileged()) {
 			int rebelBases = gcwMan->getRebelBaseCount();
 			int imperialBases = gcwMan->getImperialBaseCount();
 

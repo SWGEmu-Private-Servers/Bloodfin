@@ -36,14 +36,20 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> oper = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (oper == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* oper = cast<CreatureObject*>(scene.get());
+
+		if (oper == NULL)
 			return;
 
 		ManagedReference<ChatManager*> chatManager = server->getChatManager();
-		if (chatManager != nullptr)
+		if (chatManager != NULL)
 			chatManager->handleChatAddModerator(oper, opeeName, roomPath, requestID);
+
 	}
 
 };

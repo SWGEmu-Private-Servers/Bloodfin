@@ -5,21 +5,23 @@
 package server.zone.objects.tangible.consumable;
 
 import server.zone.objects.tangible.consumable.Consumable;
+import server.zone.objects.scene.SceneObject;
+import engine.lua.LuaObject;
+import server.zone.Zone;
 
-@json
 class Food extends Consumable {
-	public Food() {
+	public Food() {		
 		Logger.setLoggingName("Food");
-
+		
 		initializePrivateData();
 	}
-
+	
 	public void initializeTransientMembers() {
 		super.initializeTransientMembers();
-
+		
 		Logger.setLoggingName("Food");
 	}
-
+	
 	public void initializePrivateData() {
 		super.consumableType = super.FOOD;
 	}

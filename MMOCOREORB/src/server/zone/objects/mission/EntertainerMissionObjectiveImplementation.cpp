@@ -10,18 +10,21 @@
 #include "server/zone/objects/waypoint/WaypointObject.h"
 #include "server/zone/Zone.h"
 #include "server/zone/ZoneServer.h"
+#include "server/zone/managers/object/ObjectManager.h"
+#include "server/zone/managers/mission/MissionManager.h"
 #include "server/zone/managers/planet/PlanetManager.h"
-#include "terrain/manager/TerrainManager.h"
+#include "server/zone/managers/terrain/TerrainManager.h"
 #include "server/zone/objects/mission/MissionObject.h"
 #include "server/zone/objects/mission/MissionObserver.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/tangible/weapon/WeaponObject.h"
 
 void EntertainerMissionObjectiveImplementation::activate() {
 	Locker _lock(_this.getReferenceUnsafeStaticCast());
 
 	ManagedReference<MissionObject* > mission = this->mission.get();
 
-	if (mission == nullptr)
+	if (mission == NULL)
 		return;
 
 	MissionObjectiveImplementation::activate();
@@ -32,7 +35,7 @@ void EntertainerMissionObjectiveImplementation::activate() {
 
 	ManagedReference<ZoneServer*> zoneServer = Core::lookupObject<ZoneServer>("ZoneServer");
 
-	if (locationActiveArea == nullptr) {
+	if (locationActiveArea == NULL) {
 		locationActiveArea = ( zoneServer->createObject(STRING_HASHCODE("object/active_area.iff"), 1)).castTo<ActiveArea*>();
 	}
 
@@ -46,7 +49,7 @@ void EntertainerMissionObjectiveImplementation::activate() {
 		locationActiveArea->initializePosition(mission->getStartPositionX(), 0, mission->getStartPositionY());
 		locationActiveArea->setRadius(32.f);
 
-		if (zone != nullptr) {
+		if (zone != NULL) {
 			zone->transferObject(locationActiveArea, -1, true);
 		} else {
 			error("Failed to insert entertainer location to zone.");
@@ -89,7 +92,7 @@ void EntertainerMissionObjectiveImplementation::abort() {
 void EntertainerMissionObjectiveImplementation::clearLocationActiveAreaAndObservers() {
 	Locker _lock(_this.getReferenceUnsafeStaticCast());
 
-	if (locationActiveArea != nullptr) {
+	if (locationActiveArea != NULL) {
 		Locker locationLocker(locationActiveArea, _this.getReferenceUnsafeStaticCast());
 
 		for (int i = 0; i < getObserverCount(); i++) {
@@ -133,11 +136,11 @@ void EntertainerMissionObjectiveImplementation::startCompleteTask() {
 
 	ManagedReference<CreatureObject*> object = getPlayerOwner();
 
-	if (object == nullptr)
+	if (object == NULL)
 		return;
 
-	if (isEntertaining && inMissionArea && object != nullptr && object->getParentID() != 0) {
-		if (completeTask == nullptr) {
+	if (isEntertaining && inMissionArea && object != NULL && object->getParentID() != 0) {
+		if (completeTask == NULL) {
 			completeTask = new CompleteMissionAfterCertainTimeTask(_this.getReferenceUnsafeStaticCast());
 		}
 
@@ -147,7 +150,7 @@ void EntertainerMissionObjectiveImplementation::startCompleteTask() {
 			completeTask->schedule(10 * 60 * 1000);
 		}
 	} else {
-		if (completeTask != nullptr && completeTask->isScheduled()) {
+		if (completeTask != NULL && completeTask->isScheduled()) {
 			completeTask->cancel();
 		}
 	}
@@ -162,7 +165,7 @@ int EntertainerMissionObjectiveImplementation::notifyObserverEvent(MissionObserv
 		return 0;
 	}
 
-	if (cast<CreatureObject*>(arg1) != getPlayerOwner()) {
+	if (cast<CreatureObject*>(arg1) != getPlayerOwner().get()) {
 		return 0;
 	}
 
@@ -183,12 +186,12 @@ Vector3 EntertainerMissionObjectiveImplementation::getEndPosition() {
 	ManagedReference<MissionObject* > mission = this->mission.get();
 
 	Vector3 missionEndPoint;
-	if (mission == nullptr)
+	if (mission == NULL)
 		return missionEndPoint;
 
 	missionEndPoint.setX(mission->getStartPositionX());
 	missionEndPoint.setY(mission->getStartPositionY());
-	TerrainManager* terrain = getPlayerOwner()->getZone()->getPlanetManager()->getTerrainManager();
+	TerrainManager* terrain = getPlayerOwner().get()->getZone()->getPlanetManager()->getTerrainManager();
 	missionEndPoint.setZ(terrain->getHeight(missionEndPoint.getX(), missionEndPoint.getY()));
 
 	return missionEndPoint;

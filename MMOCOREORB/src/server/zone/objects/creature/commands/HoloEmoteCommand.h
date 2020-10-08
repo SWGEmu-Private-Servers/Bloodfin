@@ -5,6 +5,11 @@
 #ifndef HOLOEMOTECOMMAND_H_
 #define HOLOEMOTECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/packets/object/PlayClientEffectObjectMessage.h"
+#include "server/zone/packets/scene/PlayClientEffectLocMessage.h"
+#include "server/zone/packets/scene/PlayClientEventObjectMessage.h"
+
 class HoloEmoteCommand : public QueueCommand {
 public:
 
@@ -56,7 +61,7 @@ public:
 	void handleEmote( CreatureObject* player, String& arg ) const {
 
 		PlayerObject* ghost = player->getPlayerObject();
-		if( ghost == nullptr )
+		if( ghost == NULL )
 			return;
 
 		Locker gLocker( ghost, player );
@@ -87,7 +92,7 @@ public:
 		}
 
 		// Check cooldown
-		if( player->getCooldownTimerMap() == nullptr || !player->getCooldownTimerMap()->isPast("holoEmoteCooldown") ) {
+		if( player->getCooldownTimerMap() == NULL || !player->getCooldownTimerMap()->isPast("holoEmoteCooldown") ) {
 			player->sendSystemMessage( "Your Holo-Emote generator is in use or recharging" );
 			return;
 		}
@@ -107,7 +112,7 @@ public:
 	void handleHelp( CreatureObject* player ) const {
 
 		PlayerObject* ghost = player->getPlayerObject();
-		if( ghost == nullptr )
+		if( ghost == NULL )
 			return;
 
 		Locker gLocker( ghost, player );
@@ -152,7 +157,7 @@ public:
 	void handleDelete( CreatureObject* player ) const {
 
 		PlayerObject* ghost = player->getPlayerObject();
-		if( ghost == nullptr )
+		if( ghost == NULL )
 			return;
 
 		Locker gLocker( ghost, player );

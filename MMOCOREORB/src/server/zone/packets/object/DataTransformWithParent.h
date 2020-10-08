@@ -5,23 +5,22 @@
 #ifndef DATATRANSFORMWITHPARENT_H_
 #define DATATRANSFORMWITHPARENT_H_
 
-#include "server/zone/objects/scene/WorldCoordinates.h"
 #include "ObjectControllerMessage.h"
 #include "server/zone/ZoneServer.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/building/BuildingObject.h"
+#include "server/zone/objects/creature/CreatureState.h"
 #include "server/zone/managers/objectcontroller/ObjectController.h"
 #include "ObjectControllerMessageCallback.h"
 #include "server/zone/managers/player/PlayerManager.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/cell/CellObject.h"
 #include "server/zone/Zone.h"
-#include "server/zone/managers/collision/CollisionManager.h"
 
 class DataTransformWithParent : public ObjectControllerMessage {
 public:
 	DataTransformWithParent(SceneObject* creo)
-		: ObjectControllerMessage(creo->getObjectID(), 0x1B, 0xF1) {
+: ObjectControllerMessage(creo->getObjectID(), 0x1B, 0xF1) {
 
 		insertInt(creo->getMovementCounter());
 
@@ -51,6 +50,8 @@ class DataTransformWithParentCallback : public MessageCallback {
 	float parsedSpeed;
 
 	ObjectControllerMessageCallback* objectControllerMain;
+
+	//	taskqueue = 3;
 public:
 	DataTransformWithParentCallback(ObjectControllerMessageCallback* objectControllerCallback) :
 		MessageCallback(objectControllerCallback->getClient(), objectControllerCallback->getServer()) {
@@ -68,17 +69,26 @@ public:
 
 		objectControllerMain = objectControllerCallback;
 
-		ManagedReference<CreatureObject*> player = client->getPlayer();
 
-		if (player != nullptr) {
-			Zone* zone = player->getZone();
+		taskqueue = 3;
 
-			if (zone != nullptr) {
+		ManagedReference<SceneObject*> player = client->getPlayer();
+
+		if (player != NULL) {
+			Zone* zone = player->getLocalZone();
+
+			if (zone != NULL) {
 				String zoneName = zone->getZoneName();
 
-				setCustomTaskQueue(zoneName);
+				if (zoneName == "corellia")
+					taskqueue = 4;
+				else if (zoneName == "tatooine")
+					taskqueue = 5;
+				else if (zoneName == "naboo")
+					taskqueue = 6;
 			}
 		}
+
 	}
 
 	void parse(Message* message) {
@@ -98,10 +108,10 @@ public:
 
 		parsedSpeed = message->parseFloat();
 
-		debug("datatransform with parent parsed");
+		//info("datatransform with parent", true);
 	}
 
-	void bounceBack(CreatureObject* object, ValidatedPosition& pos) {
+	void bounceBack(SceneObject* object, ValidatedPosition& pos) {
 		Vector3 teleportPoint = pos.getPosition();
 		uint64 teleportParentID = pos.getParent();
 
@@ -109,9 +119,14 @@ public:
 	}
 
 	void run() {
-		Reference<CreatureObject*> object = client->getPlayer().get();
+		ManagedReference<SceneObject*> sceneObject = client->getPlayer().get();
 
-		if (object == nullptr)
+		if (sceneObject == NULL)
+			return;
+
+		CreatureObject* object = sceneObject->asCreatureObject();
+
+		if (object == NULL)
 			return;
 
 		int posture = object->getPosture();
@@ -137,27 +152,25 @@ public:
 			if (currentPos.squaredDistanceTo(newPos) > 0.01) {
 				bounceBack(object, pos);
 			} else {
-				ManagedReference<SceneObject*> currentParent = object->getParent().get();
+				ManagedReference<SceneObject*> currentParent = object->getParent();
 				bool light = objectControllerMain->getPriority() != 0x23;
 
-				if (currentParent != nullptr)
+				if (currentParent != NULL)
 					object->updateZoneWithParent(currentParent, light);
 				else
 					object->updateZone(light);
 			}
 		}
+
 	}
 
-	void updatePosition(CreatureObject* object) {
+	void updatePosition(CreatureObject* object){
 		PlayerObject* ghost = object->getPlayerObject();
 
-		if (ghost == nullptr)
+		if (isnan(positionX) || isnan(positionY) || isnan(positionZ))
 			return;
 
-		if (std::isnan(positionX) || std::isnan(positionY) || std::isnan(positionZ))
-			return;
-
-		if (std::isinf(positionX) || std::isinf(positionY) || std::isinf(positionZ))
+		if (isinf(positionX) || isinf(positionY) || isinf(positionZ))
 			return;
 
 		if (ghost->isTeleporting())
@@ -168,20 +181,20 @@ public:
 
 		if (positionX > 1024.0f || positionX < -1024.0f || positionY > 1024.0f || positionY < -1024.0f) {
 			StringBuffer msg;
-			msg << "position out of bounds cell:[" << parent << "] " << positionX << " " << positionY;
+			msg << "position out of bounds cell:[" << parent << "]";
 			object->error(msg.toString());
 
 			return;
 		}
 
-		if (object->getZone() == nullptr)
+		if (object->getZone() == NULL)
 			return;
 
 		if (object->isRidingMount()) {
 			ZoneServer* zoneServer = server->getZoneServer();
+
 			ObjectController* objectController = zoneServer->getObjectController();
 			objectController->activateCommand(object, STRING_HASHCODE("dismount"), 0, 0, "");
-			object->sendSystemMessage("@base_player:no_entry_while_mounted"); // "You cannot enter a structure while on your mount."
 			return; // don't allow a dismount and parent update in the same frame, this looks better than bouncing their position
 		}
 
@@ -194,29 +207,37 @@ public:
 			return;
 		}*/
 
-		Reference<CellObject*> newParent = server->getZoneServer()->getObject(parent, true).castTo<CellObject*>();
 
-		if (newParent == nullptr)
+		ManagedReference<SceneObject*> newParent = server->getZoneServer()->getObject(parent, true);
+
+		if (newParent == NULL)
 			return;
 
-		Reference<SceneObject*> parentSceneObject = newParent->getParent().get();
+		if (!newParent->isCellObject())
+			return;
 
-		if (parentSceneObject == nullptr)
+		ManagedReference<SceneObject*> parentSceneObject = newParent->getParent();
+
+		if (parentSceneObject == NULL)
 			return;
 
 		BuildingObject* building = parentSceneObject->asBuildingObject();
 
-		if (building == nullptr)
+		if (building == NULL)
 			return;
 
-		Reference<SceneObject*> par = object->getParent().get();
+		ManagedReference<SceneObject*> par = object->getParent();
 
-		if (par != nullptr && par->isShipObject())
+		if (par != NULL && par->isShipObject())
 			return;
+
+		/*StringBuffer posMsg;
+		posMsg << "posX: " << positionX << " posZ: " << positionZ << " posY:" << positionY;
+		object->info(posMsg.toString(), true);*/
 
 		ManagedReference<PlayerManager*> playerManager = server->getPlayerManager();
 
-		if (playerManager == nullptr)
+		if (playerManager == NULL)
 			return;
 
 		ValidatedPosition pos;
@@ -225,7 +246,7 @@ public:
 		if (!ghost->hasGodMode()) {
 			SceneObject* inventory = object->getSlottedObject("inventory");
 
-			if (inventory != nullptr && inventory->getCountableObjectsRecursive() > inventory->getContainerVolumeLimit() + 1) {
+			if (inventory != NULL && inventory->getCountableObjectsRecursive() > inventory->getContainerVolumeLimit() + 1) {
 				object->sendSystemMessage("Inventory Overloaded - Cannot Move");
 				bounceBack(object, pos);
 				return;
@@ -235,32 +256,9 @@ public:
 			}
 		}
 
-		if ( par != newParent) {
-			CellObject* currentCell = par.castTo<CellObject*>();
-			const PortalLayout *layout = building->getObjectTemplate()->getPortalLayout();
-			if (layout == nullptr)
-				return;
+		Reference<Vector<float>* > collisionPoints = CollisionManager::getCellFloorCollision(positionX, positionY, cast<CellObject*>(newParent.get()));
 
-			const CellProperty *cellProperty = layout->getCellProperty(newParent->getCellNumber());
-			if (!cellProperty->hasConnectedCell(currentCell != nullptr ? currentCell->getCellNumber() : 0)) {
-				String zoneName = object->getZone()->getZoneName();
-
-				object->error() << object->getObjectID() << " Attempted to change parents to a cell not connected to the previous parent: "
-					<< "X: " << positionX << " Y: " << positionY << " Z: " << positionZ << " zone:" << zoneName << " parentID: " << parent;
-//				for (int i : cellProperty->getConnectedCells()) {
-//					buf << "ConnectedCell: " << i << endl;
-//				}
-
-				bounceBack(object, pos);
-				return;
-			}
-		}
-
-		CellObject* cell = newParent;
-
-		UniqueReference<Vector<float>*> collisionPoints(CollisionManager::getCellFloorCollision(positionX, positionY, cell));
-
-		if (collisionPoints == nullptr) {
+		if (collisionPoints == NULL) {
 			bounceBack(object, pos);
 			return;
 		}
@@ -285,7 +283,7 @@ public:
 			return;
 		}
 
-		auto perms = newParent->getContainerPermissions();
+		ContainerPermissions* perms = newParent->getContainerPermissions();
 
 		if (!perms->hasInheritPermissionsFromParent()) {
 			if (!newParent->checkContainerPermission(object, ContainerPermissions::WALKIN)) {
@@ -293,15 +291,6 @@ public:
 
 				return;
 			}
-		}
-
-		WorldCoordinates coords(Vector3(positionX, positionY, positionZ), cell);
-		float distance = coords.getWorldPosition().squaredDistanceTo(object->getWorldPosition());
-		if (distance > 21 * 21) {
-			object->info("bouncing back with distance: " + String::valueOf(distance));
-			bounceBack(object, pos);
-
-			return;
 		}
 
 		if (playerManager->checkSpeedHackFirstTest(object, parsedSpeed, pos, 1.1f) != 0)
@@ -322,6 +311,7 @@ public:
 			object->updateZoneWithParent(newParent, false);
 		else
 			object->updateZoneWithParent(newParent, true);
+
 	}
 
 };

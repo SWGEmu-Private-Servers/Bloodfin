@@ -5,9 +5,9 @@
 #ifndef COMBATACTION_H_
 #define COMBATACTION_H_
 
-#include "StandaloneObjectControllerMessage.h"
+#include "ObjectControllerMessage.h"
 
-class CombatAction : public StandaloneObjectControllerMessage {
+class CombatAction : public ObjectControllerMessage {
 	int defenderSize;
 
 
@@ -15,7 +15,7 @@ public:
 	// set the new posture of attacker and defender BEFORE constructing a CombatAction
 
 	CombatAction(CreatureObject* attacker, TangibleObject* defender, uint32 animcrc, uint8 hit, uint8 trails, long weaponID = 0) :
-			StandaloneObjectControllerMessage(attacker->getObjectID(), 0x1B, 0xCC) {
+				ObjectControllerMessage(attacker->getObjectID(), 0x1B, 0xCC) {
 
 		insertInt(animcrc);
 
@@ -40,7 +40,7 @@ public:
 	}
 
 	CombatAction(CreatureObject* attacker, uint32 animcrc) :
-			StandaloneObjectControllerMessage(attacker->getObjectID(), 0x1B, 0xCC) {
+		ObjectControllerMessage(attacker->getObjectID(), 0x1B, 0xCC) {
 		insertInt(animcrc);
 
 		insertLong(attacker->getObjectID());
@@ -55,7 +55,7 @@ public:
 	}
 
 	CombatAction(CreatureObject* attacker, uint32 animcrc, long weaponID) :
-			StandaloneObjectControllerMessage(attacker->getObjectID(), 0x1B, 0xCC) {
+		ObjectControllerMessage(attacker->getObjectID(), 0x1B, 0xCC) {
 		insertInt(animcrc);
 
 		insertLong(attacker->getObjectID());
@@ -71,7 +71,7 @@ public:
 
 
 	CombatAction(TangibleObject* attacker, CreatureObject* defender, uint32 animcrc,uint8 hit, long wpnID = 0) :
-			StandaloneObjectControllerMessage(attacker->getObjectID(), 0x1B, 0xCC) {
+		ObjectControllerMessage(attacker->getObjectID(), 0x1B, 0xCC) {
 			insertInt(animcrc);
 
 			insertLong(attacker->getObjectID());
@@ -93,7 +93,7 @@ public:
 
 	CombatAction(CreatureObject* attacker, CreatureObject* defender,
 			uint32 animcrc,uint8 hit, long wpnID) :
-			StandaloneObjectControllerMessage(attacker->getObjectID(), 0x1B, 0xCC) {
+		ObjectControllerMessage(attacker->getObjectID(), 0x1B, 0xCC) {
 		insertInt(animcrc);
 
 		insertLong(attacker->getObjectID());

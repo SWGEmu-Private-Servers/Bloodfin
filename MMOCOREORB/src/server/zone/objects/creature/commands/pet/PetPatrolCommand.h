@@ -16,24 +16,21 @@ public:
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
 
-		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().get().castTo<PetControlDevice*>();
-		if (controlDevice == nullptr)
+		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().castTo<PetControlDevice*>();
+		if (controlDevice == NULL)
 			return GENERALERROR;
 
 		ManagedReference<AiAgent*> pet = cast<AiAgent*>(creature);
-		if( pet == nullptr )
+		if( pet == NULL )
 			return GENERALERROR;
 
 		if (pet->hasRidingCreature())
 			return GENERALERROR;
 
-		if (pet->getPosture() != CreaturePosture::UPRIGHT && pet->getPosture() != CreaturePosture::KNOCKEDDOWN)
-			pet->setPosture(CreaturePosture::UPRIGHT);
-
 		// Check if droid has power
 		if( controlDevice->getPetType() == PetManager::DROIDPET ) {
 			ManagedReference<DroidObject*> droidPet = cast<DroidObject*>(pet.get());
-			if( droidPet == nullptr )
+			if( droidPet == NULL )
 				return GENERALERROR;
 
 			if( !droidPet->hasPower() ){
@@ -51,7 +48,7 @@ public:
 		if (controlDevice->getPatrolPointSize() == 0)
 			return GENERALERROR;
 
-		pet->setTargetObject(nullptr);
+		pet->setTargetObject(NULL);
 		pet->setFollowState(AiAgent::PATROLLING);
 		pet->clearSavedPatrolPoints();
 		pet->stopWaiting();

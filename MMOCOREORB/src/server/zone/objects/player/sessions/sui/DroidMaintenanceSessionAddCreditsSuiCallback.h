@@ -8,6 +8,7 @@
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
 #include "server/zone/objects/player/sessions/DroidMaintenanceSession.h"
+#include "server/zone/objects/structure/StructureObject.h"
 
 class DroidMaintenanceSessionAddCreditsSuiCallback : public SuiCallback {
 public:
@@ -26,7 +27,7 @@ public:
 
 		ManagedReference<Facade*> facade = player->getActiveSession(SessionFacadeType::DROIDMAINTENANCERUN);
 		ManagedReference<DroidMaintenanceSession*> session = dynamic_cast<DroidMaintenanceSession*>(facade.get());
-		if (session == nullptr) {
+		if (session == NULL) {
 			player->dropActiveSession(SessionFacadeType::DROIDMAINTENANCERUN);
 			return;
 		}

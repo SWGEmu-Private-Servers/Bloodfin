@@ -39,9 +39,9 @@ public:
 			if(index < 0 || index > 2)
 				return;
 
-			if(server != nullptr) {
-				uint64 objectID = creature->getObjectID();
-				Emote* emsg = new Emote(objectID, objectID, 0, 72, true, false);
+			if(server != NULL) {
+
+				Emote* emsg = new Emote(creature, creature, 0, 72, false);
 				creature->broadcastMessage(emsg, true);
 				creature->sendSystemMessage("@skl_use:sys_scan_begin"); // You begin to examine the environment for information.
 

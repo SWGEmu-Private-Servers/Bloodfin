@@ -6,12 +6,17 @@
  */
 
 #include "server/zone/objects/tangible/fishing/FishingPoleObject.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
 #include "server/zone/packets/scene/AttributeListMessage.h"
+#include "server/zone/objects/scene/variables/CustomizationVariables.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/scene/TransferErrorCode.h"
+#include "server/zone/ZoneServer.h"
 #include "server/zone/ZoneProcessServer.h"
 #include "server/zone/managers/minigames/FishingManager.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/creature/CreatureObject.h"
+
 
 void FishingPoleObjectImplementation::fillAttributeList(AttributeListMessage* alm, CreatureObject* object) {
 	TangibleObjectImplementation::fillAttributeList(alm,object);
@@ -79,12 +84,12 @@ String FishingPoleObjectImplementation::getText(CreatureObject* player) {
 bool FishingPoleObjectImplementation::removeObject(SceneObject* object, SceneObject* destination, bool notifyClient) {
 	ManagedReference<FishingManager*> manager = server->getFishingManager();
 	ManagedReference<SceneObject*> strongParent = getParent().get();
-	if (strongParent == nullptr)
+	if (strongParent == NULL)
 		return false;
 
-	if ((strongParent != nullptr) && (strongParent->isPlayerCreature())) {
+	if ((strongParent != NULL) && (strongParent->isPlayerCreature())) {
 		ManagedReference<CreatureObject*> player = cast<CreatureObject*>(strongParent.get());
-		if ((player != nullptr) && (object->isFishingBait())) {
+		if ((player != NULL) && (object->isFishingBait())) {
 			if (manager->getFishingState(player) != FishingManager::NOTFISHING) {
 				player->sendSystemMessage("Cannot remove bait while fishing pole is in use.");
 

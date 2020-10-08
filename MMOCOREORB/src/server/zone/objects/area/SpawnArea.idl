@@ -5,18 +5,15 @@
 package server.zone.objects.area;
 
 import server.zone.objects.area.ActiveArea;
+import system.util.SortedVector;
 import system.util.HashTable;
 import engine.core.ManagedObject;
+import server.zone.managers.creature.LairSpawn;
 import server.zone.objects.area.SpawnAreaObserver;
 import engine.util.Observable;
 import server.zone.objects.scene.SceneObject;
 import system.lang.Time;
 
-include server.zone.managers.creature.LairSpawn;
-include system.util.Vector;
-include engine.util.u3d.Vector3;
-
-@json
 class SpawnArea extends ActiveArea {
 	@dereferenced
 	@rawTemplate(value = "Reference<LairSpawn*>")
@@ -39,8 +36,7 @@ class SpawnArea extends ActiveArea {
 	protected SpawnAreaObserver exitObserver;
 
 	@dereferenced
-	@rawTemplate(value = "ManagedWeakReference<SpawnArea*>")
-	protected Vector noSpawnAreas;
+	protected Vector<SpawnArea> noSpawnAreas;
 
 	protected int tier;
 
@@ -68,8 +64,7 @@ class SpawnArea extends ActiveArea {
 
 	@local
 	@rawTemplate(value = "Reference<LairSpawn*>")
-	@read
-	public final Vector getSpawnList() {
+	public Vector getSpawnList() {
 		return possibleSpawns;
 	}
 

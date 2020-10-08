@@ -29,7 +29,7 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object == nullptr || !object->isPlayerCreature())
+		if (object == NULL || !object->isPlayerCreature())
 			return GENERALERROR;
 
 		CreatureObject* play = cast<CreatureObject*>( object.get());
@@ -46,7 +46,7 @@ public:
 
 				StringIdChatParameter stringId;
 				stringId.setStringId("group", "uninvite_target");
-				stringId.setTT(play->getObjectID());
+				stringId.setTT(play);
 				creature->sendSystemMessage(stringId);
 			}
 

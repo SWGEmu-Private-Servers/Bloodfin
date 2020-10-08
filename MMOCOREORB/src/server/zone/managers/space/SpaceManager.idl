@@ -4,16 +4,14 @@
 
 package server.zone.managers.space;
 
+import engine.core.ManagedService;
 import server.zone.managers.planet.PlanetManager;
-import server.zone.ZoneProcessServer;
-import server.zone.Zone;
-include engine.log.Logger;
+include server.zone.managers.ship.ShipManager;
 
-@dirty
 class SpaceManager extends PlanetManager {
 	public SpaceManager(Zone planet, ZoneProcessServer srv) {
 		super(planet, srv);
-
+		
 		Logger.setLoggingName("SpaceManager " + planet.getZoneName());
 		Logger.setLogging(false);
 		Logger.setGlobalLogging(true);

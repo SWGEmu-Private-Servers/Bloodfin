@@ -5,10 +5,17 @@
  *      Author: victor
  */
 
+
 #include "server/zone/objects/installation/generator/GeneratorObject.h"
 #include "server/zone/packets/harvester/HarvesterObjectMessage7.h"
+#include "server/zone/packets/installation/InstallationObjectDeltaMessage7.h"
+#include "server/zone/objects/resource/ResourceSpawn.h"
+#include "server/zone/objects/resource/ResourceContainer.h"
+#include "server/zone/Zone.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/packets/harvester/ResourceHarvesterActivatePageMessage.h"
+#include "server/zone/managers/resource/ResourceManager.h"
+#include "server/zone/objects/area/ActiveArea.h"
 
 void GeneratorObjectImplementation::fillObjectMenuResponse(ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	if (!isOnAdminList(player))
@@ -19,11 +26,11 @@ void GeneratorObjectImplementation::fillObjectMenuResponse(ObjectMenuResponse* m
 	menuResponse->addRadialMenuItemToRadialID(118, 78, 3, "@harvester:manage"); //Operate Machinery
 }
 
-void GeneratorObjectImplementation::synchronizedUIListen(CreatureObject* player, int value) {
-	if (!player->isPlayerCreature() || !isOnAdminList(player) || getZone() == nullptr)
+void GeneratorObjectImplementation::synchronizedUIListen(SceneObject* player, int value) {
+	if (!player->isPlayerCreature() || !isOnAdminList(cast<CreatureObject*>(player)) || getZone() == NULL)
 		return;
 
-	addOperator(player);
+	addOperator(cast<CreatureObject*>(player));
 
 	updateInstallationWork();
 
@@ -33,11 +40,11 @@ void GeneratorObjectImplementation::synchronizedUIListen(CreatureObject* player,
 	activateUiSync();
 }
 
-void GeneratorObjectImplementation::synchronizedUIStopListen(CreatureObject* player, int value) {
+void GeneratorObjectImplementation::synchronizedUIStopListen(SceneObject* player, int value) {
 	if (!player->isPlayerCreature())
 		return;
 
-	removeOperator(player);
+	removeOperator(cast<CreatureObject*>(player));
 }
 
 int GeneratorObjectImplementation::handleObjectMenuSelect(CreatureObject* player, byte selectedID) {

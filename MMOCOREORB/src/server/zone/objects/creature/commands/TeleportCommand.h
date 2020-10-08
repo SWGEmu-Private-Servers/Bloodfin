@@ -5,6 +5,8 @@
 #ifndef TELEPORTCOMMAND_H_
 #define TELEPORTCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class TeleportCommand : public QueueCommand {
 public:
 
@@ -25,7 +27,7 @@ public:
 
 		Zone* zone = creature->getZone();
 
-		if (zone == nullptr)
+		if (zone == NULL)
 			return GENERALERROR;
 
 		String zoneName = zone->getZoneName();
@@ -43,11 +45,6 @@ public:
 			if (tokenizer.hasMoreTokens()) {
 				z = tokenizer.getFloatToken();
 				parentID = tokenizer.getLongToken();
-			} else {
-				Zone* newZone = creature->getZoneServer()->getZone(zoneName);
-
-				if (newZone != nullptr)
-					z = CollisionManager::getWorldFloorCollision(x, y, newZone, false);
 			}
 
 			creature->setDirection(0);

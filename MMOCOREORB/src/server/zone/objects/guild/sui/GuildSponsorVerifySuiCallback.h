@@ -9,6 +9,7 @@
 #define GUILDSPONSORVERIFYSUICALLBACK_H_
 
 #include "server/zone/managers/guild/GuildManager.h"
+#include "server/zone/objects/tangible/terminal/guild/GuildTerminal.h"
 #include "server/zone/objects/player/sui/SuiCallback.h"
 
 class GuildSponsorVerifySuiCallback : public SuiCallback {
@@ -25,12 +26,12 @@ public:
 
 		ManagedReference<GuildManager*> guildManager = server->getGuildManager();
 
-		if (guildManager == nullptr)
+		if (guildManager == NULL)
 			return;
 
-		ManagedReference<SceneObject*> obj = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = suiBox->getUsingObject();
 
-		if (obj == nullptr || !obj->isPlayerCreature())
+		if (obj == NULL || !obj->isPlayerCreature())
 			return;
 
 		CreatureObject* sponsor = cast<CreatureObject*>( obj.get());
@@ -45,7 +46,7 @@ public:
 
 		ManagedReference<GuildObject*> guild = sponsor->getGuildObject().get();
 
-		if (guild == nullptr || !guild->hasSponsorPermission(sponsor->getObjectID())) {
+		if (guild == NULL || !guild->hasSponsorPermission(sponsor->getObjectID())) {
 			sponsor->sendSystemMessage("@guild:generic_fail_no_permission"); // You do not have permission to perform that operation.
 			return;
 		}

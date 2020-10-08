@@ -4,14 +4,20 @@
 
 package server.zone.objects.creature.buffs;
 
+import engine.core.ManagedObject;
+import system.util.VectorMap;
+import system.lang.ref.Reference;
 import server.zone.objects.creature.CreatureObject;
+import server.zone.objects.creature.CreatureObject;
+import system.lang.Time;
 
+include server.zone.ZoneProcessServer;
+import server.zone.objects.creature.buffs.BuffDurationEvent;
 import server.zone.objects.creature.buffs.Buff;
 include server.zone.objects.creature.buffs.BuffType;
-include server.zone.objects.creature.buffs.BuffCRC;
-include templates.params.ObserverEventType;
+include server.chat.StringIdChatParameter;
+include server.zone.objects.scene.ObserverEventType;
 
-@json
 class SpiceDownerBuff extends Buff {
 	public SpiceDownerBuff(CreatureObject creo, final string name, unsigned int buffCRC, int duration) {
 		super(creo, buffCRC, duration, BuffType.SPICE);
@@ -26,12 +32,8 @@ class SpiceDownerBuff extends Buff {
 		if (super.creature.hasBuff(BuffCRC.FOOD_REDUCE_SPICE_DOWNTIME)) {
 			Buff buff = super.creature.getBuff(BuffCRC.FOOD_REDUCE_SPICE_DOWNTIME);
 
-			if (buff) {
-				float reductionMod = buff.getSkillModifierValue("reduce_spice_downtime");
-				float reduction = 1.f - (reductionMod / 100);
-
-				if (reduction > 0)
-					super.buffDuration = super.buffDuration * reduction;
+			if (buff != null) {
+				super.buffDuration = super.buffDuration * (100.0 - buff.getSkillModifierValue("reduce_spice_downtime")) / 100.0;
 			}
 		}
 

@@ -5,8 +5,9 @@
 #ifndef FISHINGEVENT_H_
 #define FISHINGEVENT_H_
 
+
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "server/zone/ZoneProcessServer.h"
+#include "server/zone/ZoneServer.h"
 #include "server/zone/managers/minigames/FishingManager.h"
 
 namespace server {
@@ -29,7 +30,7 @@ public:
 		// FIXME
 		ManagedReference<CreatureObject*> strong = player.get();
 
-		if (strong == nullptr)
+		if (strong == NULL)
 			return;
 
 		try {
@@ -43,7 +44,7 @@ public:
 			if (fishingState != FishingManagerImplementation::NOTFISHING) {
 				manager->fishingStep(strong);
 
-			} /*else if (marker != nullptr) {
+			} /*else if (marker != NULL) {
 					// new event
 				manager->createFishingEvent(player, nextAction, zoneServer, marker, fish, boxID, fishingState, mood);
 
@@ -57,12 +58,12 @@ public:
 
 
 		} catch (...) {
-			//player = nullptr;
+			//player = NULL;
 
 			throw;
 		}
 
-		//player = nullptr;
+		//player = NULL;
 	}
 };
 

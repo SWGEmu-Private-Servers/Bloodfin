@@ -8,6 +8,7 @@
 #ifndef LOOTGROUPS_H_
 #define LOOTGROUPS_H_
 
+#include "engine/engine.h"
 #include "LootGroupEntry.h"
 
 class LootGroups {
@@ -41,13 +42,14 @@ public:
 		entries.put(entry);
 	}
 
-	int count() const {
+	int count() {
 		return entries.size();
 	}
 
-	const LootGroupEntry* get(int idx) const {
+	LootGroupEntry* get(int idx) {
 		return &entries.get(idx);
 	}
 };
+
 
 #endif /* LOOTGROUPS_H_ */

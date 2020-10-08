@@ -7,6 +7,7 @@
 
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/managers/minigames/FishingManager.h"
 
 class CloseContainerCommand : public QueueCommand {
 public:
@@ -31,7 +32,7 @@ public:
 		if (!creature->isPlayerCreature())
 			return GENERALERROR;
 
-		ManagedReference<SceneObject*> container = nullptr;
+		ManagedReference<SceneObject*> container = NULL;
 
 		StringTokenizer args(arguments.toString());
 
@@ -43,7 +44,7 @@ public:
 		} else {
 			container = server->getZoneServer()->getObject(target);
 		}
-		if (container == nullptr)
+		if (container == NULL)
 			return GENERALERROR;
 
 		Locker clocker(container, creature);

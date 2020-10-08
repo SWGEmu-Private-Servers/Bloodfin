@@ -9,12 +9,12 @@
 #include "ContainerObjectComponent.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 
-bool ContainerObjectComponent::checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) const {
+bool ContainerObjectComponent::checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) {
 	//if (permission == )
 
 	Container* container = dynamic_cast<Container*>(sceneObject);
 
-	if (container != nullptr) {
+	if (container != NULL) {
 		if (container->isContainerLocked() && container->isSliced()) {
 			creature->sendSystemMessage("@slicing/slicing:broken");
 			return false;

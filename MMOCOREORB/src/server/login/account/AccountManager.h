@@ -8,6 +8,8 @@
 #ifndef ACCOUNTMANAGER_H_
 #define ACCOUNTMANAGER_H_
 
+#include "engine/engine.h"
+
 #include "server/login/account/Account.h"
 
 namespace server {
@@ -31,21 +33,15 @@ namespace server {
 
 				String dbSecret;
 
-				static ReadWriteLock mutex;
-
 			public:
 				AccountManager(LoginServer* loginserv);
 				~AccountManager();
 
 				void loginAccount(LoginClient* client, Message* packet);
 
-#ifdef WITH_SESSION_API
-				void loginApprovedAccount(LoginClient* client, ManagedReference<Account*> account);
-#endif // WITH_SESSION_API
+				Account* validateAccountCredentials(LoginClient* client, const String& username, const String& password);
 
-				Reference<Account*> validateAccountCredentials(LoginClient* client, const String& username, const String& password);
-
-				Reference<Account*> createAccount(const String& username, const String& password, String& passwordStored);
+				Account* createAccount(const String& username, const String& password, String& passwordStored);
 
 				void updateHash(const String& username, const String& password);
 
@@ -53,6 +49,14 @@ namespace server {
 				//Account* lookupAccount(uint32 accountID);
 				//Account* lookupAccount(uint64 characterID);
 				//Account* lookupAccount(const String& username);
+
+				inline void setMaxOnlineCharacters(uint32 maxonline) {
+					maxOnlineCharacters = maxonline;
+				}
+
+				inline uint32 getMaxOnlineCharacters() {
+					return maxOnlineCharacters;
+				}
 
 				inline void setRequiredVersion(const String& version) {
 					requiredVersion = version;
@@ -77,14 +81,15 @@ namespace server {
 					return autoRegistration;
 				}
 
-				static Reference<Account*> getAccount(uint32 accountID, bool forceSqlUpdate = false);
+				Account* getAccount(uint32 accountID);
 
-				static Reference<Account*> getAccount(const String& accountName, bool forceSqlUpdate = false);
-
-				static Reference<Account*> getAccount(uint32 accountID, String& passwordStored, bool forceSqlUpdate = false);
+				Account* getAccount(uint32 accountID, String& passwordStored);
 
 			private:
-				static Reference<Account*> getAccount(String query, String& passwordStored, bool forceSqlUpdate = false);
+
+				Account* getAccount(String query, String& passwordStored);
+				bool isRegistered(LoginClient* client);
+
 			};
 		}
 	}

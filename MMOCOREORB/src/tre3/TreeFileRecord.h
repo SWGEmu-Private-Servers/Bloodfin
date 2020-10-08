@@ -8,6 +8,7 @@
 #ifndef TREEFILERECORD_H_
 #define TREEFILERECORD_H_
 
+#include "engine/engine.h"
 #include "TreeDataBlock.h"
 
 class TreeFileRecord : public Object, public Logger {
@@ -26,7 +27,7 @@ class TreeFileRecord : public Object, public Logger {
 public:
 	TreeFileRecord() : Object(), Logger(), checksum(0), uncompressedSize(0), fileOffset(0), compressionType(0), compressedSize(0), nameOffset(0) {
 		setLoggingName("TreeFileRecord");
-		setLogging(false);
+		setLogging(true);
 
 		memset(md5Sum, 0, 16);
 	}
@@ -43,7 +44,7 @@ public:
 		memcpy(md5Sum, tfr.md5Sum, 16);
 
 		setLoggingName("TreeFileRecord " + recordName);
-		setLogging(false);
+		setLogging(true);
 	}
 
 	TreeFileRecord& operator= (const TreeFileRecord& tfr) {
@@ -107,12 +108,14 @@ public:
 	}
 
 	byte* getBytes() {
-		File file(treeFilePath);
-		FileInputStream fileStream(&file);
+		File* file = new File(treeFilePath);
 
-		if (!file.exists()) {
+		FileInputStream fileStream(file);
+
+		if (!file->exists()) {
 			error("Tree File does not exist: " + treeFilePath);
-			return nullptr;
+			delete file;
+			return NULL;
 		}
 
 		fileStream.skip(fileOffset);
@@ -126,10 +129,12 @@ public:
 
 		fileStream.close();
 
+		delete file;
+
 		return buffer;
 	}
 
-	String toString() const {
+	String toString() {
 		StringBuffer str;
 		str << "Checksum: " << checksum;
 		str << " UncompressedSize: " << uncompressedSize;
@@ -145,15 +150,15 @@ public:
 		memcpy(&md5Sum, sum, 16);
 	}
 
-	inline uint32 getNameOffset() const {
+	inline uint32 getNameOffset() {
 		return nameOffset;
 	}
 
-	inline uint32 getCompressionType() const {
+	inline uint32 getCompressionType() {
 		return compressionType;
 	}
 
-	inline uint32 getUncompressedSize() const {
+	inline uint32 getUncompressedSize() {
 		return uncompressedSize;
 	}
 
@@ -161,7 +166,7 @@ public:
 		recordName = name;
 	}
 
-	inline const String& getRecordName() const {
+	inline String& getRecordName() {
 		return recordName;
 	}
 
@@ -169,5 +174,6 @@ public:
 		treeFilePath = path;
 	}
 };
+
 
 #endif /* TREEFILERECORD_H_ */

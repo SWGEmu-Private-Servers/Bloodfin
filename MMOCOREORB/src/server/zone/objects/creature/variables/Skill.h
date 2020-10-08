@@ -2,7 +2,7 @@
 #define SKILL_H_
 
 #include "engine/engine.h"
-#include "templates/datatables/DataTableRow.h"
+#include "server/zone/templates/datatables/DataTableRow.h"
 
 namespace server {
 namespace zone {
@@ -18,7 +18,7 @@ using namespace server::zone::managers::skill;
 
 class Skill : public Object {
 protected:
-	WeakReference<Skill*> parentNode;
+	Reference<Skill*> parentNode;
 	Vector<Reference<Skill*> > childNodes;
 
 	String skillName;
@@ -76,7 +76,6 @@ public:
 		searchable = false;
 		skillsRequiredCount = 0;
 		pointsRequired = 0;
-		parentNode = nullptr;
 	}
 
 	~Skill() {
@@ -217,51 +216,51 @@ public:
 
 	}
 
-	inline const String& getSkillName() const {
+	inline String& getSkillName() {
 		return skillName;
 	}
 
-	inline int getJediStateRequired() const {
+	inline int getJediStateRequired() {
 		return jediStateRequired;
 	}
 
-	inline bool isGodOnly() const {
+	inline bool isGodOnly() {
 		return godOnly;
 	}
 
-	inline bool isTitle() const {
+	inline bool isTitle() {
 		return title;
 	}
 
-	inline bool isSkill() const {
+	inline bool isSkill() {
 		return profession;
 	}
 
-	inline bool isHidden() const {
+	inline bool isHidden() {
 		return hidden;
 	}
 
-	inline bool isSearchable() const {
+	inline bool isSearchable() {
 		return searchable;
 	}
 
-	inline Skill* getParent() const {
-		return parentNode.get();
+	inline Skill* getParent() {
+		return parentNode;
 	}
 
-	inline int getTotalChildren() const {
+	inline int getTotalChildren() {
 		return childNodes.size();
 	}
 
-	inline const Skill* getChildNode(int idx) const {
+	inline Skill* getChildNode(int idx) {
 		return childNodes.get(idx);
 	}
 
-	inline bool containsChildNode(Skill* skill) const {
+	inline bool containsChildNode(Skill* skill) {
 		return childNodes.contains(skill);
 	}
 
-	inline const String& getParentName() const {
+	inline String& getParentName() {
 		return parentName;
 	}
 
@@ -270,31 +269,31 @@ public:
 		childNodes.add(skill);
 	}
 
-	inline const Vector<String>* getAbilities() const {
+	inline Vector<String>* getAbilities() {
 		return &commands;
 	}
 
-	inline const Vector<String>* getSchematicsGranted() const {
+	inline Vector<String>* getSchematicsGranted() {
 		return &schematicsGranted;
 	}
 
-	inline const VectorMap<String, int>* getSkillModifiers() const {
+	inline VectorMap<String, int>* getSkillModifiers() {
 		return &skillModifiers;
 	}
 
-	inline const Vector<String>* getSkillsRequired() const {
+	inline Vector<String>* getSkillsRequired() {
 		return &skillsRequired;
 	}
 
-	inline bool isRequiredSkillOf(Skill* skill) const {
+	inline bool isRequiredSkillOf(Skill* skill) {
 		return skillsRequired.contains(skill->getSkillName());
 	}
 
-	inline const String& getXpType() const {
+	inline String getXpType() {
 		return xpType;
 	}
 
-	inline int getXpCap() const {
+	inline int getXpCap() {
 		return xpCap;
 	}
 
@@ -302,7 +301,7 @@ public:
 	 * Returns the XP cost for the skill.
 	 * @return XP cost for the skill.
 	 */
-	inline int getXpCost() const {
+	inline int getXpCost() {
 		return xpCost;
 	}
 
@@ -310,7 +309,7 @@ public:
 	 * Returns the credits required for training the skill at a trainer.
 	 * @return the credits required for training the skill at a trainer.
 	 */
-	inline int getMoneyRequired() const {
+	inline int getMoneyRequired() {
 		return moneyRequired;
 	}
 
@@ -318,7 +317,7 @@ public:
 	 * Returns the number of skill points required for the skill.
 	 * @return the number of skill points required for the skill.
 	 */
-	inline int getSkillPointsRequired() const {
+	inline int getSkillPointsRequired() {
 		return pointsRequired;
 	}
 
@@ -326,7 +325,7 @@ public:
 	 * Returns the species required for the skill.
 	 * @return the species required for the skill.
 	 */
-	inline const Vector<String>* getSpeciesRequired() const {
+	inline Vector<String>* getSpeciesRequired() {
 		return &speciesRequired;
 	}
 

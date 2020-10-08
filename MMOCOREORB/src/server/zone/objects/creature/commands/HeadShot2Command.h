@@ -5,7 +5,9 @@
 #ifndef HEADSHOT2COMMAND_H_
 #define HEADSHOT2COMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "CombatQueueCommand.h"
+
 
 class HeadShot2Command : public CombatQueueCommand {
 public:
@@ -22,6 +24,9 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
 		return doCombatAction(creature, target);
 	}
 

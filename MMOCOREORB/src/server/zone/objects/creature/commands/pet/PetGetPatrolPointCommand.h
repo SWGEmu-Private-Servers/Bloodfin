@@ -16,12 +16,12 @@ public:
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
 
-		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().get().castTo<PetControlDevice*>();
-		if (controlDevice == nullptr)
+		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().castTo<PetControlDevice*>();
+		if (controlDevice == NULL)
 			return GENERALERROR;
 
 		ManagedReference<AiAgent*> pet = cast<AiAgent*>(creature);
-		if( pet == nullptr )
+		if( pet == NULL )
 			return GENERALERROR;
 
 		if (pet->hasRidingCreature())
@@ -30,7 +30,7 @@ public:
 		// Check if droid has power
 		if( controlDevice->getPetType() == PetManager::DROIDPET ) {
 			ManagedReference<DroidObject*> droidPet = cast<DroidObject*>(pet.get());
-			if( droidPet == nullptr )
+			if( droidPet == NULL )
 				return GENERALERROR;
 
 			if( !droidPet->hasPower() ){
@@ -48,14 +48,14 @@ public:
 		if (controlDevice->getPatrolPointSize() < 10) {
 			ManagedReference<SceneObject*> targetObject = server->getZoneServer()->getObject(target, true);
 
-			if (targetObject != nullptr || targetObject->isPlayerCreature() ) {
-				CreatureObject* player = targetObject->asCreatureObject();
+			if (targetObject != NULL || targetObject->isPlayerCreature() ) {
+				CreatureObject* player = cast<CreatureObject*>(targetObject.get());
 
 				PatrolPoint point;
 				point.setPositionX(player->getPositionX());
 				point.setPositionY(player->getPositionY());
 				point.setPositionZ(player->getPositionZ());
-				point.setCell(player->getParent().get().castTo<CellObject*>());
+				point.setCell(player->getParent().get());
 
 				controlDevice->addPatrolPoint(point);
 

@@ -9,6 +9,7 @@
 #define CITYSETTAXSUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 
 namespace server {
 namespace zone {
@@ -43,7 +44,7 @@ public:
 
 		ManagedReference<CityRegion*> city = cityRegion.get();
 
-		if (city == nullptr || !suiBox->isInputBox() || player == nullptr || cancelPressed || args->size() <= 0) {
+		if (city == NULL || !suiBox->isInputBox() || player == NULL || cancelPressed || args->size() <= 0) {
 			return;
 		}
 

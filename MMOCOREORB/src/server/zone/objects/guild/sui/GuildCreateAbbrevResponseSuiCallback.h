@@ -49,9 +49,9 @@ public:
 
 		String guildAbbrev = args->get(0).toString();
 
-		ManagedReference<SceneObject*> obj = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = suiBox->getUsingObject();
 
-		if (obj == nullptr || !obj->isTerminal()) {
+		if (obj == NULL || !obj->isTerminal()) {
 			guildManager->removePendingGuild(playerID);
 			return;
 		}

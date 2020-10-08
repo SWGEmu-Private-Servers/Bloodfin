@@ -8,8 +8,8 @@
 #ifndef CMDSCENEREADYCALLBACK_H_
 #define CMDSCENEREADYCALLBACK_H_
 
-#include "server/zone/packets/MessageCallback.h"
-#include "server/zone/objects/creature/CreatureObject.h"
+#include "../MessageCallback.h"
+#include "server/zone/objects/scene/SceneObject.h"
 
 #include "CmdSceneReady.h"
 
@@ -25,17 +25,21 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> object = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (object == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* object = cast<CreatureObject*>(scene.get());
+
+		if (object == NULL)
 			return;
 
 		Locker _locker(object);
 
 		PlayerObject* ghost = object->getPlayerObject();
 
-		if (ghost != nullptr)
-			ghost->notifySceneReady();
+		ghost->notifySceneReady();
 	}
 };
 

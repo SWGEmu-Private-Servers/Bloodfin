@@ -8,13 +8,13 @@
 #ifndef CREATURETEMPLATEMANAGER_H_
 #define CREATURETEMPLATEMANAGER_H_
 
-#include "server/zone/objects/creature/ai/CreatureTemplate.h"
-#include "server/zone/objects/creature/conversation/ConversationTemplate.h"
-#include "templates/mobile/LairTemplate.h"
-#include "templates/mobile/PatrolPathTemplate.h"
-#include "templates/mobile/MobileOutfitGroup.h"
+#include "engine/engine.h"
+#include "server/zone/templates/mobile/CreatureTemplate.h"
+#include "server/zone/templates/mobile/ConversationTemplate.h"
+#include "server/zone/templates/mobile/LairTemplate.h"
+#include "server/zone/templates/mobile/PatrolPathTemplate.h"
+#include "server/zone/templates/mobile/MobileOutfitGroup.h"
 #include "SpawnGroup.h"
-#include "AiSpeciesData.h"
 
 namespace server {
 namespace zone {
@@ -24,8 +24,6 @@ namespace creature {
 class CreatureTemplateManager : public Singleton<CreatureTemplateManager>, public Object, public Logger {
 protected:
 	VectorMap<uint32, Vector<String> > weaponMap;
-	VectorMap<uint32, Vector<String> > dressMap;
-	Vector<Reference<AiSpeciesData*> > aiSpeciesData;
 	Reference<Lua*> lua;
 	HashTable<uint32, Reference<CreatureTemplate*> > hashTable;
 
@@ -40,7 +38,7 @@ protected:
 
 public:
 	static int DEBUG_MODE;
-	enum LUA_ERROR_CODE { NO_ERROR = 0, GENERAL_ERROR, DUPLICATE_MOBILE, INCORRECT_ARGUMENTS, DUPLICATE_CONVO };
+	enum LUA_ERROR_CODE { NO_ERROR = 0, GENERAL_ERROR, DUPLICATE_MOBILE, INCORRECT_ARGUMENTS };
 	static int ERROR_CODE;
 
 public:
@@ -48,7 +46,6 @@ public:
 	virtual ~CreatureTemplateManager();
 
 	int loadTemplates();
-	void loadLuaConfig();
 	static int includeFile(lua_State* L);
 	static int addTemplate(lua_State* L);
 	static int addWeapon(lua_State* L);
@@ -58,7 +55,6 @@ public:
 	static int addLairTemplate(lua_State* L);
 	static int addPatrolPathTemplate(lua_State* L);
 	static int addOutfitGroup(lua_State* L);
-	static int addDressGroup(lua_State* L);
 
 	static int checkArgumentCount(lua_State* L, int args);
 
@@ -106,11 +102,11 @@ public:
 		return conversations.get(crc).get();
 	}
 
-	const Vector<String>& getWeapons(uint32 crc) {
+	Vector<String> getWeapons(uint32 crc) {
 		return weaponMap.get(crc);
 	}
 
-	const Vector<String>& getWeapons(const String& ascii) {
+	Vector<String> getWeapons(String ascii) {
 		return weaponMap.get(ascii.hashCode());
 	}
 
@@ -124,18 +120,6 @@ public:
 
 	SpawnGroup* getDestroyMissionGroup(uint32 crc) {
 		return destroyMissionGroupMap.get(crc);
-	}
-
-	AiSpeciesData* getAiSpeciesData(uint32 speciesID) {
-		return aiSpeciesData.get(speciesID);
-	}
-
-	const Vector<String>& getDressGroup(uint32 crc) {
-		return dressMap.get(crc);
-	}
-
-	const Vector<String>& getDressGroup(const String& ascii) {
-		return dressMap.get(ascii.hashCode());
 	}
 
 };

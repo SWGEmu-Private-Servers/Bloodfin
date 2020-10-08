@@ -6,14 +6,15 @@
 #define DROIDMERCHANTODULEDATACOMPONENT_H_
 
 #include "BaseDroidModuleComponent.h"
+#include "engine/core/ManagedReference.h"
 #include "server/zone/objects/waypoint/WaypointObject.h"
-
 namespace server {
 namespace zone {
 namespace objects {
 namespace tangible {
 namespace components {
 namespace droid {
+
 
 class DroidMerchantModuleDataComponent : public BaseDroidModuleComponent {
 
@@ -26,7 +27,7 @@ protected:
 public:
 	DroidMerchantModuleDataComponent();
 	~DroidMerchantModuleDataComponent();
-	String getModuleName() const;
+	String getModuleName();
 	void setWaypoint(ManagedReference<WaypointObject*> wp);
 	void initializeTransientMembers();
 	void fillAttributeList(AttributeListMessage* msg, CreatureObject* droid);
@@ -34,14 +35,15 @@ public:
 	int handleObjectMenuSelect(CreatureObject* player, byte selectedID, PetControlDevice* controller);
 	void handlePetCommand(String cmd, CreatureObject* speaker) ;
 	int getBatteryDrain();
-	String toString() const;
-	const String& getMessage() const { return message; }
+	String toString();
+	String getMessage() { return message; }
 	bool isActive(){ return active; }
 	void onCall();
 	void deactivate();
 	void onStore();
 	bool isStackable() { return false; }
 };
+
 
 } // droid
 } // components
@@ -50,5 +52,4 @@ public:
 } // zone
 } // server
 using namespace server::zone::objects::tangible::components::droid;
-
 #endif /* DROIDMERCHANTODULEDATACOMPONENT_H_ */

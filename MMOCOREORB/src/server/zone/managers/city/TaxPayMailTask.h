@@ -8,13 +8,12 @@
 #ifndef TAXPAYMAILTASK_H_
 #define TAXPAYMAILTASK_H_
 
+#include "engine/engine.h"
 #include "server/chat/ChatManager.h"
 #include "server/zone/objects/region/CityRegion.h"
-#include "server/zone/managers/credit/CreditManager.h"
-#include "server/zone/objects/transaction/TransactionLog.h"
 
 class TaxPayMailTask : public Task {
-	Vector<uint64> citizens;
+	Vector<ManagedReference<CreatureObject*> > citizens;
 	String mayorName;
 	ManagedReference<ChatManager*> chatManager;
 	ManagedReference<CityRegion*> city;
@@ -26,8 +25,6 @@ public:
 		chatManager = chat;
 		incomeTax = tax;
 		city = cityRegion;
-
-		setCustomTaskQueue("slowQueue");
 	}
 
 	void run() {
@@ -36,41 +33,36 @@ public:
 		StringIdChatParameter params("city/city", "income_tax_paid_body");
 		params.setDI(incomeTax);
 
-		auto zoneServer = chatManager->getZoneServer();
-
-		ManagedReference<PlayerManager*> playerManager = zoneServer->getPlayerManager();
-
 		for (int i = 0; i < citizens.size(); ++i) {
-			uint64 citizenOID = citizens.get(i);
+			CreatureObject* citizen = citizens.get(i);
 
-			String name = playerManager->getPlayerName(citizenOID);
+			Locker lock(citizen);
 
-			if (name.isEmpty())
-				continue;
+			params.setTO(citizen->getDisplayedName());
 
-			params.setTO(name);
+			int bank = citizen->getBankCredits();
 
-			TransactionLog trx(citizenOID, TrxCode::CITYINCOMETAX, incomeTax, false);
+			if (bank < incomeTax) {
+				lock.release();
 
-			if (!CreditManager::subtractBankCredits(citizenOID, incomeTax)) {
 				// Failed to Pay Income Tax!
 				params.setStringId("city/city", "income_tax_nopay_body");
-				chatManager->sendMail("@city/city:new_city_from", "@city/city:income_tax_nopay_subject", params, name, nullptr);
+				chatManager->sendMail("@city/city:new_city_from", "@city/city:income_tax_nopay_subject", params, citizen->getFirstName(), NULL);
 
 				// Citizen Failed to Pay Income Tax
 				params.setStringId("city/city", "income_tax_nopay_mayor_body");
-				chatManager->sendMail("@city/city:new_city_from", "@city/city:income_tax_nopay_mayor_subject", params, mayorName, nullptr);
-
-				trx.abort() << "Unable to pay income tax to city";
+				chatManager->sendMail("@city/city:new_city_from", "@city/city:income_tax_nopay_mayor_subject", params, mayorName, NULL);
 
 				continue;
-			} else {
-				trx.commit();
 			}
+
+			citizen->subtractBankCredits(incomeTax);
+
+			lock.release();
 
 			// City Income Tax Paid
 			params.setStringId("city/city", "income_tax_paid_body");
-			chatManager->sendMail("@city/city:new_city_from", "@city/city:income_tax_paid_subject", params, name, nullptr);
+			chatManager->sendMail("@city/city:new_city_from", "@city/city:income_tax_paid_subject", params, citizen->getFirstName(), NULL);
 
 			totalIncome += incomeTax;
 		}
@@ -80,10 +72,12 @@ public:
 		city->addToCityTreasury(totalIncome);
 	}
 
-	void addCitizen(uint64 citizen) {
+	void addCitizen(CreatureObject* citizen) {
 		citizens.add(citizen);
 	}
 
 };
+
+
 
 #endif /* TAXNOPAYMAILTASK_H_ */

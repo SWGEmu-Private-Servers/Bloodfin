@@ -4,16 +4,16 @@
 
 package server.zone.objects.mission;
 
+import engine.util.Observer;
 import engine.util.Observable;
 import server.zone.objects.mission.MissionObject;
 import server.zone.objects.mission.MissionObjective;
 import server.zone.objects.mission.MissionObserver;
+import server.zone.objects.area.MissionSpawnActiveArea;
+import server.zone.objects.scene.SceneObject;
+include server.zone.templates.TemplateReference;
+import server.zone.templates.SharedObjectTemplate;
 
-import engine.core.ManagedObject;
-include engine.log.Logger;
-include engine.util.u3d.Vector3;
-
-@json
 class HuntingMissionObjective extends MissionObjective {
 	private int targetsKilled;
 

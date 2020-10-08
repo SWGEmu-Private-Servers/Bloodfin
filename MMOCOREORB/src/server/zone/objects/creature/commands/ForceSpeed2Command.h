@@ -5,6 +5,8 @@
 #ifndef FORCESPEED2COMMAND_H_
 #define FORCESPEED2COMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class ForceSpeed2Command : public JediQueueCommand {
 public:
 
@@ -13,8 +15,8 @@ public:
 
 		buffCRC = BuffCRC::JEDI_FORCE_SPEED_2;
 
-		overrideableCRCs.add(BuffCRC::JEDI_FORCE_SPEED_1);
-
+		blockingCRCs.add(BuffCRC::JEDI_FORCE_SPEED_1);
+		blockingCRCs.add(BuffCRC::JEDI_FORCE_SPEED_2);
 		skillMods.put("combat_haste", 25);
 	}
 

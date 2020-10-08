@@ -108,25 +108,23 @@ public:
 			SortedVector<QuadTreeEntry*> closeObjects;
 			Zone* zone = creature->getZone();
 
-			if (creature->getCloseObjects() == nullptr) {
-#ifdef COV_DEBUG
+			if (creature->getCloseObjects() == NULL) {
 				creature->info("Null closeobjects vector in GrantBadgeCommand::doQueueCommand", true);
-#endif
 				zone->getInRangeObjects(creature->getPositionX(), creature->getPositionY(), range, &closeObjects, true);
 			}
 			else {
 				CloseObjectsVector* closeVector = (CloseObjectsVector*) creature->getCloseObjects();
-				closeVector->safeCopyReceiversTo(closeObjects, CloseObjectsVector::PLAYERTYPE);
+				closeVector->safeCopyTo(closeObjects);
 			}
 
 			int numGranted = 0;
 
 			for (int i = 0; i < closeObjects.size(); i++) {
 				SceneObject* targetObject = cast<SceneObject*>(closeObjects.get(i));
-				if (targetObject != nullptr && targetObject->isPlayerCreature()) {
+				if (targetObject != NULL && targetObject->isPlayerCreature()) {
 					ManagedReference<CreatureObject*> player = cast<CreatureObject*>(targetObject);
 
-					if (player != nullptr && player != creature) {
+					if (player != NULL && player != creature) {
 						Locker crossLocker(player, creature);
 						server->getPlayerManager()->awardBadge(player->getPlayerObject(), badgeId);
 						numGranted++;
@@ -137,13 +135,13 @@ public:
 			return SUCCESS;
 
 		} else {
-			if (targetObject == nullptr || !targetObject->isPlayerCreature()) {
+			if (targetObject == NULL || !targetObject->isPlayerCreature()) {
 					creature->sendSystemMessage("Invalid target.");
 					return INVALIDTARGET;
 			} else {
 				ManagedReference<CreatureObject*> player = cast<CreatureObject*>(targetObject.get());
 
-				if (player != nullptr) {
+				if (player != NULL) {
 					Locker crossLocker(player, creature);
 
 					if (multiple) {

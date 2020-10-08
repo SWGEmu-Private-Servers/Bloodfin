@@ -8,8 +8,13 @@
 #ifndef GETMAPLOCATIONSCALLBACK_H_
 #define GETMAPLOCATIONSCALLBACK_H_
 
-#include "server/zone/packets/MessageCallback.h"
+
+#include "../MessageCallback.h"
+#include "server/zone/objects/scene/SceneObject.h"
+
+#include "server/zone/managers/planet/PlanetManager.h"
 #include "server/zone/Zone.h"
+#include "GetMapLocationsResponseMessage.h"
 
 class GetMapLocationsCallback : public MessageCallback {
 	String zoneName;
@@ -25,16 +30,21 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> object = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (object == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* object = cast<CreatureObject*>(scene.get());
+
+		if (object == NULL)
 			return;
 
 		Locker _locker(object);
 
 		Zone* zone = server->getZoneServer()->getZone(zoneName);
 
-		if (zone != nullptr)
+		if (zone != NULL)
 			zone->sendMapLocationsTo(object);
 	}
 };

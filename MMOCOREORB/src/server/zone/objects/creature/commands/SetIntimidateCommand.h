@@ -5,6 +5,8 @@
 #ifndef SETINTIMIDATECOMMAND_H_
 #define SETINTIMIDATECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class SetIntimidateCommand : public QueueCommand {
 public:
 
@@ -45,11 +47,7 @@ public:
 			player->sendSystemMessage("Your Intimidate message can only be up to 128 characters long.");
 			return GENERALERROR;
 		}
-
-		ZoneProcessServer* zps = player->getZoneProcessServer();
-		NameManager* nameManager = zps->getNameManager();
-
-		if (nameManager->isProfane(message)){
+		if (NameManager::instance()->isProfane(message)){
 			player->sendSystemMessage("Your Intimidate message has failed the profanity filter.");
 			return GENERALERROR;
 		}

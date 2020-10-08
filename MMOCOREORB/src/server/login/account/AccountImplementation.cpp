@@ -5,13 +5,10 @@
 
 #include "../objects.h"
 #include "server/login/account/Account.h"
+#include "server/login/account/AccountManager.h"
 #include "../objects/GalaxyBanEntry.h"
 
 AccountImplementation::AccountImplementation() {
-	initializeTransientMembers();
-}
-
-void AccountImplementation::initializeTransientMembers() {
 	active = false;
 	accountID = 0;
 	stationID = 0;
@@ -22,27 +19,11 @@ void AccountImplementation::initializeTransientMembers() {
 }
 
 void AccountImplementation::updateFromDatabase() {
-	Locker locker(_this.getReferenceUnsafeStaticCast());
 
 	updateAccount();
 	updateCharacters();
 	updateGalaxyBans();
-}
 
-Reference<GalaxyAccountInfo*> AccountImplementation::getGalaxyAccountInfo(const String& galaxyName) {
-	Reference<GalaxyAccountInfo*> info = galaxyAccountInfo.get(galaxyName);
-
-	if(info == nullptr) {
-		info = new GalaxyAccountInfo();
-
-		galaxyAccountInfo.put(galaxyName, info);
-	}
-
-	return info;
-}
-
-void AccountImplementation::addGalaxyBan(GalaxyBanEntry* ban, uint32 galaxy) {
-	galaxyBans.put(galaxy, ban);
 }
 
 void AccountImplementation::updateAccount() {
@@ -53,9 +34,10 @@ void AccountImplementation::updateAccount() {
 			<< "IFNULL((SELECT b.issuer_id FROM account_bans b WHERE b.account_id = a.account_id AND b.expires > UNIX_TIMESTAMP() ORDER BY b.expires DESC LIMIT 1), 0) "
 			<< "FROM accounts a WHERE a.account_id = '" << accountID << "' LIMIT 1;";
 
-	UniqueReference<ResultSet*> result(ServerDatabase::instance()->executeQuery(query));
+	ResultSet* result = ServerDatabase::instance()->executeQuery(query);
 
 	if (result->next()) {
+
 		setActive(result->getBoolean(0));
 		setAdminLevel(result->getInt(1));
 
@@ -63,21 +45,24 @@ void AccountImplementation::updateAccount() {
 		setBanExpires(result->getUnsignedInt(3));
 		setBanAdmin(result->getUnsignedInt(4));
 	}
+
+	delete result;
+	result = NULL;
 }
 
 void AccountImplementation::updateCharacters() {
-	characterList = new CharacterList(getAccountID(), getUsername());
+	characterList = new CharacterList(getAccountID());
 }
 
 void AccountImplementation::updateGalaxyBans() {
 	StringBuffer query;
 	query << "SELECT * FROM galaxy_bans as gb WHERE account_id=" << getAccountID() << " and expires > UNIX_TIMESTAMP()";
 
-	UniqueReference<ResultSet*> results(ServerDatabase::instance()->executeQuery(query));
+	ResultSet* results = ServerDatabase::instance()->executeQuery(query);
 
 	galaxyBans.removeAll();
 
-	while (results->next()) {
+	while(results->next()) {
 		Reference<GalaxyBanEntry*> entry = new GalaxyBanEntry();
 
 		entry->setAccountID(results->getUnsignedInt(1));
@@ -93,64 +78,42 @@ void AccountImplementation::updateGalaxyBans() {
 
 		galaxyBans.put(entry->getGalaxyID(), entry);
 	}
+
+	delete results;
 }
 
-bool AccountImplementation::isBanned() const {
+bool AccountImplementation::isBanned() {
 	return banExpires > time(0);
 }
 
-const GalaxyBanEntry* AccountImplementation::getGalaxyBan(const uint32 galaxy) const {
-	return galaxyBans.get(galaxy);
-}
-
 GalaxyBanEntry* AccountImplementation::getGalaxyBan(const uint32 galaxy) {
-	return galaxyBans.get(galaxy);
-}
+	if(galaxyBans.contains(galaxy))
+		return galaxyBans.get(galaxy);
 
-const CharacterListEntry* AccountImplementation::getCharacterBan(const uint32 galaxy, const String& name) const {
-	for (int i = 0; i < characterList->size(); ++i) {
-		const CharacterListEntry* entry = &characterList->get(i);
-
-		if (entry->getFirstName() == name &&
-				entry->getGalaxyID() == galaxy &&
-				entry->isBanned())
-			return entry;
-	}
-
-	return nullptr;
+	return NULL;
 }
 
 CharacterListEntry* AccountImplementation::getCharacterBan(const uint32 galaxy, const String& name) {
-	for (int i = 0; i < characterList->size(); ++i) {
+
+	for(int i = 0; i < characterList->size(); ++i) {
 		CharacterListEntry* entry = &characterList->get(i);
 
-		if (entry->getFirstName() == name &&
+		if(entry->getFirstName() == name &&
 				entry->getGalaxyID() == galaxy &&
 				entry->isBanned())
 			return entry;
 	}
 
-	return nullptr;
+	return NULL;
 }
 
 CharacterList* AccountImplementation::getCharacterList() {
-	if (characterList == nullptr)
-		updateCharacters();
-
 	return characterList;
 }
 
-uint32 AccountImplementation::getAgeInDays() const {
-	if (created == 0) {
-		throw Exception("Account Object has created set as 0 in getAgeInDays");
-	}
-
+uint32 AccountImplementation::getAgeInDays(){
 	Time currentTime;
 	Time createdTime(getTimeCreated());
 	uint32 ageSecs = currentTime.getTime() - createdTime.getTime();
 	return ageSecs / 24 / 60 / 60;
-}
-
-bool AccountImplementation::isSqlLoaded() const {
-	return (accountID || stationID || adminLevel || created);
 }

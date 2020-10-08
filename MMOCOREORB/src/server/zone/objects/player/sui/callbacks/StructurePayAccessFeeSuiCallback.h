@@ -24,9 +24,9 @@ public:
 		if(!sui->isMessageBox() || cancelPressed)
 			return;
 
-		ManagedReference<SceneObject*> usingObject = sui->getUsingObject().get();
+		ManagedReference<SceneObject*> usingObject = sui->getUsingObject();
 
-		if (usingObject == nullptr || !usingObject->isBuildingObject())
+		if (usingObject == NULL || !usingObject->isBuildingObject())
 			return;
 
 		BuildingObject* buildingObject = cast<BuildingObject*>(usingObject.get());

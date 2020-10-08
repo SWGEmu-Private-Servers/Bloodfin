@@ -5,7 +5,10 @@
 #ifndef LOGINMESSAGEPROCESSORTASK_H_
 #define LOGINMESSAGEPROCESSORTASK_H_
 
+#include "engine/engine.h"
+
 #include "LoginPacketHandler.h"
+
 
 class LoginMessageProcessorTask : public Task {
 	Message* message;
@@ -21,7 +24,7 @@ public:
 
 	~LoginMessageProcessorTask() {
 		delete message;
-		message = nullptr;
+		message = NULL;
 	}
 
 	void run() {
@@ -44,7 +47,7 @@ public:
 		}
 
 		delete message;
-		message = nullptr;
+		message = NULL;
 
 	}
 

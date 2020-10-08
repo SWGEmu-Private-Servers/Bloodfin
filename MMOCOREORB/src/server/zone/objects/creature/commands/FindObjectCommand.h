@@ -30,23 +30,21 @@ public:
 		try {
 			StringTokenizer tokenizer(arguments.toString());
 
-			Reference<SceneObject*> targetObject = nullptr;
+			Reference<SceneObject*> targetObject = NULL;
 			Reference<PlayerObject*> ghost = creature->getSlottedObject("ghost").castTo<PlayerObject*>();
 
 			if (!tokenizer.hasMoreTokens()) {
 				targetObject = server->getZoneServer()->getObject(creature->getTargetID());
 
-				if (targetObject != nullptr) {
+				if (targetObject != NULL) {
 					Locker crossLocker(targetObject, creature);
 
 					Vector3 worldPosition = targetObject->getWorldPosition();
 
 					ManagedReference<WaypointObject*> obj = server->getZoneServer()->createObject(0xc456e788, 1).castTo<WaypointObject*>();
-
-					Locker waypointGuard(obj);
-
 					obj->setPlanetCRC(targetObject->getPlanetCRC());
 					obj->setPosition(worldPosition.getX(), 0, worldPosition.getY());
+
 					obj->setActive(true);
 
 					ghost->addWaypoint(obj, false, true);
@@ -55,7 +53,7 @@ public:
 			}
 
 			Zone* zone = creature->getZone();
-			if(zone == nullptr)
+			if(zone == NULL)
 				return GENERALERROR;
 
 			String objectFilter;
@@ -82,10 +80,10 @@ public:
 			for (int i = 0; i < objects.size(); ++i) {
 				ManagedReference<SceneObject*> object = cast<SceneObject*>(objects.get(i).get());
 
-				if (object == nullptr)
+				if (object == NULL)
 					continue;
 
-				if (object == creature)
+				if(object == creature)
 					continue;
 
 				results.deleteAll();

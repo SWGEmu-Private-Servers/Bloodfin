@@ -13,7 +13,7 @@ namespace tangible {
 namespace tasks {
 
 class RemoveEventPerkDeedTask : public Task {
-	ManagedWeakReference<EventPerkDeed*> deed;
+	ManagedReference<EventPerkDeed*> deed;
 
 public:
 	RemoveEventPerkDeedTask(EventPerkDeed* de) {
@@ -21,26 +21,21 @@ public:
 	}
 
 	void run() {
-		auto deed = this->deed.get();
-
-		if (deed == nullptr) {
+		if (deed == NULL) {
 			return;
 		}
-
-		Locker locker(deed);
-
-		deed->getRootParent();
 
 		ManagedReference<TangibleObject*> genOb = deed->getGeneratedObject().get();
 		ManagedReference<CreatureObject*> player = deed->getOwner().get();
 
-		if (genOb != nullptr) {
-			Locker clocker(genOb, deed);
+		Locker locker(deed);
 
+		if (genOb != NULL) {
+			Locker clocker(genOb, deed);
 			genOb->destroyChildObjects();
 			genOb->destroyObjectFromWorld(true);
 			genOb->destroyObjectFromDatabase();
-		} else if (player != nullptr) {
+		} else if (player != NULL) {
 			player->sendSystemMessage("@event_perk:deed_expired"); // Your unused Rental Deed expired and has been removed from your inventory.
 		}
 

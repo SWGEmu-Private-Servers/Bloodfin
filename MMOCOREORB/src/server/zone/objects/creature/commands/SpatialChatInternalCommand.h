@@ -5,6 +5,8 @@
 #ifndef SPATIALCHATINTERNALCOMMAND_H_
 #define SPATIALCHATINTERNALCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class SpatialChatInternalCommand : public QueueCommand {
 public:
 
@@ -25,7 +27,7 @@ public:
 			return GENERALERROR;
 
 		ChatManager* chatManager = server->getChatManager();
-		if (chatManager == nullptr)
+		if (chatManager == NULL)
 			return GENERALERROR;
 
 		chatManager->handleSpatialChatInternalMessage(creature, arguments);

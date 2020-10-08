@@ -12,10 +12,12 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/installation/InstallationObject.h"
 #include "server/zone/managers/structure/StructureManager.h"
+#include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
+#include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/intangible/PetControlDevice.h"
 #include "server/zone/managers/creature/PetManager.h"
 
-void InstallationObjectMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void InstallationObjectMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	if (!sceneObject->isInstallationObject())
 		return;
 
@@ -29,11 +31,11 @@ void InstallationObjectMenuComponent::fillObjectMenuResponse(SceneObject* sceneO
 	menuResponse->addRadialMenuItemToRadialID(118, 124, 3, "@player_structure:management_status"); //Status
 	menuResponse->addRadialMenuItemToRadialID(118, 129, 3, "@player_structure:management_pay"); //Pay Maintenance
 	ManagedReference<SceneObject*> datapad = player->getSlottedObject("datapad");
-	if(datapad != nullptr) {
+	if(datapad != NULL) {
 		for (int i = 0; i < datapad->getContainerObjectsSize(); ++i) {
 			ManagedReference<SceneObject*> object = datapad->getContainerObject(i);
 
-			if (object != nullptr && object->isPetControlDevice()) {
+			if (object != NULL && object->isPetControlDevice()) {
 				PetControlDevice* device = cast<PetControlDevice*>( object.get());
 
 				if (device->getPetType() == PetManager::DROIDPET) {
@@ -55,7 +57,7 @@ void InstallationObjectMenuComponent::fillObjectMenuResponse(SceneObject* sceneO
 
 }
 
-int InstallationObjectMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int InstallationObjectMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isInstallationObject())
 		return 1;
 
@@ -63,7 +65,7 @@ int InstallationObjectMenuComponent::handleObjectMenuSelect(SceneObject* sceneOb
 
 	ManagedReference<Zone*> zone = installation->getZone();
 
-	if (zone == nullptr)
+	if (zone == NULL)
 		return 1;
 
 	if (!installation->isOnAdminList(player))

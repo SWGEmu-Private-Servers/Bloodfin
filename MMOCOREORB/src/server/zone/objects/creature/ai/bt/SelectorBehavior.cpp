@@ -6,6 +6,7 @@
  */
 
 #include "SelectorBehavior.h"
+#include "server/zone/managers/creature/AiMap.h"
 
 SelectorBehavior::SelectorBehavior(AiAgent* _agent, const String& className) : CompositeBehavior(_agent, className) {
 
@@ -24,7 +25,7 @@ void SelectorBehavior::childFailed() {
 
 			// TODO (dannuic): This if block is here because the out of bounds exception doesn't work like expected
 			if (currentPos >= children.size()) {
-				currentChild = nullptr;
+				currentChild = NULL;
 				currentPos = 0;
 				endWithFailure();
 				return;
@@ -32,7 +33,7 @@ void SelectorBehavior::childFailed() {
 
 			currentChild = children.get(currentPos);
 
-			if (currentChild == nullptr) { // uh oh, this shouldn't happen
+			if (currentChild == NULL) { // uh oh, this shouldn't happen
 				currentPos = 0;
 				endWithError();
 				return;
@@ -40,7 +41,7 @@ void SelectorBehavior::childFailed() {
 
 		} while (!currentChild->checkConditions());
 	} catch (ArrayIndexOutOfBoundsException &e) { // TODO (dannuic): Why doesn't this ever happen? currentPos just decrements and no exception is thrown...
-		currentChild = nullptr;
+		currentChild = NULL;
 		currentPos = 0;
 		endWithFailure();
 	}

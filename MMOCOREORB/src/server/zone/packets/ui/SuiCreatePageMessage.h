@@ -11,7 +11,7 @@
 #ifndef SUICREATEPAGEMESSAGE_H_
 #define SUICREATEPAGEMESSAGE_H_
 
-#include "engine/service/proto/BaseMessage.h"
+#include "engine/engine.h"
 #include "server/zone/objects/player/sui/SuiPageData.h"
 
 class SuiCreatePageMessage : public BaseMessage {
@@ -19,7 +19,7 @@ class SuiCreatePageMessage : public BaseMessage {
 	int optionCount;
 
 public:
-	SuiCreatePageMessage(SuiPageData* sui) : optionOffset(0), optionCount(0) {
+	SuiCreatePageMessage(SuiPageData* sui) {
 		insertShort(0x02);
 		insertInt(0xD44B7259);
 

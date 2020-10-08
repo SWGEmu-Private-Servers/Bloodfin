@@ -6,12 +6,14 @@ package server.zone.objects.tangible;
 
 import server.zone.objects.tangible.TangibleObject;
 import server.zone.objects.scene.SceneObject;
-include templates.SharedObjectTemplate;
+import engine.lua.LuaObject;
+import server.zone.Zone;
+import server.zone.templates.SharedObjectTemplate;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.packets.object.ObjectMenuResponse;
 
-@json
 class Container extends TangibleObject {
+
 	protected boolean locked;
 
 	protected transient boolean relocking;
@@ -20,13 +22,12 @@ class Container extends TangibleObject {
 		Logger.setLoggingName("Container");
 
 		locked = false;
-		relocking = false;
 	}
-
+	
 	@local
 	public native void loadTemplateData(SharedObjectTemplate templateData);
 	public native void initializeTransientMembers();
-
+	
 	@local
 	public native void notifyLoadFromDatabase();
 	/**
@@ -38,7 +39,7 @@ class Container extends TangibleObject {
 	@local
 	@dirty
 	public native void fillObjectMenuResponse(ObjectMenuResponse menuResponse, CreatureObject player);
-
+	
 	/**
 	 * Handles the radial selection sent by the client, must be overriden by inherited objects
 	 * @pre { this object is locked, player is locked }
@@ -48,7 +49,10 @@ class Container extends TangibleObject {
 	 * @returns 0 if successfull
 	 */
 	public native int handleObjectMenuSelect(CreatureObject player, byte selectedID);
-
+	
+	
+	
+	
 	/**
 	 * Evaluates if this object has the necessary free slots to be able to add the specified SceneObject
 	 * @pre { this object is locked, object is locked }
@@ -59,7 +63,9 @@ class Container extends TangibleObject {
 	 */
 	@dirty
 	public native int canAddObject(SceneObject object, int containmentType, string errorDescription);
-
+	
+	//public native void sendContainerObjectsTo(SceneObject player);
+	
 	@dirty
 	public boolean isContainerObject() {
 		return true;
@@ -73,24 +79,24 @@ class Container extends TangibleObject {
 	public void setLockedStatus(boolean lock) {
 		locked = lock;
 	}
-
-	@read
+	
+	@dirty
 	public int getLockChance() {
-		return 15;
+		return 15;	
 	}
 
-	@read
+	@dirty
 	public long getLockTime() {
-		return 60*30*1000;
+		return 60*30*1000;	
 	}
-
+	
 	@read
 	public boolean isRelocking() {
-		return relocking;
+		return relocking;	
 	}
 
 	public boolean setRelockingStatus(boolean relock) {
-		return relocking = relock;
+		return relocking = relock;	
 	}
 
 }

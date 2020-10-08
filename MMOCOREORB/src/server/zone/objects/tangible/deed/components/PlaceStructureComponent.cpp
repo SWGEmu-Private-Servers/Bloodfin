@@ -12,17 +12,19 @@
 #include "server/zone/objects/installation/InstallationObject.h"
 #include "server/zone/objects/tangible/deed/structure/StructureDeed.h"
 #include "server/zone/Zone.h"
+#include "server/zone/objects/area/ActiveArea.h"
+#include "server/zone/objects/region/CityRegion.h"
 
-int PlaceStructureComponent::placeStructure(StructureDeed* deed, CreatureObject* creature, float x, float y, int angle) const {
+int PlaceStructureComponent::placeStructure(StructureDeed* deed, CreatureObject* creature, float x, float y, int angle) {
 	Zone* zone = creature->getZone();
 
-	if (zone != nullptr)
+	if (zone != NULL)
 		StructureManager::instance()->placeStructureFromDeed(creature, deed, x, y, angle);
 
 	return 0;
 }
 
-int PlaceStructureComponent::notifyStructurePlaced(StructureDeed* deed, CreatureObject* creature, StructureObject* structureObject) const {
+int PlaceStructureComponent::notifyStructurePlaced(StructureDeed* deed, CreatureObject* creature, StructureObject* structureObject) {
 	structureObject->setSurplusMaintenance(deed->getSurplusMaintenance());
 	structureObject->setSurplusPower(deed->getSurplusPower());
 

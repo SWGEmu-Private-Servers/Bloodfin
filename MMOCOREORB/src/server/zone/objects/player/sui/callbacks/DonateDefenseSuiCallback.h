@@ -9,6 +9,8 @@
 #define DONATEDEFENSESUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/objects/scene/SceneObjectType.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/managers/gcw/GCWManager.h"
 
 class DonateDefenseSuiCallback : public SuiCallback {
@@ -22,12 +24,12 @@ public:
 	void run(CreatureObject* player, SuiBox* suiBox, uint32 eventIndex, Vector<UnicodeString>* args) {
 		bool cancelPressed = (eventIndex == 1);
 
-		if (cancelPressed || !suiBox->isListBox() || player == nullptr)
+		if (cancelPressed || !suiBox->isListBox() || player == NULL)
 			return;
 
-		ManagedReference<SceneObject*> obj = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = suiBox->getUsingObject();
 
-		if (obj == nullptr || !obj->isBuildingObject())
+		if (obj == NULL || !obj->isBuildingObject())
 			return;
 
 		SuiListBox* listBox = cast<SuiListBox*>(suiBox);
@@ -40,7 +42,7 @@ public:
 
 		GCWManager* gcwMan = player->getZone()->getGCWManager();
 
-		if (gcwMan == nullptr)
+		if (gcwMan == NULL)
 			return;
 
 		gcwMan->performDefenseDonation(building, player, objectid);

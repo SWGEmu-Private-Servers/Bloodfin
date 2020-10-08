@@ -8,6 +8,8 @@
 #ifndef LOOTGROUPENTRY_H_
 #define LOOTGROUPENTRY_H_
 
+#include "engine/engine.h"
+
 class LootGroupEntry : public Object {
 	String templateName;
 	int lootChance;
@@ -51,11 +53,11 @@ public:
 
 	}
 
-	inline const String& getLootGroupName() const {
+	inline String& getLootGroupName() {
 		return templateName;
 	}
 
-	inline int getLootChance() const {
+	inline int getLootChance() {
 		return lootChance;
 	}
 };

@@ -9,7 +9,6 @@
 #include "MessageCallbackFactory.h"
 
 #include "packets/MessageCallback.h"
-#include "packets/object/ObjectControllerMessageCallback.h"
 
 namespace server {
 namespace zone {
@@ -19,22 +18,26 @@ namespace zone {
 	class ZoneServer;
 
 	class ZonePacketHandler : public Logger, public Object {
-		Reference<ZoneProcessServer*> processServer;
+		ManagedReference<ZoneProcessServer*> processServer;
 
-		Reference<ZoneServer*> server;
+		ManagedReference<ZoneServer*> server;
 
 		MessageCallbackFactory<MessageCallback* (ZoneClientSession*, ZoneProcessServer*), uint32> messageCallbackFactory;
 
 	public:
-		ZonePacketHandler();
+		ZonePacketHandler() : Logger() {
+			server = NULL;
+		}
+
 		ZonePacketHandler(const String& s, ZoneProcessServer* serv);
 
-		~ZonePacketHandler();
+		~ZonePacketHandler() {
+		}
 
 		void registerMessages();
 		void registerObjectControllerMessages();
 
-		Task* generateMessageTask(ZoneClientSession* client, Message* pack) const;
+		Task* generateMessageTask(ZoneClientSession* client, Message* pack);
 	};
 
 	}

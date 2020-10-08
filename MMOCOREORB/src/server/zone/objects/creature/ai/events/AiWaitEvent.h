@@ -10,6 +10,7 @@
 
 #include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/managers/creature/AiMap.h"
+#include "server/zone/objects/creature/ai/PatrolPoint.h"
 
 namespace server {
 namespace zone {
@@ -34,7 +35,7 @@ public:
 	void run() {
 		ManagedReference<AiAgent*> strongRef = creature.get();
 
-		if (strongRef == nullptr)
+		if (strongRef == NULL)
 			return;
 
 		Locker locker(strongRef);

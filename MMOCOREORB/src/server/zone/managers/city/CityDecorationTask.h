@@ -8,10 +8,11 @@
 #ifndef CITYDECORATIONTASK_H_
 #define CITYDECORATIONTASK_H_
 
+#include "engine/engine.h"
+#include "server/chat/ChatManager.h"
 #include "server/zone/objects/region/CityRegion.h"
 #include "server/zone/managers/planet/PlanetManager.h"
 #include "server/zone/objects/scene/SceneObject.h"
-#include "server/zone/objects/player/PlayerObject.h"
 
 class CityDecorationTask : public Task {
 	ManagedReference<CreatureObject*> mayor;
@@ -46,9 +47,9 @@ public:
 	void placeDecoration() {
 		Locker _lock(mayor);
 
-		ManagedReference<CityRegion*> city = mayor->getCityRegion().get();
+		ManagedReference<CityRegion*> city = mayor->getCityRegion();
 
-		if(city == nullptr) {
+		if(city == NULL) {
 			mayor->sendSystemMessage("@player_structure:cant_place_civic"); //This structure must be placed within the borders of the city in which you are mayor.
 			return;
 		}
@@ -61,7 +62,7 @@ public:
 		}
 
 		PlayerObject* mayorGhost = mayor->getPlayerObject().get();
-		if (mayorGhost == nullptr) {
+		if (mayorGhost == NULL) {
 			return;
 		}
 
@@ -78,25 +79,16 @@ public:
 
 		Zone* zone = mayor->getZone();
 
-		if (zone == nullptr || obj->getObjectTemplate() == nullptr)
+		if (zone == NULL || obj->getObjectTemplate() == NULL)
 			return;
-
-		ManagedReference<PlanetManager*> planetManager = zone->getPlanetManager();
-		// We don't want players to exploit-block entrances or exits to POI areas & buildings
-		if (!planetManager->isBuildingPermittedAt(mayor->getWorldPositionX(), mayor->getWorldPositionY(), mayor, 0, false)) {
-			StringIdChatParameter msg;
-			msg.setStringId("@player_structure:not_permitted"); //"Building is not permitted here."
-			mayor->sendSystemMessage(msg);
-			return;
-		}
 
 		Reference<SceneObject*> objTooClose = zone->getPlanetManager()->findObjectTooCloseToDecoration(mayor->getPositionX(), mayor->getPositionY(), obj->getObjectTemplate()->getNoBuildRadius());
 
-		if (objTooClose != nullptr && !obj->isCityStreetLamp()) {
+		if (objTooClose != NULL && !obj->isCityStreetLamp()) {
 			StringIdChatParameter msg;
 			msg.setStringId("@city/city:deco_too_close"); //"You can't place a decoration here, it would be too close to structure %TO.");
 
-			msg.setTO(objTooClose->getObjectID());
+			msg.setTO(objTooClose);
 			//msg.setTO(objTooClose->getObjectNameStringIdFile(), obj->getObjectNameStringIdName());
 			mayor->sendSystemMessage(msg);
 			return;
@@ -132,9 +124,9 @@ public:
 	void removeDecoration() {
 		Locker _lock(mayor);
 
-		ManagedReference<CityRegion*> city = mayor->getCityRegion().get();
+		ManagedReference<CityRegion*> city = mayor->getCityRegion();
 
-		if(city == nullptr)
+		if(city == NULL)
 			return;
 
 		if(!city->isMayor(mayor->getObjectID())) {
@@ -143,12 +135,12 @@ public:
 
 		Zone* zone = mayor->getZone();
 
-		if (zone == nullptr)
+		if (zone == NULL)
 			return;
 
 		ManagedReference<SceneObject*> inv = mayor->getSlottedObject("inventory");
 
-		if(inv == nullptr)
+		if(inv == NULL)
 			return;
 
 		if(inv->isContainerFullRecursive()) {

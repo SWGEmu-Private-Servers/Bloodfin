@@ -5,10 +5,12 @@
 #ifndef CHATPERSISTENTMESSAGETOCLIENT_H_
 #define CHATPERSISTENTMESSAGETOCLIENT_H_
 
-#include "engine/service/proto/BaseMessage.h"
+#include "engine/engine.h"
+#include "server/chat/ChatParameter.h"
 #include "server/chat/StringIdChatParameterVector.h"
 #include "server/chat/WaypointChatParameterVector.h"
 #include "server/chat/PersistentMessage.h"
+#include "server/chat/StringIdChatParameter.h"
 
 class ChatPersistentMessageToClient : public BaseMessage {
 	void insertParameters(PersistentMessage* mail) {
@@ -20,7 +22,7 @@ class ChatPersistentMessageToClient : public BaseMessage {
 		for (int i = 0; i < stringIdParameters->size(); ++i) {
 			StringIdChatParameter* parameter = &stringIdParameters->get(i);
 
-			if (parameter == nullptr)
+			if (parameter == NULL)
 				continue;
 
 			parameter->insertToMessage(this);
@@ -31,7 +33,7 @@ class ChatPersistentMessageToClient : public BaseMessage {
 		for (int i = 0; i < waypointParameters->size(); ++i) {
 			WaypointChatParameter* parameter = &waypointParameters->get(i);
 
-			if (parameter == nullptr)
+			if (parameter == NULL)
 				continue;
 
 			parameter->insertToMessage(this);

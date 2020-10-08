@@ -8,24 +8,26 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "BankTerminalMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
+#include "server/zone/managers/player/PlayerManager.h"
 #include "server/zone/objects/player/sui/banktransferbox/SuiBankTransferBox.h"
 #include "server/zone/objects/player/sui/callbacks/BankTerminalSuiCallback.h"
 #include "server/zone/Zone.h"
 #include "server/zone/objects/region/CityRegion.h"
-#include "server/zone/objects/transaction/TransactionLog.h"
 
-void BankTerminalMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* creature) const {
+void BankTerminalMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* creature) {
 
 	ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
 
-	if (ghost == nullptr)
+	if (ghost == NULL)
 		return;
 
 	Zone* playerZone = sceneObject->getZone();
 
-	if (playerZone == nullptr)
+	if (playerZone == NULL)
 		return;
 
 	String location = ghost->getBankLocation();
@@ -56,7 +58,7 @@ void BankTerminalMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
 	TangibleObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, creature);
 }
 
-int BankTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* creature, byte selectedID) const {
+int BankTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* creature, byte selectedID) {
 	if (!sceneObject->isTangibleObject())
 		return 0;
 
@@ -65,7 +67,7 @@ int BankTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, 
 
 	Zone* playerZone = creature->getZone();
 
-	if (playerZone == nullptr)
+	if (playerZone == NULL)
 		return 0;
 
 	ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
@@ -74,7 +76,7 @@ int BankTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, 
 
 	ManagedReference<CityRegion* > region = sceneObject->getCityRegion().get();
 
-	if (region != nullptr) {
+	if (region != NULL) {
 		if (region->isBanned(creature->getObjectID())) {
 				creature->sendSystemMessage("@city/city:youre_city_banned"); // you are banned from this city and may not use any of its public services and structures
 				return 0;
@@ -123,7 +125,7 @@ int BankTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, 
 
 		if (bank->getContainerObjectsSize() == 0) {
 
-			//creature->removeObject(bank, nullptr, true);
+			//creature->removeObject(bank, NULL, true);
 			bank->sendDestroyTo(creature);
 
 			// QUIT BANK
@@ -157,7 +159,6 @@ int BankTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, 
 		params.setDI(cash);
 		creature->sendSystemMessage(params);
 
-		TransactionLog trx(creature, creature, TrxCode::BANK, cash, true);
 		creature->subtractCashCredits(cash);
 		creature->addBankCredits(cash);
 
@@ -171,7 +172,6 @@ int BankTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, 
 		params.setDI(cash);
 		creature->sendSystemMessage(params);
 
-		TransactionLog trx(creature, creature, TrxCode::BANK, cash, false);
 		creature->subtractBankCredits(cash);
 		creature->addCashCredits(cash);
 

@@ -5,22 +5,23 @@
 #ifndef PARAMETERSMESSAGE_H_
 #define PARAMETERSMESSAGE_H_
 
-#include "engine/service/proto/BaseMessage.h"
+#include "engine/engine.h"
 
-#include "server/zone/packets/MessageCallback.h"
+#include "../MessageCallback.h"
 
 class ParametersMessage : public BaseMessage {
 public:
 	ParametersMessage() : BaseMessage(7) {
 		insertShort(0x02);
 		insertInt(0x487652DA);
-		insertInt(0x00000384);
+	    insertInt(0x00000384);
+
 	}
 
 	static void parse(Packet* pack) {
 		uint16 ackSequence = pack->parseShort();
 	}
-
+	
 };
 
 class ParametersMessageCallback : public MessageCallback {

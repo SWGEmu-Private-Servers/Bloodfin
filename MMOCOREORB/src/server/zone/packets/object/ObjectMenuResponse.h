@@ -5,14 +5,18 @@
 #ifndef OBJECTMENURESPONSE_H_
 #define OBJECTMENURESPONSE_H_
 
+#include "engine/engine.h"
+
 #include "ObjectControllerMessage.h"
 #include "server/zone/objects/scene/SceneObject.h"
+
 #include "RadialMenuItem.h"
 
 namespace server {
 namespace zone {
 namespace packets {
 namespace object {
+
 
 class ObjectMenuResponse : public ObjectControllerMessage {
 	int listSize;
@@ -92,7 +96,7 @@ public:
 	void addRadialMenuItem(uint8 parentid, uint8 radialid, uint8 callback, const UnicodeString& text = "") {
 		RadialMenuItem* parent = getRadialItem(parentid);
 
-		if (parent == nullptr) {
+		if (parent == NULL) {
 			throw Exception("error: null parent radial menu (id = " + String::valueOf(parentid) + ") specified. radialid = " + String::valueOf(radialid));
 		}
 
@@ -105,7 +109,7 @@ public:
 	void addRadialMenuItemToRadialID(uint8 parentRadialID, uint8 newRadialID, uint8 callback, const UnicodeString& text = "") {
 		RadialMenuItem* parent = getRadialItemByRadialID(parentRadialID);
 
-		if (parent == nullptr) {
+		if (parent == NULL) {
 			throw Exception("error: parent radial id (" + String::valueOf(parentRadialID) + ") menu item null. newRadialID = " + String::valueOf(newRadialID));
 		}
 
@@ -140,6 +144,7 @@ public:
 		return root;
 	}
 };
+
 
 }
 }

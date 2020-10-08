@@ -9,6 +9,8 @@
 #define EVENTPERKATTRIBUTELISTCOMPONENT_H_
 
 #include "server/zone/objects/scene/components/AttributeListComponent.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
+#include "server/zone/objects/tangible/components/EventPerkMenuComponent.h"
 #include "server/zone/objects/tangible/components/EventPerkDataComponent.h"
 #include "server/zone/objects/tangible/deed/eventperk/EventPerkDeed.h"
 
@@ -21,7 +23,7 @@ public:
 	 * @post { this object is locked, menuResponse is complete}
 	 * @param menuResponse ObjectMenuResponse that will be sent to the client
 	 */
-	void fillAttributeList(AttributeListMessage* alm, CreatureObject* player, SceneObject* sceneObject) const {
+	void fillAttributeList(AttributeListMessage* alm, CreatureObject* player, SceneObject* sceneObject) {
 
 		if(!sceneObject->isTangibleObject())
 			return;
@@ -31,20 +33,20 @@ public:
 
 		EventPerkDataComponent* data = cast<EventPerkDataComponent*>(sceneObject->getDataObjectComponent()->get());
 
-		if (data == nullptr) {
+		if (data == NULL) {
 			player->sendSystemMessage("Error: no dataObjectComponent.");
 			return;
 		}
 
 		EventPerkDeed* deed = data->getDeed();
 
-		if (deed == nullptr) {
-			player->sendSystemMessage("Error: deed is nullptr.");
+		if (deed == NULL) {
+			player->sendSystemMessage("Error: deed is NULL.");
 			return;
 		}
 
 		ManagedReference<CreatureObject*> owner = deed->getOwner().get();
-		if( owner != nullptr ){
+		if( owner != NULL ){
 			alm->insertAttribute("owner", owner->getFirstName() );
 		}
 

@@ -5,6 +5,7 @@
 #ifndef VISIBILITYMANAGER_H_
 #define VISIBILITYMANAGER_H_
 
+#include "engine/engine.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 
 namespace server {
@@ -87,6 +88,19 @@ class VisibilityManager : public Singleton<VisibilityManager>, public Logger, pu
 	Mutex visibilityListLock;
 
 	/**
+	 * Add the player to the bounty list.
+	 * @param creature the player to add.
+	 * @param reward the reward for the player bounty.
+	 */
+	void addPlayerToBountyList(CreatureObject* creature, int reward);
+
+	/**
+	 * Remove the player to the bounty list.
+	 * @param creature the player to remove.
+	 */
+	void removePlayerFromBountyList(CreatureObject* creature);
+
+	/**
 	 * Calculate/generate a reward for the player bounty.
 	 * @param creature the jedi's player creature object.
 	 * @return calculated/generated reward.
@@ -121,24 +135,22 @@ public:
 	 */
 	VisibilityManager();
 
-	float getTerminalVisThreshold();
-
 	/**
 	 * Load lua configuration for visibility variables
 	 */
 	void loadConfiguration();
 
 	/**
-	 * Add player to the visibility list if he/she still has visibility.
-	 * @param creature the player to add.
+	 * Login a player and add it to the visibility list if he/she still has visibility.
+	 * @param creature the player to login.
 	 */
-	void addToVisibilityList(CreatureObject* creature);
+	void login(CreatureObject* creature);
 
 	/**
-	 * Remove player from the visibility list.
-	 * @param creature the player to remove.
+	 * Logout a player and remove him/her from the visibility list.
+	 * @param creature the player to logout.
 	 */
-	void removeFromVisibilityList(CreatureObject* creature);
+	void logout(CreatureObject* creature);
 
 	/**
 	 * Increase visibility for a player. The player is added to the visibility list

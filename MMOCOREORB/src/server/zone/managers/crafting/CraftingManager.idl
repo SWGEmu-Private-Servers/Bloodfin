@@ -4,25 +4,31 @@
 
 package server.zone.managers.crafting;
 
+import system.util.VectorMap;
+
+import engine.lua.Lua;
+
 import server.zone.objects.player.PlayerObject;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.manufactureschematic.ManufactureSchematic;
 import server.zone.objects.draftschematic.DraftSchematic;
+import system.util.Vector;
 import server.zone.managers.ZoneManager;
-
-include system.util.Vector;
-include server.zone.managers.crafting.labratories.SharedLabratory;
-include server.zone.objects.tangible.TangibleObject;
+import server.zone.managers.crafting.labratories.SharedLabratory;
+import server.zone.objects.tangible.TangibleObject;
 include server.zone.managers.crafting.schematicmap.SchematicMap;
 include server.zone.objects.manufactureschematic.craftingvalues.CraftingValues;
-include system.util.HashTable;
-include system.util.VectorMap;
-include system.lang.ref.Reference;
 
-@dirty
 class CraftingManager extends ZoneManager {
 	private transient SchematicMap schematicMap;
-
+	
+	// Ingredient math types
+	public static final short RESOURCECOMBINE = 0x00;
+	public static final short LINEARCOMBINE = 0x01;
+	public static final short PERCENTAGECOMBINE = 0x02;
+	public static final short BITSETCOMBINE = 0x03;
+	public static final short OVERRIDECOMBINE = 0x04;
+	
 	public static final short CR = 1;
 	public static final short CD = 2;
 	public static final short DR = 3;
@@ -33,7 +39,7 @@ class CraftingManager extends ZoneManager {
 	public static final short OQ = 8;
 	public static final short SR = 9;
 	public static final short UT = 10;
-
+	
 	public static final short AMAZINGSUCCESS = 0;
 	public static final short GREATSUCCESS = 1;
 	public static final short GOODSUCCESS = 2;
@@ -44,6 +50,14 @@ class CraftingManager extends ZoneManager {
 	public static final short BARELYSUCCESSFUL = 7;
 	public static final short CRITICALFAILURE = 8;
 	
+	public static final int RESOURCE_LAB = 0x00;
+	public static final int GENETIC_LAB = 0x01;
+	public static final int DROID_LAB = 0x02;
+	
+	
+	@dereferenced
+	private transient SortedVector<string> bioMods;
+	
 	@dereferenced
 	private transient HashTable<int, Reference<SharedLabratory> > labs;
 	
@@ -53,9 +67,7 @@ class CraftingManager extends ZoneManager {
 	
 	@local
 	public native void initialize();
-
-	public native void stop();
-
+		
 	@local 
 	public native void awardSchematicGroup(PlayerObject playerObject, @dereferenced Vector<string> schematicgroups, boolean updateClient = false);
 	
@@ -81,9 +93,14 @@ class CraftingManager extends ZoneManager {
 	public native int calculateExperimentationSuccess(CreatureObject player, DraftSchematic draftSchematic, float effectiveness);
 	
 	public native string generateSerial();
+
+	private native boolean loadBioSkillMods();
+
+	public native string checkBioSkillMods(final string property);
 	
 	private native void configureLabratories();
 	
 	public native void setInitialCraftingValues(TangibleObject prototype, ManufactureSchematic manufactureSchematic, int assemblySuccess);
+	public native boolean allowManufactureSchematic(ManufactureSchematic manufactureSchematic);
 	public native int getCreationCount(ManufactureSchematic manufactureSchematic);
 }

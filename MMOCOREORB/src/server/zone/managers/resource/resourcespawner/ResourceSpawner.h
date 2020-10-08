@@ -11,11 +11,12 @@
 #ifndef RESOURCESPAWNER_H_
 #define RESOURCESPAWNER_H_
 
+#include "engine/db/ObjectDatabase.h"
+
 #include "server/zone/ZoneServer.h"
 #include "server/zone/ZoneProcessServer.h"
 #include "server/zone/managers/name/NameManager.h"
 #include "server/zone/managers/object/ObjectManager.h"
-#include "server/zone/objects/transaction/TransactionLog.h"
 #include "resourcetree/ResourceTree.h"
 #include "resourcemap/ResourceMap.h"
 
@@ -69,13 +70,14 @@ private:
 
 	bool scriptLoading;
 
-	int shiftDuration, lowerGateOverride, maxSpawnAmount, spawnThrottling;
+	int shiftDuration, lowerGateOverride, maxSpawnAmount;
+	float spawnThrottling;
 
 	int samplingMultiplier;
 
 public:
 	ResourceSpawner(ManagedReference<ZoneServer* > serv,
-			ZoneProcessServer* impl);
+			ZoneProcessServer* impl, ObjectManager* objMan);
 	~ResourceSpawner();
 
 	void init();
@@ -88,7 +90,7 @@ public:
 	void addZone(const String& zoneName);
 	void removeZone(const String& zoneName);
 	void addJtlResource(const String& resourceName);
-	void setSpawningParameters(bool loadFromScript, const int dur, const int throt,
+	void setSpawningParameters(bool loadFromScript, const int dur, const float throt,
 			const int override, const int spawnquantity);
 
 	void spawnScriptResources();
@@ -105,41 +107,38 @@ public:
 
 	ResourceSpawn* manualCreateResourceSpawn(CreatureObject* player, const UnicodeString& args);
 
-	ResourceSpawn* createRecycledResourceSpawn(const ResourceTreeEntry* entry) const;
+	ResourceSpawn* createRecycledResourceSpawn(ResourceTreeEntry* entry);
 
-	ResourceSpawn* getRecycledVersion(const ResourceSpawn* resource) const;
+	ResourceSpawn* getRecycledVersion(ResourceSpawn* resource);
 
-	bool isRecycledResource(const ResourceSpawn* resource) const;
+	bool isRecycledResource(ResourceSpawn* resource);
 
-	int sendResourceRecycleType(const ResourceSpawn* resource) const;
+	int sendResourceRecycleType(ResourceSpawn* resource);
 
-	void sendResourceListForSurvey(CreatureObject* player, const int toolType, const String& surveyType) const;
+	void sendResourceListForSurvey(CreatureObject* player, const int toolType, const String& surveyType);
 
-	void sendSurvey(CreatureObject* player, const String& resname) const;
-	void sendSample(CreatureObject* player, const String& resname, const String& sampleAnimation) const;
-	void sendSampleResults(TransactionLog& trx, CreatureObject* player, const float density, const String& resname) const;
+	void sendSurvey(CreatureObject* player, const String& resname);
+	void sendSample(CreatureObject* player, const String& resname, const String& sampleAnimation);
+	void sendSampleResults(CreatureObject* player, const float density, const String& resname);
 
 	Reference<ResourceContainer*> harvestResource(CreatureObject* player, const String& type, const int quantity);
-	bool harvestResource(TransactionLog& trx, CreatureObject* player, ResourceSpawn* resourceSpawn, int quantity);
-	bool addResourceToPlayerInventory(TransactionLog& trx, CreatureObject* player, ResourceSpawn* resourceSpawn, int unitsExtracted) const;
+	bool harvestResource(CreatureObject* player, ResourceSpawn* resourceSpawn, int quantity);
+	bool addResourceToPlayerInventory(CreatureObject* player, ResourceSpawn* resourceSpawn, int unitsExtracted);
 
-	ResourceSpawn* getCurrentSpawn(const String& restype, const String& zoneName) const;
+	ResourceSpawn* getCurrentSpawn(const String& restype, const String& zoneName);
+
 	ResourceSpawn* getFromRandomPool(const String& type);
 
-	void addNodeToListBox(SuiListBox* sui, const String& nodeName) const;
-	void addPlanetsToListBox(SuiListBox* sui) const;
+	void addNodeToListBox(SuiListBox* sui, const String& nodeName);
+	void addPlanetsToListBox(SuiListBox* sui);
 
-	String addParentNodeToListBox(SuiListBox* sui, const String& currentNode) const;
+	String addParentNodeToListBox(SuiListBox* sui, const String& currentNode);
 
 	inline ResourceMap* getResourceMap() {
 		return resourceMap;
 	}
 
-	inline const ResourceMap* getResourceMap() const {
-		return resourceMap;
-	}
-
-	void listResourcesForPlanetOnScreen(CreatureObject* creature, const String& planet) const;
+	void listResourcesForPlanetOnScreen(CreatureObject* creature, const String& planet);
 
 	String healthCheck();
 
@@ -149,18 +148,17 @@ public:
 
 		return "Error Dumping resources";
 	}
-
-	String getPlanetByIndex(int index) const;
+	String getPlanetByIndex(int index);
 private:
 
 	void loadResourceSpawns();
 	String makeResourceName(const String& randomNameClass);
 	int randomizeValue(int min, int max);
-	long getRandomExpirationTime(const ResourceTreeEntry* resourceEntry);
-	long getRandomUnixTimestamp(int min, int max) const;
+	long getRandomExpirationTime(ResourceTreeEntry* resourceEntry);
+	long getRandomUnixTimestamp(int min, int max);
 
-	const Vector<String>& getJtlResources() const;
-	const Vector<String>& getActiveResourceZones() const;
+	Vector<String>& getJtlResources();
+	Vector<String>& getActiveResourceZones();
 
 	friend class ResourceTree;
 	friend class ResourceManager;

@@ -6,8 +6,13 @@
 #define PLACESTRUCTUREMODECOMMAND_H_
 
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/tangible/deed/structure/StructureDeed.h"
 #include "server/zone/packets/player/EnterStructurePlacementModeMessage.h"
-#include "templates/manager/TemplateManager.h"
+#include "server/zone/templates/tangible/SharedBuildingObjectTemplate.h"
+#include "server/zone/managers/templates/TemplateManager.h"
+#include "server/zone/managers/planet/PlanetManager.h"
+#include "server/zone/objects/player/sessions/PlaceStructureSession.h"
 
 class PlaceStructureModeCommand : public QueueCommand {
 public:
@@ -20,7 +25,7 @@ public:
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
 		ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
 
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return GENERALERROR;
 
 		if (creature->isRidingMount()) {
@@ -35,21 +40,21 @@ public:
 			return INVALIDLOCOMOTION;
 
 
-		if (creature->getParent() != nullptr) {
+		if (creature->getParent() != NULL) {
 			creature->sendSystemMessage("@player_structure:not_inside"); //You can not place a structure while you are inside a building.
 			return GENERALERROR;
 		}
 
-		ManagedReference<CityRegion*> city = creature->getCityRegion().get();
+		ManagedReference<CityRegion*> city = creature->getCityRegion();
 
-		if (city != nullptr && city->isClientRegion()) {
+		if (city != NULL && city->isClientRegion()) {
 			creature->sendSystemMessage("@player_structure:not_permitted"); //Building is not permitted here.
 			return INVALIDPARAMETERS;
 		}
 
 		ManagedReference<SceneObject*> obj = server->getZoneServer()->getObject(target);
 
-		if (obj == nullptr || !obj->isDeedObject()) {
+		if (obj == NULL || !obj->isDeedObject()) {
 			creature->sendSystemMessage("@player_structure:not_a_deed"); //That is not a deed.
 			return INVALIDTARGET;
 		}
@@ -64,7 +69,7 @@ public:
 		String serverTemplatePath = deed->getGeneratedObjectTemplate();
 		Reference<SharedStructureObjectTemplate*> serverTemplate = dynamic_cast<SharedStructureObjectTemplate*>(templateManager->getTemplate(serverTemplatePath.hashCode()));
 
-		if (serverTemplate == nullptr)
+		if (serverTemplate == NULL)
 			return GENERALERROR; //Template is unknown.
 
 		int lots = serverTemplate->getLotSize();

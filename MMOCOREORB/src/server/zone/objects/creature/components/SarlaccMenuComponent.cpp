@@ -1,15 +1,19 @@
 #include "SarlaccMenuComponent.h"
+#include "server/zone/Zone.h"
 #include "server/zone/ZoneServer.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/PlayerObject.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
+#include "server/zone/managers/objectcontroller/ObjectController.h"
 
-void SarlaccMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void SarlaccMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	TangibleObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, player);
 
 	menuResponse->addRadialMenuItem(20, 3, "@mob/sarlacc:extract_bile"); // Extract Bile
 }
 
-int SarlaccMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int SarlaccMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (selectedID == 20) {
 		Locker plocker(player, sceneObject);
 
@@ -20,10 +24,10 @@ int SarlaccMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Creat
 			return 0;
 		}
 
-		SceneObject* sco = nullptr;
+		SceneObject* sco = NULL;
 		for (int i=0; i< inventory->getContainerObjectsSize(); i++) {
 			sco = inventory->getContainerObject(i);
-			if (sco == nullptr)
+			if (sco == NULL)
 				continue;
 			if (sco->getServerObjectCRC() == STRING_HASHCODE("object/tangible/loot/quest/quest_item_sarlacc_bile_jar.iff")) {
 				player->sendSystemMessage("@mob/sarlacc:bile_already"); // You already have a good sample of bile. It probably isn't wise to risk getting more.
@@ -33,7 +37,7 @@ int SarlaccMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Creat
 				for (int j=0; j < sco->getContainerObjectsSize(); j++) {
 					SceneObject* child = sco->getContainerObject(j);
 
-					if (child == nullptr)
+					if (child == NULL)
 						continue;
 
 					if (child->getServerObjectCRC() == STRING_HASHCODE("object/tangible/loot/quest/quest_item_sarlacc_bile_jar.iff")) {
@@ -50,7 +54,7 @@ int SarlaccMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Creat
 		}
 
 		Reference<SceneObject*> bileSceno = player->getZoneServer()->createObject(STRING_HASHCODE("object/tangible/loot/quest/quest_item_sarlacc_bile_jar.iff"), 1);
-		if (bileSceno == nullptr)
+		if (bileSceno == NULL)
 			return 1;
 
 		if (inventory->transferObject(bileSceno, -1)) {

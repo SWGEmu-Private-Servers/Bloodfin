@@ -6,24 +6,23 @@
  */
 
 #include "GCWBaseContainerComponent.h"
-#include "templates/params/creature/CreatureFlag.h"
-#include "server/zone/objects/player/PlayerObject.h"
-#include "server/zone/objects/player/FactionStatus.h"
-#include "server/zone/objects/building/components/DestructibleBuildingDataComponent.h"
+#include "server/zone/objects/creature/CreatureFlag.h"
 
-bool GCWBaseContainerComponent::checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) const {
+bool GCWBaseContainerComponent::checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) {
 
 	ManagedReference<BuildingObject*> building = cast<BuildingObject*>(sceneObject);
 
-	if (building == nullptr)
+	if (building == NULL)
 		return false;
 
 	return checkContainerPermission(building, creature, permission, false);
+
+
 }
 
-bool GCWBaseContainerComponent::checkContainerPermission(BuildingObject* building, CreatureObject* creature, uint16 permission, bool sendMessage) const {
+bool GCWBaseContainerComponent::checkContainerPermission(BuildingObject* building, CreatureObject* creature, uint16 permission, bool sendMessage) {
 	if (permission == ContainerPermissions::WALKIN) {
-		if (building == nullptr) {
+		if (building == NULL) {
 			return false;
 		}
 
@@ -40,9 +39,9 @@ bool GCWBaseContainerComponent::checkContainerPermission(BuildingObject* buildin
 	return StructureContainerComponent::checkContainerPermission(building, creature, permission);
 }
 
-bool GCWBaseContainerComponent::checkPVPPermission(BuildingObject* building, CreatureObject* creature, uint16 permission, bool sendMessage) const {
+bool GCWBaseContainerComponent::checkPVPPermission(BuildingObject* building, CreatureObject* creature, uint16 permission, bool sendMessage) {
 	PlayerObject* player = creature->getPlayerObject();
-	if (player == nullptr) {
+	if (player == NULL) {
 		return false;
 	}
 
@@ -53,7 +52,7 @@ bool GCWBaseContainerComponent::checkPVPPermission(BuildingObject* building, Cre
 		return false;
 	}
 
-	if (creature->getFactionStatus() != FactionStatus::OVERT) {
+	if (player->getFactionStatus() != FactionStatus::OVERT) {
 		if (sendMessage)
 			creature->sendSystemMessage("@faction/faction_hq/faction_hq_response:youre_covert_excluded"); // You must be a member of the Special Forces to enter this structure.
 
@@ -65,13 +64,13 @@ bool GCWBaseContainerComponent::checkPVPPermission(BuildingObject* building, Cre
 	}
 
 	DataObjectComponentReference* data = building->getDataObjectComponent();
-	DestructibleBuildingDataComponent* baseData = nullptr;
+	DestructibleBuildingDataComponent* baseData = NULL;
 
-	if (data != nullptr) {
+	if (data != NULL) {
 		baseData = cast<DestructibleBuildingDataComponent*>(data->get());
 	}
 
-	if (baseData == nullptr)
+	if (baseData == NULL)
 		return false;
 
 	if (!baseData->hasDefense()) {
@@ -84,10 +83,10 @@ bool GCWBaseContainerComponent::checkPVPPermission(BuildingObject* building, Cre
 	}
 }
 
-bool GCWBaseContainerComponent::checkPVEPermission(BuildingObject* building, CreatureObject* creature, uint16 permission, bool sendMessage) const {
+bool GCWBaseContainerComponent::checkPVEPermission(BuildingObject* building, CreatureObject* creature, uint16 permission, bool sendMessage) {
 	PlayerObject* player = creature->getPlayerObject();
 
-	if (player == nullptr) {
+	if (player == NULL) {
 		return false;
 	}
 
@@ -98,7 +97,7 @@ bool GCWBaseContainerComponent::checkPVEPermission(BuildingObject* building, Cre
 		return false;
 	}
 
-	if ((creature->getFactionStatus() != FactionStatus::COVERT && creature->getFactionStatus() != FactionStatus::OVERT)) {
+	if ((player->getFactionStatus() != FactionStatus::COVERT && player->getFactionStatus() != FactionStatus::OVERT)) {
 		if (sendMessage)
 			creature->sendSystemMessage("You must be at least a combatant to enter");
 
@@ -110,14 +109,14 @@ bool GCWBaseContainerComponent::checkPVEPermission(BuildingObject* building, Cre
 	}
 
 	DataObjectComponentReference* data = building->getDataObjectComponent();
-	DestructibleBuildingDataComponent* baseData = nullptr;
+	DestructibleBuildingDataComponent* baseData = NULL;
 
 
-	if (data != nullptr) {
+	if (data != NULL) {
 		baseData = cast<DestructibleBuildingDataComponent*>(data->get());
 	}
 
-	if (baseData != nullptr) {
+	if (baseData != NULL) {
 		if (!baseData->hasDefense()) {
 			return true;
 		} else {

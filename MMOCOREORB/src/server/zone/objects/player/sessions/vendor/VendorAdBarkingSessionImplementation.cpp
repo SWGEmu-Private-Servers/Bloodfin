@@ -7,20 +7,21 @@
 
 #include "server/zone/objects/player/sessions/vendor/VendorAdBarkingSession.h"
 #include "server/zone/ZoneServer.h"
-#include "server/zone/ZoneProcessServer.h"
+
 #include "server/zone/objects/tangible/components/vendor/VendorDataComponent.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/player/sui/callbacks/AdBarkingPhraseSuiCallback.h"
 
 int VendorAdBarkingSessionImplementation::initializeSession() {
+
 	ManagedReference<CreatureObject*> player = this->owner.get();
 
-	if (player == nullptr)
+	if (player == NULL)
 		return 0;
 
 	advertisingMod = player->getSkillMod("advertising");
 
-	player->addActiveSession(SessionFacadeType::VENDORADBARKING, _this.getReferenceUnsafeStaticCast());
+	owner->addActiveSession(SessionFacadeType::VENDORADBARKING, _this.getReferenceUnsafeStaticCast());
 
 	sendPhraseOptions();
 
@@ -28,23 +29,21 @@ int VendorAdBarkingSessionImplementation::initializeSession() {
 }
 
 void VendorAdBarkingSessionImplementation::sendPhraseOptions() {
-	ManagedReference<CreatureObject*> player = this->owner.get();
-	ManagedReference<SceneObject*> vendor = this->vendor.get();
 
-	if (player == nullptr || vendor == nullptr) {
+	if(owner == NULL || vendor == NULL) {
 		cancelSession();
 		return;
 	}
 
-	ManagedReference<SuiListBox*> phrases = new SuiListBox(player, SuiWindowType::VENDOR_PHRASES);
+	ManagedReference<SuiListBox*> phrases = new SuiListBox(owner, SuiWindowType::VENDOR_PHRASES);
 	phrases->setPromptTitle("@player_structure:vendor_strcats_t"); //Select Phrase Category
 	phrases->setPromptText("@player_structure:vendor_strcats_d"); //Select the type of phrase for the vendor to bark. If you have "Advanced Vocalization" an option to customize the advertisement will appear on the list.
 	phrases->setUsingObject(vendor);
 	phrases->setOkButton(true, "@ok");
 	phrases->setCancelButton(true, "@cancel");
-	phrases->setCallback(new AdBarkingPhraseSuiCallback(player->getZoneServer()));
+	phrases->setCallback(new AdBarkingPhraseSuiCallback(owner->getZoneServer()));
 
-	if (player->hasSkill("crafting_merchant_advertising_02"))
+	if(owner->hasSkill("crafting_merchant_advertising_02"))
 		phrases->addMenuItem("Customize", 0);
 
 	phrases->addMenuItem("@map_loc_cat_n:vendor_armor", 1);
@@ -57,51 +56,48 @@ void VendorAdBarkingSessionImplementation::sendPhraseOptions() {
 	phrases->addMenuItem("@map_loc_cat_n:vendor_resources", 8);
 	phrases->addMenuItem("@map_loc_cat_n:vendor_tools", 9);
 	phrases->addMenuItem("@map_loc_cat_n:vendor_weapons", 10);
-	phrases->addMenuItem("@map_loc_cat_n:vendor_pets", 11);
-	phrases->addMenuItem("@map_loc_cat_n:vendor_medical", 12);
-	phrases->addMenuItem("@map_loc_cat_n:vendor_ships", 13);
+	phrases->addMenuItem("@map_loc_cat_n:vendor_junk", 11);
+	phrases->addMenuItem("@map_loc_cat_n:vendor_pets", 12);
+	phrases->addMenuItem("@map_loc_cat_n:vendor_medical", 13);
+	phrases->addMenuItem("@map_loc_cat_n:vendor_ships", 14);
 
-	player->getPlayerObject()->addSuiBox(phrases);
-	player->sendMessage(phrases->generateMessage());
+	owner->getPlayerObject()->addSuiBox(phrases);
+	owner->sendMessage(phrases->generateMessage());
 }
 
 void VendorAdBarkingSessionImplementation::sendCustomMessageInput() {
-	ManagedReference<CreatureObject*> player = this->owner.get();
-	ManagedReference<SceneObject*> vendor = this->vendor.get();
 
-	if (player == nullptr || vendor == nullptr) {
+	if(owner == NULL || vendor == NULL) {
 		cancelSession();
 		return;
 	}
 
-	ManagedReference<SuiInputBox*> input = new SuiInputBox(player, SuiWindowType::VENDOR_CUSTOM_PHRASE);
+	ManagedReference<SuiInputBox*> input = new SuiInputBox(owner, SuiWindowType::VENDOR_CUSTOM_PHRASE);
 	input->setPromptTitle("@player_structure:cust_t");
 	input->setPromptText("@player_structure:cust_d");
 	input->setUsingObject(vendor);
 	input->setForceCloseDistance(16.f);
 	input->setMaxInputSize(128);
-	input->setCallback(new AdBarkingPhraseSuiCallback(player->getZoneServer()));
+	input->setCallback(new AdBarkingPhraseSuiCallback(owner->getZoneServer()));
 
-	player->getPlayerObject()->addSuiBox(input);
-	player->sendMessage(input->generateMessage());
+	owner->getPlayerObject()->addSuiBox(input);
+	owner->sendMessage(input->generateMessage());
 }
 
 void VendorAdBarkingSessionImplementation::sendMoodSelect() {
-	ManagedReference<CreatureObject*> player = this->owner.get();
-	ManagedReference<SceneObject*> vendor = this->vendor.get();
 
-	if (player == nullptr || vendor == nullptr) {
+	if(owner == NULL || vendor == NULL) {
 		cancelSession();
 		return;
 	}
 
-	ManagedReference<SuiListBox*> moods = new SuiListBox(player, SuiWindowType::VENDOR_MOODS);
+	ManagedReference<SuiListBox*> moods = new SuiListBox(owner, SuiWindowType::VENDOR_MOODS);
 	moods->setPromptTitle("@player_structure:vendor_moods_t");
 	moods->setPromptText("@player_structure:vendor_moods_d");
 	moods->setUsingObject(vendor);
 	moods->setOkButton(true, "@ok");
 	moods->setCancelButton(true, "@cancel");
-	moods->setCallback(new AdBarkingPhraseSuiCallback(player->getZoneServer()));
+	moods->setCallback(new AdBarkingPhraseSuiCallback(owner->getZoneServer()));
 
 	moods->addMenuItem("@player_structure:alert", 0);
 	moods->addMenuItem("@player_structure:bubbly", 1);
@@ -121,26 +117,24 @@ void VendorAdBarkingSessionImplementation::sendMoodSelect() {
 	moods->addMenuItem("@player_structure:sincere", 15);
 	moods->addMenuItem("@player_structure:warm", 16);
 
-	player->getPlayerObject()->addSuiBox(moods);
-	player->sendMessage(moods->generateMessage());
+	owner->getPlayerObject()->addSuiBox(moods);
+	owner->sendMessage(moods->generateMessage());
 }
 
 void VendorAdBarkingSessionImplementation::sendAnimationSelect() {
-	ManagedReference<CreatureObject*> player = this->owner.get();
-	ManagedReference<SceneObject*> vendor = this->vendor.get();
 
-	if (player == nullptr || vendor == nullptr) {
+	if(owner == NULL || vendor == NULL) {
 		cancelSession();
 		return;
 	}
 
-	ManagedReference<SuiListBox*> moods = new SuiListBox(player, SuiWindowType::VENDOR_ANIMATION);
+	ManagedReference<SuiListBox*> moods = new SuiListBox(owner, SuiWindowType::VENDOR_ANIMATION);
 	moods->setPromptTitle("@player_structure:vendor_anim_t");
 	moods->setPromptText("@player_structure:vendor_anim_d");
 	moods->setUsingObject(vendor);
 	moods->setOkButton(true, "@ok");
 	moods->setCancelButton(true, "@cancel");
-	moods->setCallback(new AdBarkingPhraseSuiCallback(player->getZoneServer()));
+	moods->setCallback(new AdBarkingPhraseSuiCallback(owner->getZoneServer()));
 
 	moods->addMenuItem("@player_structure:pose_proudly", 0);
 	moods->addMenuItem("@player_structure:slow_down", 1);
@@ -154,27 +148,25 @@ void VendorAdBarkingSessionImplementation::sendAnimationSelect() {
 	moods->addMenuItem("@player_structure:beckon", 9);
 	moods->addMenuItem("@player_structure:bow5", 10);
 
-	player->getPlayerObject()->addSuiBox(moods);
-	player->sendMessage(moods->generateMessage());
+	owner->getPlayerObject()->addSuiBox(moods);
+	owner->sendMessage(moods->generateMessage());
 }
 
 void VendorAdBarkingSessionImplementation::completeSession() {
-	ManagedReference<CreatureObject*> player = this->owner.get();
-	ManagedReference<SceneObject*> vendor = this->vendor.get();
 
-	if (player == nullptr || vendor == nullptr) {
+	if(owner == NULL || vendor == NULL) {
 		cancelSession();
 		return;
 	}
 
 	DataObjectComponentReference* data = vendor->getDataObjectComponent();
-	if(data == nullptr || data->get() == nullptr || !data->get()->isVendorData()) {
+	if(data == NULL || data->get() == NULL || !data->get()->isVendorData()) {
 		cancelSession();
 		return;
 	}
 
 	VendorDataComponent* vendorData = cast<VendorDataComponent*>(data->get());
-	if(vendorData == nullptr) {
+	if(vendorData == NULL) {
 		cancelSession();
 		return;
 	}
@@ -186,7 +178,7 @@ void VendorAdBarkingSessionImplementation::completeSession() {
 	vendorData->setAdMood(mood);
 	vendorData->setAdAnimation(animation);
 
-	player->sendSystemMessage("@player_structure:areabarks_enabled");
+	owner->sendSystemMessage("@player_structure:areabarks_enabled");
 
 	cancelSession();
 }

@@ -1,14 +1,13 @@
 package server.zone.objects.waypoint;
 
+import engine.lua.LuaObject;
+import engine.core.ManagedReference;
 import server.zone.objects.intangible.IntangibleObject;
-import server.zone.objects.creature.CreatureObject;
 import engine.service.proto.BaseMessage;
-include server.zone.packets.scene.AttributeListMessage;
-include templates.SharedObjectTemplate;
+import server.zone.Zone;
+import server.zone.templates.SharedObjectTemplate;
 include system.lang.String;
 
-@lua
-@json
 class WaypointObject extends IntangibleObject {
 	protected unsigned int cellID; //?
 
@@ -19,8 +18,6 @@ class WaypointObject extends IntangibleObject {
 
 	protected byte color;
 	protected byte active;
-
-	protected string questDetails;
 
 	protected int specialTypeID;
 
@@ -41,23 +38,16 @@ class WaypointObject extends IntangibleObject {
 	public static final int SPECIALTYPE_RACETRACK = 8;
 	public static final int SPECIALTYPE_NEARESTMISSIONFORGROUP = 9;
 	public static final int SPECIALTYPE_TREASUREMAP = 10;
-	public static final int SPECIALTYPE_QUESTTASK = 11;
 
 	public WaypointObject() {
 		Logger.setLoggingName("WaypointObject");
 	}
 
 	@local
-	@dirty
 	public native void loadTemplateData(SharedObjectTemplate templateData);
 
 	@local
-	@dirty
 	public native void insertToMessage(BaseMessage msg);
-
-	@local
-	@dirty
-	public native void fillAttributeList(AttributeListMessage msg, CreatureObject object);
 
 	@preLocked
 	public void setCellID(unsigned int id) {
@@ -69,7 +59,7 @@ class WaypointObject extends IntangibleObject {
 		planetCRC = crc;
 	}
 
-	@read
+	@dirty
 	public unsigned int getPlanetCRC() {
 		return planetCRC;
 	}
@@ -94,7 +84,7 @@ class WaypointObject extends IntangibleObject {
 		specialTypeID = id;
 	}
 
-	@read
+	@dirty
 	public int getSpecialTypeID() {
 		return specialTypeID;
 	}
@@ -104,26 +94,21 @@ class WaypointObject extends IntangibleObject {
 		active = !active;
 	}
 
-	@read
+	@dirty
 	public boolean isActive() {
 		return active;
 	}
 
-	@read
+	@dirty
 	public byte getColor() {
 		return color;
 	}
 
-	@read
+	@dirty
 	public native string getDetailedDescription();
 
 	@preLocked
 	public void setDetailedDescription(final string desc) {
 		detailedDescription = desc;
-	}
-
-	@preLocked
-	public void setQuestDetails(final string detail) {
-		questDetails = detail;
 	}
 }

@@ -8,7 +8,9 @@
 #ifndef AIMAP_H_
 #define AIMAP_H_
 
-#include "templates/AiTemplate.h"
+#include "engine/engine.h"
+
+#include "server/zone/templates/AiTemplate.h"
 #include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/objects/creature/ai/bt/Behavior.h"
 #include "server/zone/objects/creature/ai/bt/SequenceBehavior.h"
@@ -18,8 +20,9 @@
 #include "server/zone/objects/creature/ai/bt/ParallelSequenceBehavior.h"
 #include "server/zone/objects/creature/ai/bt/ParallelSelectorBehavior.h"
 #include "server/zone/objects/creature/ai/bt/LuaBehavior.h"
-#include "templates/params/creature/CreatureFlag.h"
+#include "server/zone/objects/creature/CreatureFlag.h"
 #include "server/zone/managers/creature/PetManager.h"
+#include "server/zone/objects/intangible/PetControlDevice.h"
 
 class AiMap : public Singleton<AiMap>, public Logger, public Object {
 public:
@@ -61,15 +64,13 @@ public:
 	AtomicInteger activeRecoveryEvents;
 	AtomicInteger activeWaitEvents;
 
-	Mutex guard;
-
 	AiMap() : Logger("AiMap") {
-		aiMap.setNullValue(nullptr);
-		behaviors.setNullValue(nullptr);
-		getTargets.setNullValue(nullptr);
-		selectAttacks.setNullValue(nullptr);
-		combatMoves.setNullValue(nullptr);
-		idles.setNullValue(nullptr);
+		aiMap.setNullValue(NULL);
+		behaviors.setNullValue(NULL);
+		getTargets.setNullValue(NULL);
+		selectAttacks.setNullValue(NULL);
+		combatMoves.setNullValue(NULL);
+		idles.setNullValue(NULL);
 
 		loaded = false;
 	}
@@ -78,7 +79,7 @@ public:
 	}
 
 	void initialize(Lua* lua) {
-		if (lua == nullptr) {
+		if (lua == NULL) {
 			error("Could not get lua AiMap::instance from DirectorManager");
 			return;
 		}
@@ -93,7 +94,7 @@ public:
 	}
 
 	void loadTemplates(Lua* lua) {
-		if (lua == nullptr) {
+		if (lua == NULL) {
 			error("Could not get lua AiMap::instance from DirectorManager");
 			return;
 		}
@@ -103,12 +104,6 @@ public:
 
 		lua->runFile("scripts/ai/templates/templates.lua");
 
-		Locker locker(&guard);
-
-		if (loaded) {
-			return;
-		}
-
 		putTemplate(lua, "getTarget", &getTargets);
 		putTemplate(lua, "selectAttack", &selectAttacks);
 		putTemplate(lua, "combatMove", &combatMoves);
@@ -116,34 +111,30 @@ public:
 		loaded = true;
 	}
 
-	bool isLoaded() const {
+	bool isLoaded() {
 		return loaded;
 	}
 
-	int getTemplateSize() const{
+	int getTemplateSize() {
 		return aiMap.size();
 	}
 
-	int getBehaviorSize() const {
+	int getBehaviorSize() {
 		return behaviors.size();
 	}
 
 	void putTemplate(const String& name, Reference<AiTemplate*> ait) {
-		Locker locker(&guard);
-
 		aiMap.put(name, ait);
 	}
 
 	Reference<AiTemplate*> getTemplate(const String& name) {
 		if (name == "none")
-			return nullptr;
+			return NULL;
 
 		return aiMap.get(name);
 	}
 
 	void putBehavior(const String& name, Reference<LuaBehavior*> b) {
-		Locker locker(&guard);
-
 		behaviors.put(name, b);
 	}
 
@@ -171,9 +162,9 @@ private:
 	static const bool DEBUG_MODE = false;
 
 	void registerFunctions(Lua* lua) {
-		lua->registerFunction("addAiTemplate", addAiTemplate);
-		lua->registerFunction("addAiBehavior", addAiBehavior);
-		lua->registerFunction("includeAiFile", includeFile);
+		lua_register(lua->getLuaState(), "addAiTemplate", addAiTemplate);
+		lua_register(lua->getLuaState(), "addAiBehavior", addAiBehavior);
+		lua_register(lua->getLuaState(), "includeAiFile", includeFile);
 	}
 
 	void registerGlobals(Lua* lua) {
@@ -248,8 +239,8 @@ private:
 		}
 	}
 
-	static Reference<AiTemplate*> getTemplate(unsigned int bitMask, const HashTable<unsigned int, Reference<AiTemplate*> >& table) {
-		auto iter = table.iterator();
+	Reference<AiTemplate*> getTemplate(unsigned int bitMask, HashTable<unsigned int, Reference<AiTemplate*> > table) {
+		HashTableIterator<unsigned int, Reference<AiTemplate*> > iter = table.iterator();
 
 		unsigned int finalKey = CreatureFlag::NONE;
 

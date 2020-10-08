@@ -6,6 +6,7 @@
 #define DROIDHARVESTMODULEDATACOMPONENT_H_
 
 #include "BaseDroidModuleComponent.h"
+#include "engine/core/ManagedReference.h"
 #include "server/zone/objects/tangible/components/droid/DroidHarvestObserver.h"
 
 namespace server {
@@ -34,14 +35,14 @@ public:
 
 	DroidHarvestModuleDataComponent();
 	~DroidHarvestModuleDataComponent();
-	String getModuleName() const;
+	String getModuleName();
 	void initializeTransientMembers();
 	void fillAttributeList(AttributeListMessage* msg, CreatureObject* droid);
 	void fillObjectMenuResponse(SceneObject* droidObject, ObjectMenuResponse* menuResponse, CreatureObject* player);
 	int handleObjectMenuSelect(CreatureObject* player, byte selectedID, PetControlDevice* controller);
 	int getBatteryDrain();
 	void deactivate();
-	String toString() const;
+	String toString();
 	void onCall();
 	int getHarvestInterest() {
 		return interest;

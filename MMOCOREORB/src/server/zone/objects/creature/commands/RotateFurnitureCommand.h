@@ -6,6 +6,7 @@
 #define ROTATEFURNITURECOMMAND_H_
 
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/tangible/components/vendor/VendorDataComponent.h"
 #include "server/zone/objects/tangible/components/EventPerkDataComponent.h"
 
 class RotateFurnitureCommand : public QueueCommand {
@@ -26,7 +27,7 @@ public:
 
 		ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
 
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return GENERALERROR;
 
 		String dir;
@@ -55,20 +56,20 @@ public:
 		ZoneServer* zoneServer = creature->getZoneServer();
 		ManagedReference<SceneObject*> obj = zoneServer->getObject(target);
 
-		if (obj == nullptr || !obj->isTangibleObject() || obj->isPlayerCreature() || obj->isPet()) {
+		if (obj == NULL || !obj->isTangibleObject() || obj->isPlayerCreature() || obj->isPet()) {
 			creature->sendSystemMessage("@player_structure:rotate_what"); //What do you want to rotate?
 			return GENERALERROR;
 		}
 
 		ManagedReference<SceneObject*> rootParent = creature->getRootParent();
 
-		BuildingObject* buildingObject = rootParent != nullptr ? (rootParent->isBuildingObject() ? cast<BuildingObject*>( rootParent.get()) : nullptr) : nullptr;
+		BuildingObject* buildingObject = rootParent != NULL ? (rootParent->isBuildingObject() ? cast<BuildingObject*>( rootParent.get()) : NULL) : NULL;
 		EventPerkDataComponent* data = cast<EventPerkDataComponent*>(obj->getDataObjectComponent()->get());
 
-		if (data != nullptr) {
+		if (data != NULL) {
 			EventPerkDeed* deed = data->getDeed();
 
-			if (deed == nullptr) {
+			if (deed == NULL) {
 				return GENERALERROR;
 			}
 
@@ -78,7 +79,7 @@ public:
 				return GENERALERROR;
 			}
 
-		} else if (buildingObject == nullptr) {
+		} else if (buildingObject == NULL) {
 			creature->sendSystemMessage("@player_structure:must_be_in_building"); //You must be in a building to do that.
 			return GENERALERROR;
 
@@ -110,9 +111,8 @@ public:
 
 		obj->incrementMovementCounter();
 
-		ManagedReference<SceneObject*> objParent = obj->getParent().get();
-		if (objParent != nullptr)
-			obj->teleport(obj->getPositionX(), obj->getPositionZ(), obj->getPositionY(), objParent->getObjectID());
+		if (obj->getParent() != NULL)
+			obj->teleport(obj->getPositionX(), obj->getPositionZ(), obj->getPositionY(), obj->getParent().get()->getObjectID());
 		else
 			obj->teleport(obj->getPositionX(), obj->getPositionZ(), obj->getPositionY());
 

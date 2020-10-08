@@ -22,19 +22,6 @@ void SuiPageData::setProperty(const String& widget, const String& property, cons
 	commands.add(command);
 }
 
-UnicodeString SuiPageData::getPropertyValue(const String& widget, const String& property) {
-	UnicodeString value = "";
-
-	for (int i = 0; i < commands.size(); i++) {
-		SuiCommand* cmd = commands.get(i);
-
-		if (cmd != nullptr && cmd->getCommandType() == SuiCommand::SCT_setProperty && cmd->getNarrowParameter(0) == widget && cmd->getNarrowParameter(1) == property)
-			value = cmd->getWideParameter(0);
-	}
-
-	return value;
-}
-
 void SuiPageData::addDataItem(const String& widget, const String& property, const UnicodeString& value) {
 	SuiCommand* command = new SuiCommand(SuiCommand::SCT_addDataItem);
 	command->addWideParameter(value);
@@ -95,7 +82,7 @@ void SuiPageData::subscribeToEvent(const byte& eventType, const String& parent, 
 void SuiPageData::subscribeToPropertyForEvent(const byte& eventType, const String& widget, const String& property) {
 	Reference<SuiCommand*> command = callbacks.get(eventType);
 
-	if (command == nullptr) {
+	if (command == NULL) {
 		warning("Attempted to add properties for event without subscribing a callback first.");
 		return;
 	}
@@ -146,16 +133,16 @@ bool SuiPageData::parseFromBinaryStream(ObjectInputStream* stream) {
 void SuiPageData::sendTo(CreatureObject* creo) {
 	PlayerObject* playerObject = creo->getPlayerObject();
 
-	if (playerObject != nullptr) {
+	if (playerObject != NULL) {
 		creo->getClient()->sendMessage(new SuiCreatePageMessage(this));
 	}
 }
 
 void SuiPageData::sendUpdateTo(CreatureObject* creo) {
 	PlayerObject* playerObject = creo->getPlayerObject();
-	auto client = creo->getClient();
+	ZoneClientSession* client = creo->getClient();
 
-	if (playerObject != nullptr && client != nullptr) {
+	if (playerObject != NULL && client != NULL) {
 		client->sendMessage(new SuiUpdatePageMessage(this));
 	}
 }

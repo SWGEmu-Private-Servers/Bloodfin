@@ -4,16 +4,17 @@
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
+#include "server/zone/objects/player/sui/callbacks/CoaMessageFragmentSuiCallback.h"
 #include "server/zone/objects/tangible/components/generic/CoaMessageDataComponent.h"
 
-void CoaMessageMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void CoaMessageMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	TangibleObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, player);
 
 	menuResponse->addRadialMenuItem(20,3,"@sui:read_option"); // Read
 
 }
 
-int CoaMessageMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int CoaMessageMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!player->isPlayerCreature()) {
 		return 0;
 	}
@@ -24,19 +25,19 @@ int CoaMessageMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Cr
 	}
 
 	TangibleObject* disk = cast<TangibleObject*>(sceneObject);
-	if (disk == nullptr) {
+	if (disk == NULL) {
 		return 0;
 	}
 
 	PlayerObject* ghost = player->getPlayerObject();
-	if (ghost == nullptr) {
+	if (ghost == NULL) {
 		return 0;
 	}
 
 	if (selectedID == 20) {
 		CoaMessageDataComponent* data = cast<CoaMessageDataComponent*>(disk->getDataObjectComponent()->get());
 
-		if (data == nullptr) {
+		if (data == NULL) {
 			return 0;
 		}
 

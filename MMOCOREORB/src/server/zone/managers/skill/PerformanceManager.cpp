@@ -2,9 +2,13 @@
  				Copyright <SWGEmu>
 		See file COPYING for copying conditions. */
 
+#include "engine/engine.h"
+#include "server/zone/ZoneProcessServer.h"
+
 #include "PerformanceManager.h"
-#include "templates/datatables/DataTableIff.h"
-#include "templates/datatables/DataTableRow.h"
+#include "server/db/ServerDatabase.h"
+#include "server/zone/templates/datatables/DataTableIff.h"
+#include "server/zone/templates/datatables/DataTableRow.h"
 #include "server/zone/objects/tangible/Instrument.h"
 
 PerformanceManager::PerformanceManager() :
@@ -148,13 +152,13 @@ String PerformanceManager::getInstrument(int instrumentType) {
 }
 
 PerformanceManager::~PerformanceManager() {
-	if (performances != nullptr) {
+	if (performances != NULL) {
 		for (int i = 0; i < performances->size(); ++i)
-			delete performances->getUnsafe(i);
+			delete performances->get(i);
 
 		delete performances;
 
-		performances = nullptr;
+		performances = NULL;
 	}
 }
 
@@ -163,7 +167,7 @@ void PerformanceManager::loadPerformances() {
 	IffStream* iffStream = TemplateManager::instance()->openIffFile(
 			"datatables/performance/performance.iff");
 
-	if (iffStream == nullptr) {
+	if (iffStream == NULL) {
 		error("Could not open performances datatable.");
 		return;
 	}
@@ -194,7 +198,7 @@ Vector<Performance*> PerformanceManager::getPerformanceListFromMod(
 
 	Vector<Performance*> performanceList;
 
-	if (performances != nullptr) {
+	if (performances != NULL) {
 
 		for (int i = 0; i < performances->size(); ++i) {
 			Performance* perform = performances->get(i);
@@ -218,7 +222,7 @@ Vector<Performance*> PerformanceManager::getPerformanceListFromMod(
 }
 
 Performance* PerformanceManager::getDance(const String& name) {
-	if (performances != nullptr) {
+	if (performances != NULL) {
 		for (int i = 0; i < performances->size(); ++i) {
 			Performance* ret = performances->get(i);
 
@@ -227,11 +231,11 @@ Performance* PerformanceManager::getDance(const String& name) {
 		}
 	}
 
-	return nullptr;
+	return NULL;
 }
 
 Performance* PerformanceManager::getSong(const String& name, int instrumentType) {
-	if (performances != nullptr) {
+	if (performances != NULL) {
 		for (int i = 0; i < performances->size(); ++i) {
 			Performance* ret = performances->get(i);
 
@@ -240,5 +244,5 @@ Performance* PerformanceManager::getSong(const String& name, int instrumentType)
 				return ret;
 		}
 	}
-	return nullptr;
+	return NULL;
 }

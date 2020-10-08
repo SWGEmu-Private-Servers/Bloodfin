@@ -8,10 +8,15 @@
  * \date 5-03-10
  */
 
-#pragma once
+#ifndef RESOURCETREE_H_
+#define RESOURCETREE_H_
 
 #include "ResourceTreeNode.h"
 #include "ResourceTreeEntry.h"
+#include "server/zone/templates/datatables/DataTableIff.h"
+#include "server/zone/templates/datatables/DataTableRow.h"
+#include "server/zone/templates/datatables/DataTableCell.h"
+//#include "../ResourceSpawner.h"
 
 /**
  * The ResourceTree class is a representation of the
@@ -46,21 +51,17 @@ public:
 	 * \param Excludes Vector of items that can't be chosen
 	 * \param zoneid If the resource is tied to a certain zone
 	 */
-	const ResourceTreeEntry* getEntry(const String& type,
-			const Vector<String>& excludes = 0,  const String& zoneName = "") const;
+	ResourceTreeEntry* getEntry(const String& type,
+			const Vector<String>& excludes = 0,  const String& zoneName = "");
 
 	ResourceTreeNode* getBaseNode() {
-		return baseNode;
-	}
-
-	const ResourceTreeNode* getBaseNode() const {
 		return baseNode;
 	}
 
 	/**
 	 * Prints the tree
 	 */
-	void toString() const;
+	void toString();
 
 private:
 	/*
@@ -90,3 +91,5 @@ private:
 
 };
 
+
+#endif /* RESOURCETREE_H_ */

@@ -25,15 +25,21 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> player = client->getPlayer();
+		ManagedReference<SceneObject*> scene = client->getPlayer();
 
-		if (player == nullptr)
+		if (scene == NULL)
+			return;
+
+		CreatureObject* player = cast<CreatureObject*>(scene.get());
+
+		if (player == NULL)
 			return;
 
 		PlayerObject* ghost = player->getPlayerObject();
 
-		if (ghost != nullptr)
+		if (ghost != NULL)
 			ghost->setTeleporting(false);
+
 	}
 };
 

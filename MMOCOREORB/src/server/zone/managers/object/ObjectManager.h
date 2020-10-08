@@ -5,6 +5,10 @@
 #ifndef OBJECTMANAGER_H_
 #define OBJECTMANAGER_H_
 
+#include "engine/engine.h"
+
+#include "ObjectMap.h"
+
 #include "server/zone/ZoneProcessServer.h"
 
 #include "server/zone/objects/scene/SceneObject.h"
@@ -12,7 +16,16 @@
 #include "SceneObjectFactory.h"
 
 class TemplateManager;
+class UpdateModifiedObjectsThread;
 class DeleteCharactersTask;
+
+namespace engine {
+namespace db {
+namespace berkley {
+	class Transaction;
+}
+}
+}
 
 namespace server {
 namespace zone {
@@ -21,19 +34,19 @@ namespace zone {
 	namespace object {
 
 	class ObjectManager : public DOBObjectManager, public Singleton<ObjectManager>, public Object {
-		Reference<ZoneProcessServer*> server;
+		ManagedReference<ZoneProcessServer*> server;
 
-		TemplateManager* templateManager = nullptr;
+		TemplateManager* templateManager;
 
-		int galaxyId = 0;
+		int galaxyId;
 		Reference<ResultSet*> charactersSaved;
 
 		AtomicInteger saveCounter;
 
 		Reference<DeleteCharactersTask*> deleteCharactersTask;
-
-		static const uint32 serverObjectCrcHashCode;
-		static const uint32 _classNameHashCode;
+		
+		static uint32 serverObjectCrcHashCode;
+		static uint32 _classNameHashCode;
 
 	public:
 		SceneObjectFactory<SceneObject* (), uint32> objectFactory;
@@ -54,17 +67,17 @@ namespace zone {
 
 
 	public:
-		ObjectManager(bool initializeTemplates = true);
+		ObjectManager();
 		~ObjectManager();
 
-		bool contains(uint32 objectCRC) const {
+		bool contains(uint32 objectCRC) {
 			return objectFactory.containsObject(objectCRC);
 		}
 
 		void loadStaticObjects();
 
 		// object methods
-		SceneObject* createObject(uint32 objectCRC, int persistenceLevel, const String& database, uint64 oid = 0, bool initializeTransientMembers = true);
+		SceneObject* createObject(uint32 objectCRC, int persistenceLevel, const String& database, uint64 oid = 0);
 
 		ManagedObject* createObject(const String& className, int persistenceLevel, const String& database, uint64 oid = 0, bool initializeTransientMembers = true);
 
@@ -99,16 +112,6 @@ namespace zone {
 
 		void onCommitData();
 
-		void cancelDeleteCharactersTask();
-
-		void stopUpdateModifiedObjectsThreads();
-
-		void shutdown();
-
-		bool isObjectUpdateInProgress() const {
-			return objectUpdateInProgress;
-		}
-
 		ObjectDatabase* loadTable(const String& database, uint64 objectID = 0);
 
 		void updateObjectVersion();
@@ -117,21 +120,23 @@ namespace zone {
 			server = srv;
 		}
 
-		template<typename ClassType> void getPersistentObjectsSerializedVariable(const uint32 variableHashCode, ClassType* address, uint64 objectID) {
+		template<typename ClassType> void getPersistentObjectsSerializedVariable(const uint32& variableHashCode, ClassType* address, uint64 objectID) {
 			uint16 tableID = (uint16)(objectID >> 48);
 
 			LocalDatabase* db = databaseManager->getDatabase(tableID);
 
-			if (db == nullptr || !db->isObjectDatabase())
+			if (db == NULL || !db->isObjectDatabase())
 				return;
 
 			ObjectDatabase* database = cast<ObjectDatabase*>( db);
 
 			ObjectInputStream objectData(500);
 
-			if (database->getData(objectID, &objectData, berkeley::LockMode::READ_UNCOMMITED, false, true)) {
+			if (database->getData(objectID, &objectData)) {
 				return;
 			}
+
+			Locker _locker(this);
 
 			try {
 				if (!Serializable::getVariable<ClassType>(variableHashCode, address, &objectData)) {

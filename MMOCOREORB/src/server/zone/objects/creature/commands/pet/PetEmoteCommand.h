@@ -9,9 +9,9 @@
 #define PETEMOTECOMMAND_H_
 
 #include "server/zone/objects/creature/commands/QueueCommand.h"
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/ai/AiAgent.h"
-#include "templates/params/creature/CreatureEmote.h"
-#include "server/zone/managers/creature/CreatureManager.h"
+#include "server/zone/objects/creature/CreatureEmote.h"
 
 class PetEmoteCommand : public QueueCommand {
 public:
@@ -37,109 +37,89 @@ public:
 			return GENERALERROR;
 
 		ManagedReference<AiAgent*> pet = cast<AiAgent*>(creature);
-		if (pet == nullptr)
+		if( pet == NULL )
 			return GENERALERROR;
 
-		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().get().castTo<PetControlDevice*>();
-		if (controlDevice == nullptr)
+		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().castTo<PetControlDevice*>();
+		if (controlDevice == NULL)
 			return GENERALERROR;
 
 		// Creature specific command
-		if (controlDevice->getPetType() != PetManager::CREATUREPET)
+		if( controlDevice->getPetType() != PetManager::CREATUREPET )
 			return GENERALERROR;
 
 		if (pet->hasRidingCreature())
 			return GENERALERROR;
 
-		if (emoteid == CreatureEmote::PET || emoteid == CreatureEmote::REASSURE ||
-				emoteid == CreatureEmote::NUZZLE || emoteid == CreatureEmote::HUG) {
-			return praise(pet);
-		} else if (emoteid == CreatureEmote::BONK || emoteid == CreatureEmote::WHAP ||
+		if( emoteid == CreatureEmote::PET || emoteid == CreatureEmote::REASSURE ||
+			emoteid == CreatureEmote::NUZZLE || emoteid == CreatureEmote::HUG ){
+
+			return praise( pet );
+
+		}
+		else if( emoteid == CreatureEmote::BONK || emoteid == CreatureEmote::WHAP ||
 				 emoteid == CreatureEmote::SCOLD || emoteid == CreatureEmote::BAD ||
-				 emoteid == CreatureEmote::SLAP) {
+				 emoteid == CreatureEmote::SLAP ){
+
 			return shame(pet);
-		} else if (emoteid == CreatureEmote::POINTAT || emoteid == CreatureEmote::TAP) {
+
+		}
+		else if( emoteid == CreatureEmote::POINTAT || emoteid == CreatureEmote::TAP ){
+
 			return alert(pet);
-		} else if (emoteid == CreatureEmote::SUMMON || emoteid == CreatureEmote::BECKON) {
+
+		}
+		else if( emoteid == CreatureEmote::SUMMON || emoteid == CreatureEmote::BECKON ){
+
 			return summon(pet, controlDevice);
+
 		}
 
 		return SUCCESS;
 	}
 
-	int praise(AiAgent* pet) const {
-		Zone* creoZone = pet->getZone();
+	int praise( AiAgent* pet ) const {
 
-		if (creoZone == nullptr)
-			return GENERALERROR;
 
-		ManagedReference<CreatureManager*> creoManager = creoZone->getCreatureManager();
-		int speciesID = pet->getSpecies();
-		AiSpeciesData* speciesData = creoManager->getAiSpeciesData(speciesID);
-
-		if (speciesData == nullptr)
-			return GENERALERROR;
-
-		if (System::random(100) > 50) {
-			if (speciesData->canSitDown()) {
-				if (System::random(100) > 50) {
-					pet->setPosture(CreaturePosture::SITTING);
-				} else {
-					pet->setPosture(CreaturePosture::LYINGDOWN);
-				}
-			} else if (speciesData->canLieDown()) {
-				pet->setPosture(CreaturePosture::LYINGDOWN);
-			}
-		} else {
-			pet->doAnimation("happy");
-			pet->setPosture(CreaturePosture::UPRIGHT);
-		}
-
+		// TODO: Random chance to change posture to sitting or laying down instead of happy animation
+		pet->doAnimation("happy");
 		return SUCCESS;
 	}
 
-	int shame(AiAgent* pet) const {
+	int shame( AiAgent* pet ) const {
 		pet->doAnimation("ashamed");
 		return SUCCESS;
 	}
 
-	int alert(AiAgent* pet) const {
+	int alert( AiAgent* pet ) const {
 		pet->doAnimation("alert");
 		return SUCCESS;
 	}
 
-	int summon(AiAgent* pet, PetControlDevice* controlDevice) const {
+	int summon( AiAgent* pet, PetControlDevice* controlDevice ) const {
+
 		// Follow owner if command is trained
-		if (controlDevice->hasTrainedCommand( PetManager::FOLLOW)) {
+		if( controlDevice->hasTrainedCommand( PetManager::FOLLOW ) ){
+
 			// Always a chance the pet will just be stubborn
-			if (System::random(100) <= 90) {
-				// attempt peace if the pet is in combat
-				if (pet->isInCombat())
-					CombatManager::instance()->attemptPeace(pet);
-
-				pet->setFollowObject(pet->getLinkedCreature().get());
-				pet->storeFollowObject();
-
-				Locker clocker(controlDevice, pet);
-
-				if (pet->getPosture() == CreaturePosture::LYINGDOWN || pet->getPosture() == CreaturePosture::SITTING) {
-					pet->setPosture(CreaturePosture::UPRIGHT);
-				}
-
-				controlDevice->setLastCommand(PetManager::FOLLOW);
-
-				pet->activateInterrupt(pet->getLinkedCreature().get(), ObserverEventType::STARTCOMBAT);
-			} else {
+			if (System::random(100) <= 90 ){
+				pet->setFollowObject( pet->getLinkedCreature().get() );
+			}
+			else{
 				pet->doAnimation("confused");
 				pet->showFlyText("npc_reaction/flytext","confused", 204, 0, 0);  // "?!!?!?!"
 			}
-		} else {
+
+		}
+		else{
 			pet->doAnimation("confused");
 			pet->showFlyText("npc_reaction/flytext","confused", 204, 0, 0);  // "?!!?!?!"
 		}
 
 		return SUCCESS;
 	}
+
 };
+
 
 #endif /* PETEMOTECOMMAND_H_ */

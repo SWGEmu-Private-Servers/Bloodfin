@@ -8,6 +8,7 @@
 #ifndef LOOTGROUPCOLLECTIONENTRY_H_
 #define LOOTGROUPCOLLECTIONENTRY_H_
 
+#include "engine/engine.h"
 #include "LootGroups.h"
 
 class LootGroupCollectionEntry : public Object {
@@ -48,11 +49,11 @@ public:
 		luagroups.pop();
 	}
 
-	inline int getLootChance() const {
+	inline int getLootChance() {
 		return lootChance;
 	}
 
-	const LootGroups* getLootGroups() const {
+	LootGroups* getLootGroups() {
 		return &lootGroups;
 	}
 };

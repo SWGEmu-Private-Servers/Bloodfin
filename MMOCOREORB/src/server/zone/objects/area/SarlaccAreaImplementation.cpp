@@ -1,15 +1,18 @@
 #include "server/zone/objects/area/SarlaccArea.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/PlayerObject.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
 #include "server/zone/packets/scene/PlayClientEffectLocMessage.h"
 #include "server/zone/objects/area/events/SarlaccEruptTask.h"
+#include "server/zone/Zone.h"
 
 void SarlaccAreaImplementation::notifyEnter(SceneObject* object) {
-	if (object == nullptr || !object->isPlayerCreature())
+	if (object == NULL || !object->isPlayerCreature())
 		return;
 
 	CreatureObject* player = cast<CreatureObject*>(object);
 
-	if (player == nullptr)
+	if (player == NULL)
 		return;
 
 	if (getRadius() == 60) {

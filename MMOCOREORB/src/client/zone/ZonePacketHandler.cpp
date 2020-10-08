@@ -1,20 +1,24 @@
 #include "Zone.h"
 #include "ZonePacketHandler.h"
-#include "server/zone/packets/zone/SelectCharacter.h"
-#include "server/zone/packets/zone/CmdSceneReady.h"
-#include "client/zone/managers/object/ObjectManager.h"
-#include "client/zone/managers/objectcontroller/ObjectController.h"
-#include "server/zone/packets/charcreation/ClientCreateCharacter.h"
+
+/*#include "packets/scene/SceneObjectCreateMessage.h"
+#include "packets/scene/UpdateTransformMessage.h"*/
+#include "ZoneClient.h"
+#include "../../server/zone/packets/zone/SelectCharacter.h"
+#include "../../server/zone/packets/zone/CmdSceneReady.h"
+#include "managers/object/ObjectManager.h"
+#include "managers/objectcontroller/ObjectController.h"
+#include "../../server/zone/packets/charcreation/ClientCreateCharacter.h"
 
 ZonePacketHandler::ZonePacketHandler(const String& s, Zone * z) : Logger(s) {
 	zone = z;
 
-	setLogging(true);
+	setLogging(false);
 	setGlobalLogging(true);
 }
 
 void ZonePacketHandler::handleMessage(Message* pack) {
-	debug() << "parsing " << *pack;
+	//info("parsing " + pack->toStringData(), true);
 
 	sys::uint16 opcount = pack->parseShort();
 	sys::uint32 opcode = pack->parseInt();
@@ -167,15 +171,17 @@ void ZonePacketHandler::handleSceneObjectCreateMessage(Message* pack) {
 	uint32 crc = pack->parseInt();
 
 	ObjectManager* objectManager = zone->getObjectManager();
-	if (objectManager == nullptr) {
-		error("object manager was nullptr");
+	if (objectManager == NULL) {
+		error("object manager was NULL");
 		return;
 	}
 
 	SceneObject* object = objectManager->createObject(crc, objectID);
 
-	if (object == nullptr) {
-		client->debug() << "unknown crc 0x" << hex << crc << " received in SceneObjectCreateMessage";
+	if (object == NULL) {
+		StringBuffer infoMsg;
+		infoMsg << "unknown crc 0x" << hex << crc << " received in SceneObjectCreateMessage";
+		client->debug(infoMsg.toString());
 		return;
 	}
 
@@ -204,7 +210,7 @@ void ZonePacketHandler::handleBaselineMessage(Message* pack) {
 
 	SceneObject* object = zone->getObject(oid);
 
-	if (object == nullptr) {
+	if (object == NULL) {
 		client->debug("received baseline for null object");
 		return;
 	}
@@ -243,15 +249,15 @@ void ZonePacketHandler::handleUpdateTransformMessage(Message* pack) {
 
 	uint64 objid = pack->parseLong();
 
-	float x = pack->parseSignedShort() / 4.f;
-	float z = pack->parseSignedShort() / 4.f;
-	float y = pack->parseSignedShort() / 4.f;
+	float x = pack->parseSignedShort() / 4;
+	float z = pack->parseSignedShort() / 4;
+	float y = pack->parseSignedShort() / 4;
 
 	uint32 counter = pack->parseInt();
 
 	SceneObject* scno = zone->getObject(objid);
 
-	if (scno != nullptr) {
+	if (scno != NULL) {
 		Locker _locker(scno);
 		scno->setPosition(x, z, y);
 		//scno->info("updating position");
@@ -325,7 +331,7 @@ void ZonePacketHandler::handleObjectControllerMessage(Message* pack) {
 
 	SceneObject* object = zone->getObject(objectID);
 
-	if (object != nullptr)
+	if (object != NULL)
 		zone->getObjectController()->handleObjectController(object, header1, header2, pack);
 }
 
@@ -338,21 +344,21 @@ void ZonePacketHandler::handleUpdateContainmentMessage(Message* pack) {
 	SceneObject* object = zone->getObject(obj);
 	SceneObject* parent = zone->getObject(par);
 
-	if (object == nullptr)
+	if (object == NULL)
 		return;
 
 	if (par == 0) {
 		// remove object from parent
 		parent = object->getParent();
 
-		if (parent != nullptr) {
+		if (parent != NULL) {
 			parent->removeObject(object);
 		} else {
-			object->setParent(nullptr);
+			object->setParent(NULL);
 		}
 
 		return;
-	} else if (parent == nullptr) {
+	} else if (parent == NULL) {
 		return;
 	}
 

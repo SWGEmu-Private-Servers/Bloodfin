@@ -5,7 +5,8 @@
 #ifndef FACTORYCRATEOBJECTMESSAGE3_H_
 #define FACTORYCRATEOBJECTMESSAGE3_H_
 
-#include "server/zone/packets/BaseLineMessage.h"
+#include "../BaseLineMessage.h"
+
 #include "server/zone/objects/factorycrate/FactoryCrate.h"
 
 class FactoryCrateObjectMessage3 : public BaseLineMessage {
@@ -29,7 +30,7 @@ public:
 
 		Reference<TangibleObject*> proto = crate->getPrototype();
 
-		if(proto == nullptr)
+		if(proto == NULL)
 			insertInt(crate->getOptionsBitmask());
 		else
 			insertInt(proto->getOptionsBitmask());

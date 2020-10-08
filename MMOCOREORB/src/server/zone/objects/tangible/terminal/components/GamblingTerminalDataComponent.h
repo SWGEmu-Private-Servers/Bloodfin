@@ -11,7 +11,7 @@ class GamblingTerminalDataComponent : public DataObjectComponent {
 protected:
 
 	uint64 bank;
-	SerializableString game;
+	String game;
 
 public:
 	GamblingTerminalDataComponent() {
@@ -23,13 +23,6 @@ public:
 
 	virtual ~GamblingTerminalDataComponent() {
 
-	}
-
-	void writeJSON(nlohmann::json& j) const {
-		DataObjectComponent::writeJSON(j);
-
-		SERIALIZE_JSON_MEMBER(bank)
-		SERIALIZE_JSON_MEMBER(game);
 	}
 
 	/**

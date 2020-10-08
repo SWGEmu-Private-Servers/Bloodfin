@@ -13,8 +13,8 @@
 
 class InstallationObjectMenuComponent : public ObjectMenuComponent {
 public:
-	virtual void fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* creature) const;
-	virtual int handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* creature, byte selectedID) const;
+	virtual void fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* creature);
+	virtual int handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* creature, byte selectedID);
 };
 
 #endif /* INSTALLATIONOBJECTMENUCOMPONENT_H_ */

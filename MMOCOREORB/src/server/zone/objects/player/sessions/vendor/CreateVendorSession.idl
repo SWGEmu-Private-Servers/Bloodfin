@@ -4,17 +4,25 @@
 
 package server.zone.objects.player.sessions.vendor;
 
+include engine.core.ManagedObject;
+
 import engine.log.Logger;
+import engine.core.ManagedReference;
 import engine.util.Facade;
+import system.lang.ref.Reference;
+import server.zone.objects.scene.SceneObject;
 import server.zone.objects.creature.CreatureObject;
+import server.zone.objects.tangible.TangibleObject;
 include server.zone.objects.scene.SessionFacadeType;
 include server.zone.objects.player.sui.listbox.SuiListBox;
 include server.zone.objects.player.sui.inputbox.SuiInputBox;
 include server.zone.managers.vendor.VendorSelectionNode;
-include templates.creature.VendorCreatureTemplate;
+import server.zone.managers.auction.AuctionManager;
+include server.zone.templates.tangible.VendorCreatureTemplate;
+
 
 class CreateVendorSession extends Facade {
-	@weakReference
+	@weakreference
 	protected CreatureObject player;
 
 	VendorSelectionNode currentNode;
@@ -36,10 +44,8 @@ class CreateVendorSession extends Facade {
 	public native int initializeSession();
 	
 	public int cancelSession() {
-		CreatureObject play = player;
-
-		if (play)
-			play.dropActiveSession(SessionFacadeType.CREATEVENDOR);
+		if (player != null)
+			player.dropActiveSession(SessionFacadeType.CREATEVENDOR);
 
 		clearSession();
 		return 0;
@@ -58,7 +64,7 @@ class CreateVendorSession extends Facade {
 
 	public native void createVendor(string name);
 
-	public native void randomizeVendorLooks(CreatureObject vendor);
+	private native void randomizeVendorLooks(CreatureObject vendor);
 	
 	private native void randomizeVendorClothing(CreatureObject vendor, VendorCreatureTemplate vendorTempl);
 	

@@ -29,10 +29,6 @@ Luna<LuaSuiPageData>::RegType LuaSuiPageData::Register[] = {
 		{ "addChildWidget", &LuaSuiPageData::addChildWidget },
 		{ "subscribeToEvent", &LuaSuiPageData::subscribeToEvent },
 		{ "subscribeToPropertyForEvent", &LuaSuiPageData::subscribeToPropertyForEvent },
-		{ "setStoredData", &LuaSuiPageData::setStoredData },
-		{ "getStoredData", &LuaSuiPageData::getStoredData },
-		{ "deleteStoredData", &LuaSuiPageData::deleteStoredData },
-		{ "getPropertyValue", &LuaSuiPageData::getPropertyValue },
 		{ 0, 0 }
 };
 
@@ -53,7 +49,7 @@ int LuaSuiPageData::_setObject(lua_State* L) {
 }
 
 int LuaSuiPageData::_getObject(lua_State* L) {
-	if (realObject == nullptr)
+	if (realObject == NULL)
 		lua_pushnil(L);
 	else
 		lua_pushlightuserdata(L, realObject.get());
@@ -62,7 +58,7 @@ int LuaSuiPageData::_getObject(lua_State* L) {
 }
 
 int LuaSuiPageData::setTargetNetworkId(lua_State* L) {
-	uint64 targetId = lua_tonumber(L, -1);
+	int targetId = lua_tonumber(L, -1);
 
 	realObject->setTargetNetworkId(targetId);
 
@@ -176,7 +172,7 @@ int LuaSuiPageData::subscribeToPropertyForEvent(lua_State* L) {
 int LuaSuiPageData::sendTo(lua_State* L) {
 	CreatureObject* creo = static_cast<CreatureObject*>(lua_touserdata(L, -1));
 
-	if (creo != nullptr)
+	if (creo != NULL)
 		realObject->sendTo(creo);
 
 	return 0;
@@ -185,7 +181,7 @@ int LuaSuiPageData::sendTo(lua_State* L) {
 int LuaSuiPageData::sendUpdateTo(lua_State* L) {
 	CreatureObject* creo = static_cast<CreatureObject*>(lua_touserdata(L, -1));
 
-	if (creo != nullptr)
+	if (creo != NULL)
 		realObject->sendUpdateTo(creo);
 
 	return 0;
@@ -195,38 +191,4 @@ int LuaSuiPageData::getTargetNetworkId(lua_State* L) {
 	lua_pushinteger(L, realObject->getTargetNetworkId());
 
 	return 1;
-}
-
-int LuaSuiPageData::getPropertyValue(lua_State* L) {
-	String widget = lua_tostring(L, -2);
-	String property = lua_tostring(L, -1);
-
-	lua_pushstring(L, realObject->getPropertyValue(widget, property).toString().toCharArray());
-
-	return 1;
-}
-
-int LuaSuiPageData::setStoredData(lua_State* L) {
-	String key = lua_tostring(L, -2);
-	String value = lua_tostring(L, -1);
-
-	realObject->setStoredData(key, value);
-
-	return 0;
-}
-
-int LuaSuiPageData::getStoredData(lua_State* L) {
-	String key = lua_tostring(L, -1);
-
-	lua_pushstring(L, realObject->getStoredData(key).toCharArray());
-
-	return 1;
-}
-
-int LuaSuiPageData::deleteStoredData(lua_State* L) {
-	String key = lua_tostring(L, -1);
-
-	realObject->deleteStoredData(key);
-
-	return 0;
 }

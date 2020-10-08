@@ -7,6 +7,7 @@
 
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/factorycrate/FactoryCrate.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
 
 class ExtractObjectCommand : public QueueCommand {
 public:
@@ -28,7 +29,7 @@ public:
 
 			ManagedReference<SceneObject* > object = server->getZoneServer()->getObject(target);
 
-			if(object == nullptr || !object->isFactoryCrate()) {
+			if(object == NULL || !object->isFactoryCrate()) {
 				creature->sendSystemMessage("Trying to 'ExtractObjectCommand' on item that isn't a factory crate");
 				return GENERALERROR;
 			}

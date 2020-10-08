@@ -4,19 +4,24 @@
 
 package server.zone.objects.player.sessions.vendor;
 
+include engine.core.ManagedObject;
+
 import engine.log.Logger;
+import engine.core.ManagedReference;
 import engine.util.Facade;
+import system.lang.ref.Reference;
 import server.zone.objects.scene.SceneObject;
 import server.zone.objects.creature.CreatureObject;
 include server.zone.objects.scene.SessionFacadeType;
+include server.zone.objects.player.sui.listbox.SuiListBox;
 include server.zone.objects.player.sui.inputbox.SuiInputBox;
 
 
 class VendorAdBarkingSession extends Facade {
-	@weakReference
+	@weakreference
 	protected CreatureObject owner;
 	
-	@weakReference
+	@weakreference
 	protected SceneObject vendor;
 	
 	protected int advertisingMod;
@@ -37,9 +42,8 @@ class VendorAdBarkingSession extends Facade {
 	public native int initializeSession();
 	
 	public int cancelSession() {
-		CreatureObject player = owner;
-		if (player)
-			player.dropActiveSession(SessionFacadeType.VENDORADBARKING);
+		if (owner != null)
+			owner.dropActiveSession(SessionFacadeType.VENDORADBARKING);
 
 		clearSession();
 		return 0;

@@ -6,14 +6,14 @@
  */
 
 #include "server/zone/objects/tangible/deed/Deed.h"
-#include "templates/tangible/DeedTemplate.h"
+#include "server/zone/templates/tangible/DeedTemplate.h"
 
 void DeedImplementation::loadTemplateData(SharedObjectTemplate* templateData) {
 	TangibleObjectImplementation::loadTemplateData(templateData);
 
 	DeedTemplate* deedData = dynamic_cast<DeedTemplate*>(templateData);
 
-	if (deedData == nullptr)
+	if (deedData == NULL)
 		return;
 
 	String generatetmpl = deedData->getGeneratedObjectTemplate();

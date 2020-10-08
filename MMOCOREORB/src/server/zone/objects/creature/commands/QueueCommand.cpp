@@ -11,7 +11,6 @@
 #include "server/zone/objects/player/FactionStatus.h"
 #include "server/zone/objects/tangible/weapon/WeaponObject.h"
 #include "server/zone/managers/combat/CombatManager.h"
-#include "server/zone/managers/frs/FrsManager.h"
 
 QueueCommand::QueueCommand(const String& skillname, ZoneProcessServer* serv) : Logger() {
 	server = serv;
@@ -33,7 +32,7 @@ QueueCommand::QueueCommand(const String& skillname, ZoneProcessServer* serv) : L
 	cooldown = 0;
 	defaultPriority = NORMAL;
 
-	setLogging(false);
+	setLogging(true);
 	setGlobalLogging(true);
 	setLoggingName("QueueCommand " + skillname);
 }
@@ -118,19 +117,12 @@ void QueueCommand::onFail(uint32 actioncntr, CreatureObject* creature, uint32 er
 		if (addToQueue)
 			creature->clearQueueAction(actioncntr, 0, 3, 0);
 		break;
-	case INVALIDWEAPON: { // this only gets returned from combat commands
-		ManagedReference<WeaponObject*> weapon = creature->getWeapon();
-		int attackType = -1;
-
-		if (weapon != nullptr) {
-			attackType = weapon->getAttackType();
-		}
-
-		switch (attackType) {
-		case SharedWeaponObjectTemplate::RANGEDATTACK:
+	case INVALIDWEAPON: // this only gets returned from combat commands
+		switch (creature->getWeapon()->getAttackType()) {
+		case WeaponObject::RANGEDATTACK:
 			creature->sendSystemMessage("@cbt_spam:no_attack_ranged_single");
 			break;
-		case SharedWeaponObjectTemplate::MELEEATTACK:
+		case WeaponObject::MELEEATTACK:
 			creature->sendSystemMessage("@cbt_spam:no_attack_melee_single");
 			break;
 		default:
@@ -141,7 +133,7 @@ void QueueCommand::onFail(uint32 actioncntr, CreatureObject* creature, uint32 er
 		if (addToQueue)
 			creature->clearQueueAction(actioncntr);
 		break;
-	}
+
 	case TOOFAR:
 		if (addToQueue)
 			creature->clearQueueAction(actioncntr, 0, 4, 0);
@@ -160,13 +152,6 @@ void QueueCommand::onFail(uint32 actioncntr, CreatureObject* creature, uint32 er
 			creature->clearQueueAction(actioncntr);
 
 		break;
-
-	case ALREADYAFFECTEDJEDIPOWER:
-			creature->sendSystemMessage("@jedi_spam:power_already_active"); // This target is already affected by that power.
-			if (addToQueue)
-				creature->clearQueueAction(actioncntr);
-
-			break;
 
 	case NOPRONE:
 		if (addToQueue)
@@ -187,13 +172,6 @@ void QueueCommand::onFail(uint32 actioncntr, CreatureObject* creature, uint32 er
 		break;
 	case TOOCLOSE:
 		prm.setStringId("combat_effects", "prone_ranged_too_close");
-		creature->sendSystemMessage(prm);
-
-		if (addToQueue)
-			creature->clearQueueAction(actioncntr);
-		break;
-	case INSUFFICIENTHAM:
-		prm.setStringId("cbt_spam", "pool_drain_fail_single");
 		creature->sendSystemMessage(prm);
 
 		if (addToQueue)
@@ -237,42 +215,30 @@ int QueueCommand::doCommonMedicalCommandChecks(CreatureObject* creature) const {
 	return SUCCESS;
 }
 
-bool QueueCommand::checkForArenaDuel(CreatureObject* target) const {
-	FrsManager* frsManager = server->getZoneServer()->getFrsManager();
-
-	if (frsManager == nullptr)
-		return false;
-
-	if (!frsManager->isFrsEnabled())
-		return false;
-
-	return frsManager->isPlayerFightingInArena(target->getObjectID());
-}
-
 void QueueCommand::checkForTef(CreatureObject* creature, CreatureObject* target) const {
 	if (!creature->isPlayerCreature() || creature == target)
 		return;
 
 	PlayerObject* ghost = creature->getPlayerObject().get();
-	if (ghost == nullptr)
+	if (ghost == NULL)
 		return;
 
 	if (target->isPlayerCreature()) {
 		PlayerObject* targetGhost = target->getPlayerObject().get();
 
 		if (!CombatManager::instance()->areInDuel(creature, target)
-				&& targetGhost != nullptr && target->getFactionStatus() == FactionStatus::OVERT && targetGhost->hasPvpTef()) {
-			ghost->updateLastGcwPvpCombatActionTimestamp();
+				&& targetGhost != NULL && targetGhost->getFactionStatus() == FactionStatus::OVERT && targetGhost->hasPvpTef()) {
+			ghost->updateLastPvpCombatActionTimestamp();
 		}
 	} else if (target->isPet()) {
 		ManagedReference<CreatureObject*> owner = target->getLinkedCreature().get();
 
-		if (owner != nullptr && owner->isPlayerCreature()) {
+		if (owner != NULL && owner->isPlayerCreature()) {
 			PlayerObject* ownerGhost = owner->getPlayerObject().get();
 
 			if (!CombatManager::instance()->areInDuel(creature, owner)
-					&& ownerGhost != nullptr && owner->getFactionStatus() == FactionStatus::OVERT && ownerGhost->hasPvpTef()) {
-				ghost->updateLastGcwPvpCombatActionTimestamp();
+					&& ownerGhost != NULL && ownerGhost->getFactionStatus() == FactionStatus::OVERT && ownerGhost->hasPvpTef()) {
+				ghost->updateLastPvpCombatActionTimestamp();
 			}
 		}
 	}

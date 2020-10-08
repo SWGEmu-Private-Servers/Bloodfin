@@ -5,8 +5,10 @@
 #ifndef STOPMUSICCOMMAND_H_
 #define STOPMUSICCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/sessions/EntertainingSession.h"
+
 
 class StopMusicCommand : public QueueCommand {
 public:
@@ -27,7 +29,7 @@ public:
 		ManagedReference<Facade*> facade = creature->getActiveSession(SessionFacadeType::ENTERTAINING);
 		ManagedReference<EntertainingSession*> session = dynamic_cast<EntertainingSession*>(facade.get());
 
-		if (session == nullptr)
+		if (session == NULL)
 			return GENERALERROR;
 
 		if (!session->isPlayingMusic())

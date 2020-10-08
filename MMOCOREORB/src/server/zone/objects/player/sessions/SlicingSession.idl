@@ -7,19 +7,21 @@ package server.zone.objects.player.sessions;
 include engine.core.ManagedObject;
 
 import engine.log.Logger;
+import engine.core.ManagedReference;
 import engine.util.Facade;
+import system.lang.ref.Reference;
 import server.zone.objects.creature.CreatureObject;
+include server.zone.objects.creature.CreatureObject;
 import server.zone.objects.tangible.TangibleObject;
-include server.zone.objects.tangible.weapon.WeaponObject;
+include server.zone.objects.scene.SessionFacadeType;
 include server.zone.objects.player.sui.listbox.SuiListBox;
 include server.zone.objects.tangible.tool.smuggler.SlicingTool;
 include server.zone.objects.tangible.RelockLootContainerEvent;
 
-@json
 class SlicingSession extends Facade {
 	@weakReference
 	protected CreatureObject player;
-
+	
 	@weakReference
 	protected transient TangibleObject tangibleObject;
 
@@ -36,26 +38,25 @@ class SlicingSession extends Facade {
 	protected boolean usedClamp;
 
 	protected boolean baseSlice;
-	protected boolean keypadSlice;
-
+		
 	public SlicingSession(CreatureObject parent) {
 		Logger.setLoggingName("SlicingSession");
 		Logger.setLogging(true);
-
+		
 		initializeSession();
 
 	}
 
 	@local
 	public native void initalizeSlicingMenu(CreatureObject pl, TangibleObject obj);
-
+	
 	@local
 	public native void handleMenuSelect(CreatureObject pl, byte menuID, SuiListBox suiBox);
 
 	public native int initializeSession();
-
+	
 	public native int cancelSession();
-
+	
 	public int clearSession() {
 		player = null;
 		tangibleObject = null;
@@ -66,14 +67,12 @@ class SlicingSession extends Facade {
 	public native void endSlicing();
 
 	private native void generateSliceMenu(SuiListBox suiBox);
-
+	
 	private string getPrefix(TangibleObject obj) {
 		if (obj.isMissionTerminal())
 			return "terminal_";
 		else if (isBaseSlice())
 			return "hq_security_";
-		else if (isKeypadSlice())
-			return "keypad_";
 		else if (obj.isWeaponObject())
 			return "weapon_";
 		else if (obj.isArmorObject())
@@ -92,14 +91,6 @@ class SlicingSession extends Facade {
 		return baseSlice;
 	}
 
-	public native boolean isKeypadSlice() {
-		return keypadSlice;
-	}
-
-	public native void setKeypadSlice(boolean val){
-		keypadSlice = val;
-	}
-
 	public native void setBaseSlice(boolean val){
 		baseSlice = val;
 	}
@@ -110,12 +101,10 @@ class SlicingSession extends Facade {
 	public native boolean hasPrecisionLaserKnife(boolean removeItem = true);
 
 	public native boolean hasWeaponUpgradeKit();
-
+	
 	public native boolean hasArmorUpgradeKit();
 
 	public native void useClampFromInventory(SlicingTool clamp);
-
-	private native void detachPowerUp(CreatureObject player, WeaponObject weap);
 
 	private native void handleUseClamp();
 
@@ -136,5 +125,7 @@ class SlicingSession extends Facade {
 	private native void handleSliceEffectiveness(byte percent);
 
 	private native void handleContainerSlice();
+
+
 
 }

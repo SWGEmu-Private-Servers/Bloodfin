@@ -8,6 +8,7 @@
 #ifndef PLANETTRAVELPOINTLIST_H_
 #define PLANETTRAVELPOINTLIST_H_
 
+#include "engine/engine.h"
 #include "PlanetTravelPoint.h"
 
 class PlanetTravelPointList : public VectorMap<String, Reference<PlanetTravelPoint*> >, public ReadWriteLock {
@@ -16,7 +17,7 @@ public:
 
 	PlanetTravelPointList() : VectorMap<String, Reference<PlanetTravelPoint*> >() {
 		setNoDuplicateInsertPlan();
-		setNullValue(nullptr);
+		setNullValue(NULL);
 	}
 
 	Reference<PlanetTravelPoint*> get(int index) {
@@ -39,12 +40,7 @@ public:
 		rlock();
 
 		int totalPoints = size();
-
-#ifdef PLATFORM_WIN
-		char* incomingAllowed = (char*) _malloca(totalPoints);
-#else
 		bool incomingAllowed[totalPoints];
-#endif
 		int insertionPoints = totalPoints;
 
 		for (int i = 0; i < totalPoints; ++i) {
@@ -78,17 +74,16 @@ public:
 			if (incomingAllowed[i]) {
 				Reference<PlanetTravelPoint*> ptp = VectorMap<String, Reference<PlanetTravelPoint*> >::get(i);
 				ManagedReference<CreatureObject*> shuttle = ptp->getShuttle();
-				if(shuttle == nullptr){
+				if(shuttle == NULL){
 					message->insertInt(0);
 					continue;
 				}
 
+				if(shuttle->getCityRegion() == NULL){
+					message->insertInt(0);
+					continue;
+				}
 				ManagedReference<CityRegion*> city = shuttle->getCityRegion().get();
-
-				if(city == nullptr) {
-					message->insertInt(0);
-					continue;
-				}
 
 				if (ptp == origin)
 					message->insertInt(city->getTravelTax());
@@ -103,10 +98,6 @@ public:
 			if (incomingAllowed[i])
 				message->insertByte((byte) VectorMap<String, Reference<PlanetTravelPoint*> >::get(i)->isInterplanetary());
 		}
-
-#ifdef PLATFORM_WIN
-		_freea(incomingAllowed);
-#endif
 
 		runlock();
 	}

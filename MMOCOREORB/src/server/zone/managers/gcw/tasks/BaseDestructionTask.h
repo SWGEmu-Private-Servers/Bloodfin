@@ -8,6 +8,7 @@
 #ifndef BASEDESTRUCTIONTASK_H_
 #define BASEDESTRUCTIONTASK_H_
 
+#include "engine/engine.h"
 #include "server/zone/managers/gcw/GCWManager.h"
 
 class BaseDestructionTask : public Task {
@@ -25,7 +26,7 @@ public:
 		countDown--;
 		ManagedReference<GCWManager*> strongRef = gcwManager.get();
 		ManagedReference<BuildingObject*> building = buildingObject.get();
-		if (strongRef == nullptr){
+		if (strongRef == NULL){
 			return;
 		}
 

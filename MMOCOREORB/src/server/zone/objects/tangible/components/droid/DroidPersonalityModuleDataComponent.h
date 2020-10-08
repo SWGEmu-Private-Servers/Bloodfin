@@ -6,6 +6,7 @@
 #define DROIDPERSONALITYMODULEDATACOMPONENT_H_
 
 #include "BaseDroidModuleComponent.h"
+#include "engine/core/ManagedReference.h"
 #include "server/zone/objects/tangible/components/droid/DroidPersonalityObserver.h"
 
 namespace server {
@@ -27,39 +28,23 @@ protected:
 
 public:
 	DroidPersonalityModuleDataComponent();
-
 	~DroidPersonalityModuleDataComponent();
-
-	String getModuleName() const;
-
+	String getModuleName();
 	void initializeTransientMembers();
-
-	void initialize(DroidObject* droid);
-
+	void initialize(CreatureObject* droid);
 	void fillAttributeList(AttributeListMessage* msg, CreatureObject* droid);
-
-	void handlePetCommand(String cmd, CreatureObject* speaker);
-
+	void handlePetCommand(String cmd, CreatureObject* speaker) ;
 	int getBatteryDrain();
-
 	void deactivate();
-
-	String toString() const;
-
+	String toString();
+	// crafting droid module specific
 	void onCall();
-
 	void onStore();
-
 	void copy(BaseDroidModuleComponent* other);
-
 	void notifyEvent(unsigned int eventType, ManagedObject* arg1, int64 arg2,bool forced = false);
-
 	void quip(String message,DroidObject* droid);
-
 	String getPersonalityBase();
-
 	uint32 getPersonalityConversationTemplate();
-
 	String getPersonalityStf() { return personalityStf; }
 };
 

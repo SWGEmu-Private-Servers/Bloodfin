@@ -25,7 +25,7 @@ public:
 
 		SuiColorBox* cBox = cast<SuiColorBox*>( sui);
 
-		if (cBox == nullptr)
+		if (cBox == NULL)
 			return;
 
 		if(!creature->isPlayerCreature())
@@ -37,19 +37,18 @@ public:
 
 			String palette = cBox->getColorPalette();
 
-			ManagedReference<TangibleObject*> target = cBox->getUsingObject().get().castTo<TangibleObject*>();
+			ManagedReference<SceneObject*> target = cBox->getUsingObject();
 
-			if (target == nullptr)
-				return;
+			ManagedReference<TangibleObject*> targetTano = cast<TangibleObject*>(target.get());
 
-			Locker clocker(target, creature);
+			if (targetTano != NULL) {
+				Locker clocker(targetTano, creature);
 
-			target->setCustomizationVariable(palette, index, true);
+				targetTano->setCustomizationVariable(palette, index, true);
+			}
 
-			clocker.release();
-
-			if (customizationKit != nullptr) {
-				Locker clocker2(customizationKit, creature);
+			if(customizationKit != NULL){
+				Locker clocker(customizationKit, creature);
 				customizationKit->decreaseUseCount();
 			}
 		}

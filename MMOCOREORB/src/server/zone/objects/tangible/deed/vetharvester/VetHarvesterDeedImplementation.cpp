@@ -6,11 +6,13 @@
  */
 
 #include "server/zone/objects/tangible/deed/vetharvester/VetHarvesterDeed.h"
+#include "server/zone/objects/tangible/deed/Deed.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/chat/ChatManager.h"
 #include "server/zone/objects/installation/harvester/HarvesterObject.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
+#include "server/zone/objects/scene/variables/StringId.h"
 #include "server/zone/ZoneServer.h"
 
 void VetHarvesterDeedImplementation::initializeTransientMembers() {
@@ -24,7 +26,7 @@ void VetHarvesterDeedImplementation::fillObjectMenuResponse(ObjectMenuResponse* 
 
 	if (!isASubChildOf(creature))
 		return;
-
+  
 	menuResponse->addRadialMenuItem(20, 3, "@ui_radial:convert_harvester"); //use
 }
 
@@ -32,18 +34,19 @@ int VetHarvesterDeedImplementation::handleObjectMenuSelect(CreatureObject* playe
 	if (selectedID != 20) // not use object
 		return 1;
 
-	if (player != nullptr)
+	if (player != NULL)
 		useObject(player);
 
 	return 0;
 }
 
 int VetHarvesterDeedImplementation::useObject(CreatureObject* creature) {
+
 	ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
 
 	ZoneServer *zone = creature->getZoneServer();
 
-	if (ghost == nullptr || zone == nullptr)
+	if(ghost == NULL || zone == NULL)
 		return 0;
 
 	if (!isASubChildOf(creature))
@@ -53,30 +56,30 @@ int VetHarvesterDeedImplementation::useObject(CreatureObject* creature) {
 
 	ManagedReference<TangibleObject*> targetObject = zone->getObject(targetID).castTo<TangibleObject*>();
 
-	if (targetObject == nullptr || !targetObject->isHarvesterObject())
+	if (targetObject == NULL || !targetObject->isHarvesterObject())
 		return 0;
 
-	ManagedReference<HarvesterObject*> harvester = targetObject.castTo<HarvesterObject*>();
+	HarvesterObject *harvester = targetObject.castTo<HarvesterObject*>();
 
-	if (harvester == nullptr || !harvester->isOwnerOf(creature))
+	if(harvester == NULL || !harvester->isOwnerOf(creature))
 		return 0;
 
-	if (harvester->isSelfPowered()) {
+	if(harvester->isSelfPowered()) {
 		creature->sendSystemMessage("@veteran:harvester_already_selfpowered");
 		return 0;
 	}
 
 	StringIdChatParameter messageBody("veteran", "harvester_converted"); // Your harvester %TT has been converted to use 0 power.
-	messageBody.setTT(harvester->getObjectID());
+	messageBody.setTT(harvester);
 
 	ManagedReference<ChatManager*> cman = zone->getChatManager();
 
 	cman->sendMail("system", "@veteran:harvester_converted_subject", messageBody, creature->getFirstName());
 
-	Core::getTaskManager()->executeTask([=] () {
-		Locker locker(harvester);
-		harvester->setSelfPowered(true);
-	}, "SetSelfPoweredLambda");
+  	EXECUTE_TASK_1(harvester, {
+          Locker locker(harvester_p);
+          harvester_p->setSelfPowered(true);
+        });
 
 	destroyDeed();
 
@@ -84,7 +87,7 @@ int VetHarvesterDeedImplementation::useObject(CreatureObject* creature) {
 }
 
 void VetHarvesterDeedImplementation::destroyDeed() {
-	if (parent.get() != nullptr) {
+	if (parent.get() != NULL) {
 		destroyObjectFromWorld(true);
 	}
 

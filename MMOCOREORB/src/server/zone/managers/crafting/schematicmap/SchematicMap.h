@@ -22,9 +22,9 @@
 
 class SchematicMap : public Singleton<SchematicMap>, public Lua {
 
-	VectorMap<uint32, Reference<DraftSchematic* > > schematicCrcMap;
+	VectorMap<uint32, ManagedReference<DraftSchematic* > > schematicCrcMap;
 	VectorMap<String, DraftSchematicGroup* > groupMap;
-	Reference<ZoneServer*> zoneServer;
+	ManagedReference<ZoneServer*> zoneServer;
 	ObjectManager* objectManager;
 
 	VectorMap<uint32, String> iffGroupMap;
@@ -38,8 +38,8 @@ public:
 
 	void loadDraftSchematicDatabase();
 
-	bool addSchematics(PlayerObject* playerObject, const Vector<String>& schematicgroups, bool updateClient);
-	void removeSchematics(PlayerObject* playerObject, const Vector<String>& schematicgroups, bool updateClient);
+	bool addSchematics(PlayerObject* playerObject, Vector<String> schematicgroups, bool updateClient);
+	void removeSchematics(PlayerObject* playerObject, Vector<String> schematicgroups, bool updateClient);
 //	bool addSchematic(PlayerObject* playerObject, DraftSchematic* schematic, bool updateClient);
 //	void removeSchematic(PlayerObject* playerObject, DraftSchematic* schematic, bool updateClient);
 

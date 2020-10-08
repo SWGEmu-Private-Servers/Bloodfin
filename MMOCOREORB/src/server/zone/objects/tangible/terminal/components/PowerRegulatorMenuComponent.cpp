@@ -7,30 +7,36 @@
 
 #include "PowerRegulatorMenuComponent.h"
 #include "server/zone/Zone.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/FactionStatus.h"
+#include "server/zone/objects/structure/StructureObject.h"
+
 #include "server/zone/objects/building/BuildingObject.h"
+
 #include "server/zone/managers/gcw/GCWManager.h"
 
-void PowerRegulatorMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
 
-	ManagedReference<BuildingObject*> building = sceneObject->getParentRecursively(SceneObjectType::FACTIONBUILDING).castTo<BuildingObject*>();
+void PowerRegulatorMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
-	if (building == nullptr)
+	ManagedReference<BuildingObject*> building = cast<BuildingObject*>(sceneObject->getParentRecursively(SceneObjectType::FACTIONBUILDING).get().get());
+
+	if (building == NULL)
 		return;
 
-	if (player  == nullptr || player->isDead() || player->isIncapacitated())
+	if (player  == NULL || player->isDead() || player->isIncapacitated())
 		return;
 
 	Zone* zone = building->getZone();
 
-	if (zone == nullptr)
+	if (zone == NULL)
 		return;
 
 	GCWManager* gcwMan = zone->getGCWManager();
 
-	if (gcwMan == nullptr)
+	if (gcwMan == NULL)
 		return;
 
 	if (!gcwMan->isBaseVulnerable(building))
@@ -39,24 +45,24 @@ void PowerRegulatorMenuComponent::fillObjectMenuResponse(SceneObject* sceneObjec
 	menuResponse->addRadialMenuItem(20, 3, "@hq:mnu_set_overload"); // Set to overload
 }
 
-int PowerRegulatorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int PowerRegulatorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (player->isDead() || player->isIncapacitated() || selectedID != 20)
 		return 1;
 
-	ManagedReference<BuildingObject*> building = sceneObject->getParentRecursively(SceneObjectType::FACTIONBUILDING).castTo<BuildingObject*>();
+	ManagedReference<BuildingObject*> building = cast<BuildingObject*>(sceneObject->getParentRecursively(SceneObjectType::FACTIONBUILDING).get().get());
 	ManagedReference<TangibleObject*> powerRegulator = cast<TangibleObject*>(sceneObject);
 
-	if (building == nullptr)
+	if (building == NULL)
 		return 1;
 
 	Zone* zone = building->getZone();
 
-	if (zone == nullptr)
+	if (zone == NULL)
 		return 1;
 
 	GCWManager* gcwMan = zone->getGCWManager();
 
-	if (gcwMan == nullptr)
+	if (gcwMan == NULL)
 		return 1;
 
 	if (!gcwMan->isBaseVulnerable(building))
@@ -85,14 +91,19 @@ int PowerRegulatorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject
 		return 1;
 	}
 
-	Reference<CreatureObject*> playerRef = player;
+	EXECUTE_TASK_4(player, gcwMan, powerRegulator, building, {
+			Locker locker(player_p);
+			Locker clocker(building_p, player_p);
 
-	Core::getTaskManager()->executeTask([=] () {
-		Locker locker(playerRef);
-		Locker clocker(building, playerRef);
-
-		gcwMan->sendPowerRegulatorControls(playerRef, building, powerRegulator);
-	}, "SendPowerRegulatorControlsLambda");
+			gcwMan_p->sendPowerRegulatorControls(player_p, building_p, powerRegulator_p);
+	});
 
 	return 0;
 }
+
+
+
+
+
+
+

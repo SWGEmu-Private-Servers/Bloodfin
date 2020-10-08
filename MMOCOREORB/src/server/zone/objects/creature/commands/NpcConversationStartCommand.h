@@ -34,7 +34,7 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object != nullptr && object->isCreatureObject()) {
+		if (object != NULL && object->isCreatureObject()) {
 			CreatureObject* creatureObject = cast<CreatureObject*>(object.get());
 
 			try {
@@ -45,7 +45,7 @@ public:
 					return TOOFAR;
 				}
 
-				if (checkDistance(player, creatureObject, 5)) {
+				if (player->getDistanceTo(creatureObject) <= 5.f) {
 					ghost->setConversatingCreature(creatureObject);
 					if (creatureObject->sendConversationStartTo(creature)) {
 						creatureObject->notifyObservers(ObserverEventType::STARTCONVERSATION, player);

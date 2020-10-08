@@ -6,6 +6,7 @@ package server.zone.objects.guild;
 
 import engine.service.proto.BaseMessage;
 import server.chat.room.ChatRoom;
+import server.zone.objects.tangible.terminal.guild.GuildTerminal;
 include system.lang.Time;
 include server.zone.objects.guild.GuildMemberList;
 include server.zone.objects.guild.GuildMemberInfo;
@@ -15,12 +16,7 @@ import server.zone.objects.scene.SceneObject;
 import system.lang.String;
 import system.util.SortedVector;
 include system.thread.ReadWriteLock;
-include system.lang.System;
-include system.util.VectorMap;
-import system.util.Vector;
-include engine.util.JSONSerializationType;
 
-@json
 class GuildObject extends SceneObject {
 	protected ChatRoom chatRoom;
 
@@ -124,10 +120,7 @@ class GuildObject extends SceneObject {
 	@dirty
 	public native void sendBaselinesTo(SceneObject player);
 	@dirty
-	@local
 	public native void broadcastMessage(BaseMessage msg);
-
-	@local
 	@dirty
 	public native void broadcastMessage(CreatureObject player, BaseMessage msg, boolean sendSelf = false);
 
@@ -437,8 +430,4 @@ class GuildObject extends SceneObject {
 
 	@preLocked
 	public native unsigned long getMemberWithHighestPermission();
-
-	@dirty
-	@local
-	public native int writeRecursiveJSON(@dereferenced JSONSerializationType j, int maxDepth, Vector<unsigned long> oidPath=null);
 }

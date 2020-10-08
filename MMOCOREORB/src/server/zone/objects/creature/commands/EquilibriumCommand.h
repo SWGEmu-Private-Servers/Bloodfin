@@ -5,6 +5,8 @@
 #ifndef EQUILIBRIUMCOMMAND_H_
 #define EQUILIBRIUMCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class EquilibriumCommand: public QueueCommand {
 public:
 
@@ -36,7 +38,7 @@ public:
 		if (!player->checkCooldownRecovery("innate_equilibrium")) {
 			StringIdChatParameter stringId;
 
-			const Time* cdTime = player->getCooldownTime("innate_equilibrium");
+			Time* cdTime = player->getCooldownTime("innate_equilibrium");
 
 			// Returns -time. Multiple by -1 to return positive.
 			int timeLeft = floor((float)cdTime->miliDifference() / 1000) *-1;
@@ -55,9 +57,9 @@ public:
 		int balValue = (health + action + mind) / 3;
 
 		// Get the difference between current HEALTH and the balValue.
-		int diffHealth = Math::max(health, balValue) - Math::min(health, balValue);
-		int diffAction = Math::max(action, balValue) - Math::min(action, balValue);
-		int diffMind = Math::max(mind, balValue) - Math::min(mind, balValue);
+		int diffHealth = MAX(health, balValue) - MIN(health, balValue);
+		int diffAction = MAX(action, balValue) - MIN(action, balValue);
+		int diffMind = MAX(mind, balValue) - MIN(mind, balValue);
 
 		// Check rather to Heal or inflict damage to the player.
 		if (health < balValue) {

@@ -20,15 +20,11 @@ public:
 	ChatRoomMap(int initsize) : rooms(initsize) {
 	}
 
-	ChatRoomMap(const ChatRoomMap& c) : Object(), rooms(c.rooms) {
-
-	}
-
 	void put(uint32 key, ChatRoom* room) {
 		rooms.put(key, room);
 	}
 
-	Reference<ChatRoom*> get(uint32 key) {
+	ChatRoom* get(uint32 key) {
 		return rooms.get(key);
 	}
 

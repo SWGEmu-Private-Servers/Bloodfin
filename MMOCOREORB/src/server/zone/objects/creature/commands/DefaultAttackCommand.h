@@ -5,6 +5,7 @@
 #ifndef DEFAULTATTACKCOMMAND_H_
 #define DEFAULTATTACKCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "CombatQueueCommand.h"
 
 class DefaultAttackCommand : public CombatQueueCommand {
@@ -20,6 +21,11 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+
+		}
 
 		if (!creature->isAiAgent())
 			return GENERALERROR;

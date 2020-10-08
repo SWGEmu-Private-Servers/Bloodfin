@@ -7,17 +7,13 @@ package server.zone.objects.tangible;
 import server.zone.objects.tangible.TangibleObject;
 import server.zone.objects.tangible.DespawnLairOnPlayerDisappear;
 import server.zone.objects.creature.CreatureObject;
-include server.zone.CloseObjectsVector;
-include system.thread.atomic.AtomicInteger;
-include engine.log.Logger;
-import server.zone.objects.scene.SceneObject;
-import server.zone.QuadTreeEntry;
+include engine.util.u3d.CloseObjectsVector;
+include engine.util.u3d.QuadTreeEntry;
 
-@json
 class LairObject extends TangibleObject {
 	@dereferenced
 	protected transient AtomicInteger numberOfPlayersInRange;
-
+	
 	protected boolean despawnOnNoPlayersInRange;
 
 	protected transient DespawnLairOnPlayerDisappear despawnEvent;
@@ -79,15 +75,15 @@ class LairObject extends TangibleObject {
 	}
 
 	public void activateDespawnEvent() {
-		if (despawnEvent)
+		if (despawnEvent != null)
 			return;
 
 		despawnEvent = new DespawnLairOnPlayerDisappear(this);
-		despawnEvent.schedule(300000);
+		despawnEvent.schedule(300000);		
 	}
 
 	public void clearDespawnEvent() {
-		if (!despawnEvent)
+		if (despawnEvent == null)
 			return;
 
 		despawnEvent.cancel();

@@ -9,6 +9,7 @@
 #define SELECTDROIDEFFECTSUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/managers/stringid/StringIdManager.h"
 #include "server/zone/objects/tangible/components/droid/DroidEffectsModuleDataComponent.h"
 #include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/player/sui/inputbox/SuiInputBox.h"
@@ -17,7 +18,7 @@
 
 class SelectDroidEffectSuiCallback : public SuiCallback, public Logger {
 
-	Reference<DroidEffectsModuleDataComponent*> module;
+	ManagedReference<DroidEffectsModuleDataComponent*> module;
 	int slotIndex;
 
 public:
@@ -29,7 +30,7 @@ public:
 	void run(CreatureObject* player, SuiBox* suiBox, uint32 eventIndex, Vector<UnicodeString>* args) {
 		bool cancelPressed = (eventIndex == 1);
 
-		if( !suiBox->isListBox() || module == nullptr )
+		if( !suiBox->isListBox() || module == NULL )
 			return;
 
 		if( cancelPressed ){

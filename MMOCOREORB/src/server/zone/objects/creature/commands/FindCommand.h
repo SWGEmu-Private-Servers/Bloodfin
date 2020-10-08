@@ -5,6 +5,12 @@
 #ifndef FINDCOMMAND_H_
 #define FINDCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/chat/ChatManager.h"
+#include "server/zone/Zone.h"
+
+#include "server/zone/objects/creature/commands/QueueCommand.h"
+
 #include "server/zone/objects/player/sessions/FindSession.h"
 
 class FindCommand: public QueueCommand {
@@ -36,7 +42,7 @@ public:
 			ManagedReference<Facade*> facade = player->getActiveSession(SessionFacadeType::FIND);
 			ManagedReference<FindSession*> session = dynamic_cast<FindSession*>(facade.get());
 
-			if (session == nullptr) {
+			if (session == NULL) {
 				session = new FindSession(player);
 			}
 

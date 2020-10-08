@@ -21,9 +21,11 @@ class DeliverMissionScreenHandler : public ScreenHandler, Logger {
 protected:
 	MissionObject* getRelevantMissionObject(CreatureObject* player, CreatureObject* npc);
 
-	bool isTargetNpc(DeliverMissionObjective* objective, CreatureObject* npc);
+	bool isTargetNpc(DeliverMissionObjective* objective, const Vector3& npcPosition);
 
-	bool isDestinationNpc(DeliverMissionObjective* objective, CreatureObject* npc);
+	bool isDestinationNpc(DeliverMissionObjective* objective, const Vector3& npcPosition);
+
+	bool isSameSpawnPoint(const float& positionX, const float& positionY, const Vector3& comparisonPosition);
 
 	void performPickupConversation(ConversationScreen* conversationScreen, MissionObject* mission);
 

@@ -14,7 +14,7 @@ namespace player {
 namespace events {
 
 class ForceRegenerationEvent : public Task {
-	ManagedWeakReference<PlayerObject*> player;
+	ManagedReference<PlayerObject*> player;
 
 public:
 	ForceRegenerationEvent(PlayerObject* pl) {
@@ -22,21 +22,16 @@ public:
 	}
 
 	void run() {
-		ManagedReference<PlayerObject*> play = player.get();
+		ManagedReference<SceneObject*> strongParent = player->getParent();
 
-		if (play == nullptr)
-			return;
-
-		ManagedReference<SceneObject*> strongParent = play->getParent().get();
-
-		if (strongParent == nullptr)
+		if (strongParent == NULL)
 			return;
 
 		Locker _locker(strongParent);
 
-		if (play->isOnline() || play->isLinkDead()) {
-			if (play->getForcePowerMax() > 0  && (play->getForcePowerMax() - play->getForcePower() > 0)){
-				play->doForceRegen();
+		if (player->isOnline() || player->isLinkDead()) {
+			if (player->getForcePowerMax() > 0  && (player->getForcePowerMax() - player->getForcePower() > 0)){
+				player->doForceRegen();
 			}
 		}
 

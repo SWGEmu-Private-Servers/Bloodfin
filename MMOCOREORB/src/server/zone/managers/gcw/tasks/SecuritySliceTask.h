@@ -8,6 +8,7 @@
 #ifndef SECURITYSLICETASK_H_
 #define SECURITYSLICETASK_H_
 
+#include "engine/engine.h"
 #include "server/zone/managers/gcw/GCWManager.h"
 
 class SecuritySliceTask : public Task {
@@ -26,12 +27,15 @@ public:
 
 	void run() {
 
-		if (terminal == nullptr || gcwManager == nullptr  )
+		if (terminal == NULL || gcwManager == NULL  )
 			return;
 
 		gcwManager->completeSecuritySlice(creature, terminal);
 
 	}
 };
+
+
+
 
 #endif /* SECURITYSLICETASK_H_ */

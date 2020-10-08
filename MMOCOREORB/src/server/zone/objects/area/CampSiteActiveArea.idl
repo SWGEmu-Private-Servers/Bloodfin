@@ -5,7 +5,6 @@
 package server.zone.objects.area;
 
 import server.zone.objects.scene.SceneObject;
-import server.zone.objects.staticobject.StaticObject;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.structure.StructureObject;
 import server.zone.objects.tangible.terminal.Terminal;
@@ -13,19 +12,16 @@ import server.zone.objects.area.ActiveArea;
 import server.zone.objects.area.CampSiteObserver;
 import server.zone.objects.area.events.CampDespawnTask;
 import server.zone.objects.area.events.CampAbandonTask;
-include templates.building.CampStructureTemplate;
+include server.zone.templates.tangible.CampStructureTemplate;
 include system.thread.Mutex;
+import system.lang.ref.Reference;
 import system.lang.Time;
-include templates.TemplateReference;
-include system.lang.System;
-include system.util.Vector;
+include server.zone.templates.TemplateReference;
 
-@json
 class CampSiteActiveArea extends ActiveArea {
 
 	protected StructureObject camp;
 	protected Terminal terminal;
-	protected transient StaticObject campFire;
 
 	@dereferenced
 	protected transient Mutex taskMutex;
@@ -35,8 +31,8 @@ class CampSiteActiveArea extends ActiveArea {
 
 	protected CampSiteObserver campObserver;
 
-	protected transient CampAbandonTask abandonTask;
-	protected transient CampDespawnTask despawnTask;
+	protected CampAbandonTask abandonTask;
+	protected CampDespawnTask despawnTask;
 
 	protected CreatureObject campOwner;
 
@@ -64,7 +60,6 @@ class CampSiteActiveArea extends ActiveArea {
 		terminal = null;
 		abandonTask = null;
 		despawnTask = null;
-		campFire = null;
 	}
 
 	public native void initializeTransientMembers();
@@ -149,9 +144,6 @@ class CampSiteActiveArea extends ActiveArea {
 
 	@preLocked
 	public native void abandonCamp();
-
-	@preLocked
-	public native void setAbandoned(boolean isAbandoned);
 
 	public native boolean despawnCamp();
 

@@ -17,7 +17,6 @@ Luna<LuaBuildingObject>::RegType LuaBuildingObject::Register[] = {
 		{ "_setObject", &LuaBuildingObject::_setObject },
 		{ "_getObject", &LuaSceneObject::_getObject },
 		{ "getCell", &LuaBuildingObject::getCell },
-		{ "getTotalCellNumber", &LuaBuildingObject::getTotalCellNumber },
 		{ "getNamedCell", &LuaBuildingObject::getNamedCell },
 		{ "getOwnerID", &LuaBuildingObject::getOwnerID },
 		{ "getParent", &LuaSceneObject::getParent },
@@ -34,8 +33,6 @@ Luna<LuaBuildingObject>::RegType LuaBuildingObject::Register[] = {
 		{ "spawnChildSceneObject", &LuaBuildingObject::spawnChildSceneObject },
 		{ "destroyChildObjects", &LuaBuildingObject::destroyChildObjects },
 		{ "initializeStaticGCWBase", &LuaBuildingObject::initializeStaticGCWBase },
-		{ "isPrivateStructure", &LuaBuildingObject::isPrivateStructure },
-		{ "getCellName", &LuaBuildingObject::getCellName },
 		{ 0, 0 }
 };
 
@@ -43,7 +40,7 @@ LuaBuildingObject::LuaBuildingObject(lua_State *L) : LuaTangibleObject(L) {
 #ifdef DYNAMIC_CAST_LUAOBJECTS
 	realObject = dynamic_cast<BuildingObject*>(_getRealSceneObject());
 
-	E3_ASSERT(!_getRealSceneObject() || realObject != nullptr);
+	assert(!_getRealSceneObject() || realObject != NULL);
 #else
 	realObject = reinterpret_cast<BuildingObject*>(lua_touserdata(L, 1));
 #endif
@@ -58,7 +55,7 @@ int LuaBuildingObject::_setObject(lua_State* L) {
 #ifdef DYNAMIC_CAST_LUAOBJECTS
 	realObject = dynamic_cast<BuildingObject*>(_getRealSceneObject());
 
-	E3_ASSERT(!_getRealSceneObject() || realObject != nullptr);
+	assert(!_getRealSceneObject() || realObject != NULL);
 #else
 	realObject = reinterpret_cast<BuildingObject*>(lua_touserdata(L, -1));
 #endif
@@ -79,17 +76,11 @@ int LuaBuildingObject::getNamedCell(lua_State* L) {
 
 	CellObject* cell = realObject->getCell(name);
 
-	if (cell == nullptr) {
+	if (cell == NULL) {
 		lua_pushnil(L);
 	} else {
 		lua_pushlightuserdata(L, cell);
 	}
-
-	return 1;
-}
-
-int LuaBuildingObject::getTotalCellNumber(lua_State* L) {
-	lua_pushinteger(L, realObject->getTotalCellNumber());
 
 	return 1;
 }
@@ -167,12 +158,12 @@ int LuaBuildingObject::initializeStaticGCWBase(lua_State* L) {
 
 	Zone* zone = realObject->getZone();
 
-	if (zone == nullptr)
+	if (zone == NULL)
 		return 0;
 
 	GCWManager* gcwMan = zone->getGCWManager();
 
-	if (gcwMan == nullptr)
+	if (gcwMan == NULL)
 		return 0;
 
 	gcwMan->unregisterGCWBase(realObject);
@@ -184,20 +175,4 @@ int LuaBuildingObject::initializeStaticGCWBase(lua_State* L) {
 	gcwMan->registerGCWBase(realObject, false);
 
 	return 0;
-}
-
-int LuaBuildingObject::isPrivateStructure(lua_State* L) {
-	bool ret = realObject->isPrivateStructure();
-
-	lua_pushboolean(L, ret);
-
-	return 1;
-}
-
-int LuaBuildingObject::getCellName(lua_State* L) {
-	uint64 cellNum = lua_tointeger(L, -1);
-
-	String text = realObject->getCellName(cellNum);
-	lua_pushstring(L, text.toCharArray());
-	return 1;
 }

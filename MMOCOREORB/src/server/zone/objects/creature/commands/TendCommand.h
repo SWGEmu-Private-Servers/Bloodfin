@@ -8,10 +8,16 @@
 #ifndef TENDCOMMAND_H_
 #define TENDCOMMAND_H_
 
-#include "server/zone/objects/building/BuildingObject.h"
+
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/tangible/pharmaceutical/CurePack.h"
 #include "server/zone/ZoneServer.h"
 #include "server/zone/managers/player/PlayerManager.h"
+#include "server/zone/objects/creature/events/InjuryTreatmentTask.h"
+#include "server/zone/objects/creature/buffs/Buff.h"
+#include "server/zone/objects/creature/BuffAttribute.h"
+#include "server/zone/objects/creature/buffs/DelayedBuff.h"
+#include "server/zone/packets/object/CombatAction.h"
 #include "QueueCommand.h"
 
 class TendCommand : public QueueCommand {
@@ -160,11 +166,11 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object != nullptr) {
+		if (object != NULL) {
 			if (!object->isCreatureObject()) {
 				TangibleObject* tangibleObject = dynamic_cast<TangibleObject*>(object.get());
 
-				if (tangibleObject != nullptr && tangibleObject->isAttackableBy(creature)) {
+				if (tangibleObject != NULL && tangibleObject->isAttackableBy(creature)) {
 					object = creature;
 				} else {
 					creature->sendSystemMessage("@healing_response:healing_response_a1"); //Target must be a player or a creature pet in order to tend damage
@@ -182,50 +188,14 @@ public:
 		if ((creatureTarget->isAiAgent() && !creatureTarget->isPet()) || creatureTarget->isDroidObject() || creatureTarget->isVehicleObject() || creatureTarget->isDead() || creatureTarget->isRidingMount() || creatureTarget->isAttackableBy(creature))
 			creatureTarget = creature;
 
-		if(!checkDistance(creature, creatureTarget, range))
+		if (!creatureTarget->isInRange(creature, range + creatureTarget->getTemplateRadius() + creature->getTemplateRadius()))
 			return TOOFAR;
 
-		if (creature != creatureTarget && checkForArenaDuel(creatureTarget)) {
-			creature->sendSystemMessage("@jedi_spam:no_help_target"); // You are not permitted to help that target.
-			return GENERALERROR;
-		}
+		uint8 attribute = findAttribute(creatureTarget);
 
 		if (!creatureTarget->isHealableBy(creature)) {
 			creature->sendSystemMessage("@healing:pvp_no_help");  //It would be unwise to help such a patient.
 			return GENERALERROR;
-		}
-
-		if (creature != creatureTarget && !CollisionManager::checkLineOfSight(creature, creatureTarget)) {
-			creature->sendSystemMessage("@healing:no_line_of_sight"); // You cannot see your target.
-			return GENERALERROR;
-		}
-
-		if (creature->isPlayerCreature() && creatureTarget->getParentID() != 0 && creature->getParentID() != creatureTarget->getParentID()) {
-			Reference<CellObject*> targetCell = creatureTarget->getParent().get().castTo<CellObject*>();
-
-			if (targetCell != nullptr) {
-				if (!creatureTarget->isPlayerCreature()) {
-					auto perms = targetCell->getContainerPermissions();
-
-					if (!perms->hasInheritPermissionsFromParent()) {
-						if (!targetCell->checkContainerPermission(creature, ContainerPermissions::WALKIN)) {
-							creature->sendSystemMessage("@combat_effects:cansee_fail"); // You cannot see your target.
-							return GENERALERROR;
-						}
-					}
-				}
-
-				ManagedReference<SceneObject*> parentSceneObject = targetCell->getParent().get();
-
-				if (parentSceneObject != nullptr) {
-					BuildingObject* buildingObject = parentSceneObject->asBuildingObject();
-
-					if (buildingObject != nullptr && !buildingObject->isAllowedEntry(creature)) {
-						creature->sendSystemMessage("@combat_effects:cansee_fail"); // You cannot see your target.
-						return GENERALERROR;
-					}
-				}
-			}
 		}
 
 		int mindCostNew = creature->calculateCostAdjustment(CreatureAttribute::FOCUS, mindCost);
@@ -235,7 +205,7 @@ public:
 			return GENERALERROR;
 		}
 
-		float bfScale = creatureTarget->calculateBFRatio();
+		float bfScale = 1 - creatureTarget->calculateBFRatio();
 
 		if (tendDamage) {
 			if (!creatureTarget->hasDamage(CreatureAttribute::HEALTH) && !creatureTarget->hasDamage(CreatureAttribute::ACTION)) {
@@ -260,19 +230,6 @@ public:
 
 			sendHealMessage(creature, creatureTarget, healedHealth, healedAction);
 		} else if (tendWound) {
-			uint8 attribute = CreatureAttribute::UNKNOWN;
-
-			StringTokenizer args(arguments.toString());
-
-			if(args.hasMoreTokens()) {
-				String specifiedAttribute;
-				args.getStringToken(specifiedAttribute);
-
-				attribute = CreatureAttribute::getAttribute(specifiedAttribute);
-			} else {
-				attribute = findAttribute(creatureTarget);
-			}
-
 			if (attribute >= CreatureAttribute::MIND)
 				attribute = CreatureAttribute::UNKNOWN;
 

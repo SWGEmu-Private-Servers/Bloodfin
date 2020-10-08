@@ -12,15 +12,15 @@
 #include "server/zone/managers/collision/CollisionManager.h"
 #include "server/zone/objects/cell/CellObject.h"
 
-void ElevatorMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* creature) const {
+void ElevatorMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* creature) {
 	menuResponse->addRadialMenuItem(198, 3, "@elevator_text:up");
 	menuResponse->addRadialMenuItem(199, 3, "@elevator_text:down");
 }
 
-int ElevatorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* creature, byte selectedID) const {
+int ElevatorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* creature, byte selectedID) {
 	ManagedReference<SceneObject*> parent = creature->getParent().get();
 
-	if (parent == nullptr || !parent->isCellObject() || parent != sceneObject->getParent().get())
+	if (parent == NULL || !parent->isCellObject() || parent != sceneObject->getParent().get())
 		return 0;
 
 	CellObject* cell = parent.castTo<CellObject*>();
@@ -45,7 +45,7 @@ int ElevatorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Crea
 		if (i <= 0) {
 			creature->sendSystemMessage("You are already on the highest floor");
 			delete floors;
-			floors = nullptr;
+			floors = NULL;
 			return 0;
 		}
 
@@ -56,7 +56,7 @@ int ElevatorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Crea
 		if (i >= floorCount - 1) {
 			creature->sendSystemMessage("You are already on the lowest floor");
 			delete floors;
-			floors = nullptr;
+			floors = NULL;
 			return 0;
 		}
 
@@ -65,14 +65,14 @@ int ElevatorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Crea
 		break;
 	default:
 		delete floors;
-		floors = nullptr;
+		floors = NULL;
 		return 0;
 	}
 
 	creature->teleport(x, z, y, sceneObject->getParentID());
 
 	delete floors;
-	floors = nullptr;
+	floors = NULL;
 
 	return 0;
 }

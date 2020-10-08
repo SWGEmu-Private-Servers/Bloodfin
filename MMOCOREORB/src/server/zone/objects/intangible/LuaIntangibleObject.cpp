@@ -6,7 +6,6 @@
  */
 
 #include "LuaIntangibleObject.h"
-#include "server/zone/objects/intangible/IntangibleObject.h"
 
 const char LuaIntangibleObject::className[] = "LuaIntangibleObject";
 
@@ -21,7 +20,7 @@ LuaIntangibleObject::LuaIntangibleObject(lua_State *L) : LuaSceneObject(L) {
 #ifdef DYNAMIC_CAST_LUAOBJECTS
 	realObject = dynamic_cast<IntangibleObject*>(_getRealSceneObject());
 
-	E3_ASSERT(!_getRealSceneObject() || realObject != nullptr);
+	assert(!_getRealSceneObject() || realObject != NULL);
 #else
 	realObject = reinterpret_cast<IntangibleObject*>(lua_touserdata(L, 1));
 #endif
@@ -36,7 +35,7 @@ int LuaIntangibleObject::_setObject(lua_State* L) {
 #ifdef DYNAMIC_CAST_LUAOBJECTS
 	realObject = dynamic_cast<IntangibleObject*>(_getRealSceneObject());
 
-	E3_ASSERT(!_getRealSceneObject() || realObject != nullptr);
+	assert(!_getRealSceneObject() || realObject != NULL);
 #else
 	realObject = reinterpret_cast<IntangibleObject*>(lua_touserdata(L, -1));
 #endif

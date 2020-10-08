@@ -22,9 +22,9 @@ public:
 		if (!suiBox->isMessageBox() || cancelPressed)
 			return;
 
-		ManagedReference<SceneObject*> obj = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = suiBox->getUsingObject();
 
-		if (obj == nullptr)
+		if (obj == NULL)
 			return;
 
 		if (obj->isPlayerCreature()) {

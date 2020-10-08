@@ -5,7 +5,6 @@
  *      Author: Kyle
  */
 
-#include "server/zone/objects/staticobject/StaticObject.h"
 #include "server/zone/objects/area/CampSiteActiveArea.h"
 #include "server/zone/objects/area/CampSiteObserver.h"
 #include "server/zone/objects/structure/StructureObject.h"
@@ -19,11 +18,7 @@
 #include "server/zone/objects/area/events/CampDespawnTask.h"
 
 void CampSiteActiveAreaImplementation::initializeTransientMembers() {
-	ActiveAreaImplementation::initializeTransientMembers();
-
 	startTasks();
-
-	setAbandoned(abandoned);
 }
 
 void CampSiteActiveAreaImplementation::init(CampStructureTemplate* campData) {
@@ -35,7 +30,7 @@ void CampSiteActiveAreaImplementation::init(CampStructureTemplate* campData) {
 void CampSiteActiveAreaImplementation::startTasks() {
 	Locker locker(&taskMutex);
 
-	if(despawnTask == nullptr) {
+	if(despawnTask == NULL) {
 		despawnTask = new CampDespawnTask(_this.getReferenceUnsafeStaticCast());
 	} else {
 		if(despawnTask->isScheduled())
@@ -43,7 +38,7 @@ void CampSiteActiveAreaImplementation::startTasks() {
 	}
 
 
-	if(abandonTask == nullptr) {
+	if(abandonTask == NULL) {
 		abandonTask = new CampAbandonTask(_this.getReferenceUnsafeStaticCast());
 	} else {
 		if(abandonTask->isScheduled())
@@ -59,17 +54,18 @@ void CampSiteActiveAreaImplementation::notifyEnter(SceneObject* object) {
 	if (!object->isPlayerCreature())
 		return;
 
-	if (camp == nullptr || terminal == nullptr)
+	if (camp == NULL || terminal == NULL)
 		return;
 
 	CreatureObject* player = cast<CreatureObject*> (object);
 
-	if (player == nullptr)
+	if (player == NULL)
 		return;
 
-	camp->addTemplateSkillMods(player);
+	if (camp != NULL)
+		camp->addTemplateSkillMods(player);
 
-	if (campObserver == nullptr) {
+	if (campObserver == NULL) {
 		campObserver = new CampSiteObserver(_this.getReferenceUnsafeStaticCast());
 		campObserver->deploy();
 	}
@@ -78,7 +74,7 @@ void CampSiteActiveAreaImplementation::notifyEnter(SceneObject* object) {
 
 		Locker locker(&taskMutex);
 
-		if(abandonTask != nullptr && abandonTask->isScheduled())
+		if(abandonTask != NULL && abandonTask->isScheduled())
 			abandonTask->cancel();
 
 		object->registerObserver(ObserverEventType::STARTCOMBAT, campObserver);
@@ -97,24 +93,25 @@ void CampSiteActiveAreaImplementation::notifyEnter(SceneObject* object) {
 
 
 	if (object->isPlayerCreature())
-		object->registerObserver(ObserverEventType::HEALINGRECEIVED, campObserver);
+		object->registerObserver(ObserverEventType::HEALINGPERFORMED, campObserver);
 }
 
 void CampSiteActiveAreaImplementation::notifyExit(SceneObject* object) {
-	object->dropObserver(ObserverEventType::HEALINGRECEIVED, campObserver);
+	object->dropObserver(ObserverEventType::HEALINGPERFORMED, campObserver);
 
 	if (!object->isPlayerCreature())
 		return;
 
-	if (camp == nullptr || terminal == nullptr)
+	if (camp == NULL || terminal == NULL)
 		return;
 
 	CreatureObject* player = cast<CreatureObject*> (object);
 
-	if (player == nullptr)
+	if (player == NULL)
 		return;
 
-	camp->removeTemplateSkillMods(player);
+	if (camp != NULL)
+		camp->removeTemplateSkillMods(player);
 
 	StringIdChatParameter stringID("camp", "prose_camp_exit");
 	stringID.setTO(terminal->getDisplayedName());
@@ -125,7 +122,7 @@ void CampSiteActiveAreaImplementation::notifyExit(SceneObject* object) {
 
 	Locker locker(&taskMutex);
 
-	if(!abandoned && abandonTask != nullptr && !abandonTask->isScheduled()) {
+	if(!abandoned && abandonTask != NULL && !abandonTask->isScheduled()) {
 		try {
 			abandonTask->schedule(CampSiteActiveArea::ABANDONTIME);
 		} catch (Exception& e) {
@@ -145,7 +142,7 @@ int CampSiteActiveAreaImplementation::notifyHealEvent(int64 quantity) {
 int CampSiteActiveAreaImplementation::notifyCombatEvent() {
 	Locker locker(&taskMutex);
 
-	if(abandonTask != nullptr) {
+	if(abandonTask != NULL) {
 		if(abandonTask->isScheduled())
 			abandonTask->cancel();
 
@@ -158,51 +155,14 @@ int CampSiteActiveAreaImplementation::notifyCombatEvent() {
 	return 1;
 }
 
-void CampSiteActiveAreaImplementation::setAbandoned(bool isAbandoned) {
-	abandoned = isAbandoned;
-
-	if (campFire != nullptr) {
-		Locker clocker(campFire, _this.getReferenceUnsafeStaticCast());
-		campFire->destroyObjectFromWorld(true);
-	}
-
-	ZoneServer* zServ = getZoneServer();
-	Zone* thisZone = getZone();
-
-	if (zServ == nullptr || thisZone == nullptr)
-		return;
-
-	String fireTemplate = "object/static/structure/general/campfire_fresh.iff";
-
-	if (isAbandoned)
-		fireTemplate = "object/static/structure/general/campfire_smoldering.iff";
-
-	ManagedReference<StaticObject*> fire = (zServ->createObject(fireTemplate.hashCode(), 0)).castTo< StaticObject*>();
-
-	if (fire == nullptr)
-		return;
-
-	float posX = getPositionX();
-	float posY = getPositionY();
-	float posZ = thisZone->getHeight(posX, posY);
-
-	Locker locker(fire);
-
-	fire->initializePosition(posX, posZ, posY);
-
-	thisZone->transferObject(fire, -1, true);
-
-	campFire = fire;
-}
-
 void CampSiteActiveAreaImplementation::abandonCamp() {
-	setAbandoned(true);
+	abandoned = true;
 
 	currentXp = 0;
 
 	Locker locker(&taskMutex);
 
-	if(despawnTask != nullptr && despawnTask->isScheduled()) {
+	if(despawnTask != NULL && despawnTask->isScheduled()) {
 		despawnTask->cancel();
 		int newTime = (CampSiteActiveArea::DESPAWNTIME / 6);
 		int maxTime = CampSiteActiveArea::DESPAWNTIME - ((System::getTime() - timeCreated) * 1000);
@@ -210,12 +170,12 @@ void CampSiteActiveAreaImplementation::abandonCamp() {
 		despawnTask->schedule(newTime < maxTime ? newTime : maxTime);
 	}
 
-	if(terminal != nullptr) {
+	if(terminal != NULL) {
 		Locker clocker(terminal, _this.getReferenceUnsafeStaticCast());
 		terminal->setCustomObjectName("Abandoned Camp", true);
 	}
 
-	if(campOwner != nullptr) {
+	if(campOwner != NULL) {
 		campOwner->dropObserver(ObserverEventType::STARTCOMBAT, campObserver);
 		campOwner->sendSystemMessage("@camp:sys_abandoned_camp"); // Your camp has been abandoned.
 	}
@@ -224,10 +184,10 @@ void CampSiteActiveAreaImplementation::abandonCamp() {
 bool CampSiteActiveAreaImplementation::despawnCamp() {
 	Locker locker(_this.getReferenceUnsafeStaticCast());
 
-	if(!abandoned && campOwner != nullptr && campOwner->getZoneServer() != nullptr) {
+	if(!abandoned && campOwner != NULL && campOwner->getZoneServer() != NULL) {
 		/// Get Player Manager
 		PlayerManager* playerManager = campOwner->getZoneServer()->getPlayerManager();
-		if (playerManager == nullptr) {
+		if (playerManager == NULL) {
 			error("playerManager is null");
 			return false;
 		}
@@ -248,34 +208,29 @@ bool CampSiteActiveAreaImplementation::despawnCamp() {
 
 	Locker tlocker(&taskMutex);
 
-	if(despawnTask != nullptr ) {
+	if(despawnTask != NULL ) {
 		if(despawnTask->isScheduled())
 			despawnTask->cancel();
-		despawnTask = nullptr;
+		despawnTask = NULL;
 	}
 
 
-	if(abandonTask != nullptr) {
+	if(abandonTask != NULL) {
 		if(abandonTask->isScheduled())
 			abandonTask->cancel();
-		abandonTask = nullptr;
+		abandonTask = NULL;
 	}
 
 	tlocker.release();
 
-	if(campOwner != nullptr)
+	if(campOwner != NULL)
 		campOwner->dropObserver(ObserverEventType::STARTCOMBAT, campObserver);
 
-	if (camp != nullptr) {
-		if(camp->getZone() == nullptr)
+	if (camp != NULL) {
+		if(camp->getZone() == NULL)
 			return false;
 
 		StructureManager::instance()->destroyStructure(camp);
-	}
-
-	if (campFire != nullptr) {
-		Locker clocker(campFire, _this.getReferenceUnsafeStaticCast());
-		campFire->destroyObjectFromWorld(true);
 	}
 
 	destroyObjectFromWorld(true);
@@ -286,7 +241,7 @@ bool CampSiteActiveAreaImplementation::despawnCamp() {
 }
 
 void CampSiteActiveAreaImplementation::assumeOwnership(CreatureObject* player) {
-	if (camp == nullptr || player == nullptr)
+	if (camp == NULL || player == NULL)
 		return;
 
 	if (player->getSkillMod("camp") < campStructureData->getSkillRequired()) {
@@ -296,7 +251,7 @@ void CampSiteActiveAreaImplementation::assumeOwnership(CreatureObject* player) {
 
 	PlayerObject* playerGhost = player->getPlayerObject();
 
-	if (playerGhost == nullptr)
+	if (playerGhost == NULL)
 		return;
 
 	for (int i = 0; i < playerGhost->getTotalOwnedStructureCount(); ++i) {
@@ -304,7 +259,7 @@ void CampSiteActiveAreaImplementation::assumeOwnership(CreatureObject* player) {
 
 		ManagedReference<StructureObject*> structure = playerGhost->getZoneServer()->getObject(oid).castTo<StructureObject*>();
 
-		if (structure != nullptr && structure->isCampStructure()) {
+		if (structure->isCampStructure()) {
 			player->sendSystemMessage("@camp:sys_already_camping"); // But you already have a camp established elsewhere!
 			return;
 		}
@@ -312,15 +267,9 @@ void CampSiteActiveAreaImplementation::assumeOwnership(CreatureObject* player) {
 
 	Locker clocker(campOwner, _this.getReferenceUnsafeStaticCast());
 
-	auto zone = this->zone;
-
-	if (zone == nullptr) {
-		return;
-	}
-
 	PlayerObject* ownerGhost = campOwner->getPlayerObject();
 
-	if (ownerGhost != nullptr) {
+	if (ownerGhost != NULL) {
 		ownerGhost->removeOwnedStructure(camp);
 	}
 
@@ -328,7 +277,7 @@ void CampSiteActiveAreaImplementation::assumeOwnership(CreatureObject* player) {
 
 	setOwner(player);
 
-	setAbandoned(false);
+	abandoned = false;
 	currentXp = 0;
 	visitors.removeAll();
 
@@ -336,7 +285,7 @@ void CampSiteActiveAreaImplementation::assumeOwnership(CreatureObject* player) {
 	zone->getInRangeObjects(camp->getWorldPositionX(), camp->getWorldPositionY(), campStructureData->getRadius(), closeObjects, true);
 
 	for (int i = 0; i < closeObjects->size(); ++i) {
-		SceneObject* scno = static_cast<SceneObject*>(closeObjects->get(i).get());
+		SceneObject* scno = cast<SceneObject*>(closeObjects->get(i).get());
 		if (scno->isPlayerCreature())
 			visitors.add(scno->getObjectID());
 	}
@@ -349,16 +298,16 @@ void CampSiteActiveAreaImplementation::assumeOwnership(CreatureObject* player) {
 
 	Locker locker(&taskMutex);
 
-	if(abandonTask != nullptr && abandonTask->isScheduled())
+	if(abandonTask != NULL && abandonTask->isScheduled())
 		abandonTask->cancel();
 
-	if(despawnTask != nullptr && despawnTask->isScheduled())
+	if(despawnTask != NULL && despawnTask->isScheduled())
 		despawnTask->cancel();
 
 	timeCreated = System::getTime();
 	despawnTask->schedule(CampSiteActiveArea::DESPAWNTIME);
 
-	if(terminal != nullptr) {
+	if(terminal != NULL) {
 		String campName = campOwner->getFirstName();
 		if(!campOwner->getLastName().isEmpty())
 			campName += " " + campOwner->getLastName();

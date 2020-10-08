@@ -5,6 +5,7 @@
 #ifndef SETSTEADYAIMCOMMAND_H_
 #define SETSTEADYAIMCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "SquadLeaderCommand.h"
 
 class SetSteadyaimCommand : public SquadLeaderCommand {
@@ -39,10 +40,7 @@ public:
 			return false;
 		}	
 		
-		ZoneProcessServer* zps = player->getZoneProcessServer();
-		NameManager* nameManager = zps->getNameManager();
-
-		if (nameManager->isProfane(message)){
+		if (NameManager::instance()->isProfane(message)){
 			player->sendSystemMessage("Your Steadyaim message has failed the profanity filter.");
 			return false;				
 		}

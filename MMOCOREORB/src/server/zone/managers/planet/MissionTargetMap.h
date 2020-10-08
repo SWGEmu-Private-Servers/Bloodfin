@@ -8,11 +8,12 @@
 #ifndef MISSIONTARGETMAP_H_
 #define MISSIONTARGETMAP_H_
 
+#include "engine/engine.h"
 #include "server/zone/Zone.h"
 #include "server/zone/objects/scene/SceneObject.h"
 
-class MissionTargetMap : public Object {
-	SynchronizedSortedVector<Reference<SceneObject*> > missions;
+class MissionTargetMap : public ReadWriteLock, public Object {
+	SortedVector<ManagedReference<SceneObject*> > missions;
 
 public:
 	MissionTargetMap() {
@@ -36,7 +37,7 @@ public:
 	}
 
 	SceneObject* getRandomTarget(SceneObject* origin, int diff) {
-		SceneObject* result = nullptr;
+		SceneObject* result = NULL;
 		Zone* zone = origin->getZone();
 
 		float distance = 16000.f;
@@ -57,7 +58,7 @@ public:
 		try {
 			for (int i = 0; i < missions.size(); ++i) {
 				SceneObject* vectorObject = missions.get(i);
-				if (vectorObject == nullptr)
+				if (vectorObject == NULL)
 					continue;
 
 				float objDistance = vectorObject->getDistanceTo(&coord);

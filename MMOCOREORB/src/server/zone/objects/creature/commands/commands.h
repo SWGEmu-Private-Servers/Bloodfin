@@ -300,7 +300,7 @@
 #include "HarvesterHarvestCommand.h"
 #include "HarvesterMakeCrateCommand.h"
 #include "HarvesterSelectResourceCommand.h"
-#include "HarvesterTakeSurveyCommand.h"
+#include "HarvesterTakeSurvey Command.h"
 #include "HasVeteranRewardCommand.h"
 #include "HaveconsentCommand.h"
 #include "HeadShot1Command.h"
@@ -837,6 +837,17 @@
 #include "InspacereloadCommand.h"
 #include "InspacerrCommand.h"
 #include "RequestSpaceTrainerCommand.h"
+#include "CloakCommand.h"
+#include "OrbitalStrikeCommand.h"
+#include "ForceCloakCommand.h"
+#include "CenterstageCommand.h"
+#include "ColorswirlCommand.h"
+#include "DancefloorCommand.h"
+#include "FeaturedsoloCommand.h"
+#include "Firejets2Command.h"
+#include "LasershowCommand.h"
+#include "PositionSecuredCommand.h"
+#include "BountyShieldCommand.h"
 
 
 

@@ -6,6 +6,7 @@
 #define FEIGNDEATHCOMMAND_H_
 
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/creature/buffs/PrivateSkillMultiplierBuff.h"
 
 class FeignDeathCommand : public QueueCommand {
 public:
@@ -15,7 +16,7 @@ public:
 
 	}
 
-	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const override {
+	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
 
 		if (!checkStateMask(creature))
 			return INVALIDSTATE;
@@ -45,16 +46,17 @@ public:
 		return SUCCESS;
 	}
 
-	void handleBuff(SceneObject* creature, ManagedObject* object, int64 param) const override {
+	void handleBuff(SceneObject* creature, ManagedObject* object, int64 param) {
 		ManagedReference<CreatureObject*> creo = creature->asCreatureObject();
 
-		if(creo == nullptr)
+		if(creo == NULL)
 			return;
 
 		Locker lock(creo);
 
 		if(creo->canFeignDeath()) {
 			creo->feignDeath();
+
 		} else {
 			creo->sendSystemMessage("@cbt_spam:feign_fail_single");
 		}

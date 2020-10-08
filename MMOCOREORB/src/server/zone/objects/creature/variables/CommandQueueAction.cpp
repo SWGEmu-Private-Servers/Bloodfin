@@ -4,7 +4,13 @@
 
 #include "CommandQueueAction.h"
 
+#include "server/zone/objects/creature/commands/QueueCommand.h"
+
 #include "server/zone/objects/creature/CreatureObject.h"
+
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/managers/objectcontroller/ObjectController.h"
 
 CommandQueueAction::CommandQueueAction(CreatureObject* cr, uint64 tar, uint32 command, uint32 acntr, const UnicodeString& amod) {
 	actionCounter = acntr;

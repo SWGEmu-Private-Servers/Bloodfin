@@ -5,7 +5,7 @@
 
 #include "ForageCleanupEvent.h"
 #include "server/zone/managers/minigames/ForageManager.h"
-#include "server/zone/ZoneProcessServer.h"
+#include "server/zone/ZoneServer.h"
 
 ForageCleanupEvent::ForageCleanupEvent(const String& name, ZoneProcessServer* zoneSrv) : Task() {
 	playerName = name;
@@ -13,12 +13,12 @@ ForageCleanupEvent::ForageCleanupEvent(const String& name, ZoneProcessServer* zo
 }
 
 void ForageCleanupEvent::run() {
-	if (zoneServer == nullptr)
+	if (zoneServer == NULL)
 		return;
 
 	ManagedReference<ForageManager*> forageManager = zoneServer->getForageManager();
 
-	if (forageManager != nullptr)
+	if (forageManager != NULL)
 		forageManager->deleteForageAreaCollection(playerName);
 
 }

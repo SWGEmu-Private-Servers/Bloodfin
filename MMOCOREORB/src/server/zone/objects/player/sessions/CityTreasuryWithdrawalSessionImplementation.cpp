@@ -6,6 +6,7 @@
  */
 
 #include "server/zone/objects/player/sessions/CityTreasuryWithdrawalSession.h"
+#include "server/zone/Zone.h"
 #include "server/zone/managers/city/CityManager.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
@@ -22,7 +23,7 @@ int CityTreasuryWithdrawalSessionImplementation::initializeSession() {
 
 	PlayerObject* ghost = creatureObject->getPlayerObject();
 
-	if (ghost == nullptr || !cityRegion->isMayor(creatureObject->getObjectID()))
+	if (ghost == NULL || !cityRegion->isMayor(creatureObject->getObjectID()))
 		return cancelSession();
 
 	ManagedReference<SuiInputBox*> input = new SuiInputBox(creatureObject, SuiWindowType::CITY_TREASURY_WITHDRAWAL_REASON);
@@ -47,10 +48,10 @@ int CityTreasuryWithdrawalSessionImplementation::sendTransferBox(const String& r
 
 	PlayerObject* ghost = creatureObject->getPlayerObject();
 
-	if (ghost == nullptr)
+	if (ghost == NULL)
 		return cancelSession();
 
-	int maxWithdrawal = (int) Math::min((double) cityRegion->getMaxWithdrawal(), cityRegion->getCityTreasury());
+	int maxWithdrawal = MIN(cityRegion->getMaxWithdrawal(), cityRegion->getCityTreasury());
 
 	ManagedReference<SuiTransferBox*> transfer = new SuiTransferBox(creatureObject, SuiWindowType::CITY_TREASURY_WITHDRAWAL);
 	transfer->setPromptTitle("@city/city:treasury_withdraw"); //Treasury Withdrawal
@@ -71,7 +72,7 @@ int CityTreasuryWithdrawalSessionImplementation::withdrawCredits(int value) {
 	ManagedReference<CreatureObject*> creatureObject = this->creatureObject.get();
 	ManagedReference<CityRegion*> cityRegion = this->cityRegion.get();
 
-	if (cityRegion == nullptr)
+	if (cityRegion == NULL)
 		return cancelSession();
 
 	CityManager* cityManager = creatureObject->getZoneServer()->getCityManager();

@@ -5,6 +5,7 @@
 #ifndef CRIPPLINGSHOTCOMMAND_H_
 #define CRIPPLINGSHOTCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "CombatQueueCommand.h"
 
 class CripplingShotCommand : public CombatQueueCommand {
@@ -22,6 +23,9 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
 		return doCombatAction(creature, target);
 	}
 

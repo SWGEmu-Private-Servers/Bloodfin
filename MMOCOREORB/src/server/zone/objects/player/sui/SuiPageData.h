@@ -20,7 +20,6 @@ class SuiPageData : public Logger, public Object {
 	uint64 unknownNetworkId;
 
 	Vector<Reference<SuiCommand*> > commands;
-	VectorMap<String, String> storedData;
 	VectorMap<byte, Reference<SuiCommand*> > callbacks;
 
 public:
@@ -33,7 +32,6 @@ public:
 	}
 
 	void setProperty(const String& widget, const String& property, const UnicodeString& value);
-	UnicodeString getPropertyValue(const String& widget, const String& property);
 	void addDataItem(const String& widget, const String& property, const UnicodeString& value);
 	void clearDataSource(const String& dataSource);
 	void addDataSourceContainer(const String& parent, const String& name);
@@ -47,24 +45,6 @@ public:
 
 	void sendTo(CreatureObject* creo);
 	void sendUpdateTo(CreatureObject* creo);
-
-	void setStoredData(const String& key, const String& value) {
-		if (storedData.contains(key))
-			storedData.drop(key);
-
-		storedData.put(key, value);
-	}
-
-	void deleteStoredData(const String& key) {
-		storedData.drop(key);
-	}
-
-	String getStoredData(const String& key) {
-		if (!storedData.contains(key))
-			return "";
-
-		return storedData.get(key);
-	}
 
 	void setPageId(int pageId) {
 		id = pageId;
@@ -82,7 +62,7 @@ public:
 		return forceCloseDistance;
 	}
 
-	void setTargetNetworkId(uint64 id) {
+	void setTargetNetworkId(int id) {
 		targetNetworkId = id;
 	}
 

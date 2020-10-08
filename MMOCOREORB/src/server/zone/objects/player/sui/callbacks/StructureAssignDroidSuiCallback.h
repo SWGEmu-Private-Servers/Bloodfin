@@ -6,6 +6,7 @@
 #define STRUCTUREASSIGNDROIDSUICALLBACK_H_
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
+#include "server/zone/objects/building/BuildingObject.h"
 #include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/creature/ai/DroidObject.h"
 
@@ -26,8 +27,8 @@ public:
 			return;
 		}
 
-		ManagedReference<SceneObject*> object = suiBox->getUsingObject().get();
-		if (object == nullptr || !object->isStructureObject())
+		ManagedReference<SceneObject*> object = suiBox->getUsingObject();
+		if (object == NULL || !object->isStructureObject())
 			return;
 
 		SuiListBox* suiListBox = cast<SuiListBox*>( suiBox);
@@ -36,13 +37,13 @@ public:
 
 		StructureObject* structure = cast<StructureObject*>(object.get());
 		ManagedReference<Zone*> zone = structure->getZone();
-		if (zone == nullptr)
+		if (zone == NULL)
 			return;
 		// fetch the module object by id
 		Reference<DroidObject*> droid = zone->getZoneServer()->getObject(itemId).castTo<DroidObject*>();
 		//Creature is already locked (done in handleSuiEventNotification in SuiManager).
 
-		if (droid == nullptr)
+		if (droid == NULL)
 			return;
 
 		Locker _lock(droid, player);

@@ -8,32 +8,37 @@ import engine.core.ManagedService;
 import server.zone.Zone;
 import server.zone.ZoneProcessServer;
 import engine.log.Logger;
+import server.zone.objects.building.BuildingObject;
+import system.thread.Thread;
+import system.util.SortedVector;
 import system.util.VectorMap;
-import system.util.SynchronizedVectorMap;
-import system.util.SynchronizedSortedVector;
+import system.util.HashTable;
+import system.util.Vector;
 import server.zone.objects.region.CityRegion;
+import server.zone.objects.scene.variables.StringId;
 import server.zone.managers.weather.WeatherManager;
+import server.zone.managers.objectcontroller.ObjectController;
 import server.zone.managers.gcw.GCWManager;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.scene.SceneObject;
 include server.zone.managers.planet.RegionMap;
-include terrain.manager.TerrainManager;
+include server.zone.managers.terrain.TerrainManager;
 include server.zone.managers.planet.MissionTargetMap;
-include templates.snapshot.WorldSnapshotNode;
-include templates.snapshot.WorldSnapshotIff;
+include server.zone.templates.snapshot.WorldSnapshotNode;
+include server.zone.templates.snapshot.WorldSnapshotIff;
 include server.zone.managers.planet.PlanetTravelPointList;
 include server.zone.managers.planet.PlanetTravelPoint;
 include engine.lua.LuaObject;
 include server.zone.objects.building.ShuttleMap;
+include server.zone.objects.building.tasks.ShuttleDepartureTask;
+include server.zone.objects.creature.CreaturePosture;
 include server.zone.managers.planet.ClientPoiDataTable;
 include server.zone.managers.planet.TravelFare;
+import server.zone.objects.area.ActiveArea;
 import system.thread.Mutex;
-import server.zone.CloseObjectsVector;
-include engine.util.u3d.Vector3;
+import engine.util.u3d.CloseObjectsVector;
 include server.zone.managers.collision.IntersectionResults;
-include server.zone.objects.pathfinding.NavArea;
 
-@dirty
 class PlanetManager extends ManagedService implements Logger {
 	protected Zone zone;
 
@@ -60,7 +65,7 @@ class PlanetManager extends ManagedService implements Logger {
 	public static final int SHUTTLEPORT = 0;
 	public static final int STARPORT = 1;
 
-	protected transient WeatherManager weatherManager;
+	protected WeatherManager weatherManager;
 
 	protected transient GCWManager gcwManager;
 
@@ -78,26 +83,15 @@ class PlanetManager extends ManagedService implements Logger {
 	@dereferenced
 	protected static transient Mutex poiMutex;
 
-	@dereferenced
-	protected transient SynchronizedVectorMap<string, NavArea> navMeshAreas;
-
-	@dereferenced
-	protected transient SynchronizedSortedVector<unsigned long> spawnedEventObjects;
-
-	@dereferenced
-	protected transient SynchronizedSortedVector<unsigned long> spawnedEventStructures;
-
 	public PlanetManager(Zone planet, ZoneProcessServer srv) {
 		zone = planet;
 		server = srv;
-
-		performanceLocations = new MissionTargetMap();
 
 		Logger.setLoggingName("PlanetManager " + zone.getZoneName());
 		Logger.setLogging(false);
 		Logger.setGlobalLogging(true);
 
-		terrainManager = new TerrainManager();
+		terrainManager = new TerrainManager(zone);
 
 		if (terrainManager.initialize("terrain/" + zone.getZoneName() + ".trn")) {
 			Logger.info("Loaded terrain file successfully.");
@@ -121,9 +115,6 @@ class PlanetManager extends ManagedService implements Logger {
 		travelFares.setNoDuplicateInsertPlan();
 
 		planetTravelPointList = new PlanetTravelPointList();
-
-		spawnedEventObjects.setNoDuplicateInsertPlan();
-		spawnedEventStructures.setNoDuplicateInsertPlan();
 	}
 
 	@local
@@ -138,21 +129,6 @@ class PlanetManager extends ManagedService implements Logger {
 	@local
 	private native void loadBadgeAreas(LuaObject lua);
 
-	@local
-	private native void loadNavAreas(LuaObject lua);
-
-	public void addNavArea(final string name, NavArea area) {
-		navMeshAreas.put(name, area);
-	}
-
-	public NavArea getNavArea(final string name) {
-		return navMeshAreas.get(name);
-	}
-
-	public void dropNavArea(final string name) {
-		navMeshAreas.drop(name);
-	}
-
 	private native void loadLuaConfig();
 
 	public native void initializeTransientMembers();
@@ -160,10 +136,7 @@ class PlanetManager extends ManagedService implements Logger {
 	public native void finalize();
 
 	public native abstract void initialize();
-
-	@local
-	public native void loadClientRegions(LuaObject outposts);
-
+	public native void loadClientRegions();
 	public native void loadClientPoiData();
 	public native void start();
 
@@ -176,9 +149,6 @@ class PlanetManager extends ManagedService implements Logger {
 	@local
 	public native PlanetTravelPoint getNearestPlanetTravelPoint(SceneObject object, float range = 16000.0);
 
-	@local
-	public native PlanetTravelPoint getRandomStarport();
-
 	/**
 	 * Returns the closest PlanetTravelPoint within the given range.
 	 * @param position The position to use as reference.
@@ -188,13 +158,9 @@ class PlanetManager extends ManagedService implements Logger {
 	@local
 	public native PlanetTravelPoint getNearestPlanetTravelPoint(@dereferenced final Vector3 position, float range = 16000.0);
 
-	@local
-	@dereferenced
-	public native Vector3 getRandomSpawnPoint();
-
 	public native boolean isSpawningPermittedAt(float x, float y, float margin = 0);
 
-	public native boolean isBuildingPermittedAt(float x, float y, SceneObject objectTryingToBuild = null, float margin = 0, boolean checkFootprint = true);
+	public native boolean isBuildingPermittedAt(float x, float y, SceneObject objectTryingToBuild = null, float margin = 0);
 
 	public native boolean isCampingPermittedAt(float x, float y, float margin);
 
@@ -203,7 +169,7 @@ class PlanetManager extends ManagedService implements Logger {
 
 	public native boolean isInRangeWithPoi(float x, float y, float range);
 
-	public native boolean isInObjectsNoBuildZone(float x, float y, float extraMargin, boolean checkFootprint = true);
+	public native boolean isInObjectsNoBuildZone(float x, float y, float extraMargin);
 
 	/**
 	 * Gets the cost to travel via shuttleport/starport to the destination planet.
@@ -364,16 +330,4 @@ class PlanetManager extends ManagedService implements Logger {
 	public native void addPlayerCityTravelPoint(PlanetTravelPoint ptp);
 
 	public native void removePlayerCityTravelPoint(final string cityName);
-
-	public void addEventObject(unsigned long objectID) {
-		spawnedEventObjects.put(objectID);
-	}
-
-	public void addEventStructure(unsigned long objectID) {
-		spawnedEventStructures.put(objectID);
-	}
-
-	public native int destroyEventObject(unsigned long objectID);
-
-	public native int destroyAllEventObjects();
 }

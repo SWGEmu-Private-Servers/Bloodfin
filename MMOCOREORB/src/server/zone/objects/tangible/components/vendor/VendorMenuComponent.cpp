@@ -8,15 +8,17 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "VendorMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/objects/scene/components/DataObjectComponentReference.h"
 #include "server/zone/objects/tangible/components/vendor/VendorDataComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
+#include "server/zone/packets/chat/ChatSystemMessage.h"
+#include "server/zone/objects/tangible/components/vendor/VendorDataComponent.h"
 #include "server/zone/objects/player/sessions/vendor/VendorAdBarkingSession.h"
 #include "server/zone/managers/vendor/VendorManager.h"
-#include "server/zone/ZoneProcessServer.h"
 
 void VendorMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
-		ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+		ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
 	if(!sceneObject->isVendor())
 		return;
@@ -28,16 +30,16 @@ void VendorMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
 
 	PlayerObject* playerObject = player->getPlayerObject();
 
-	if (playerObject == nullptr)
+	if (playerObject == NULL)
 		return;
 
 	DataObjectComponentReference* data = sceneObject->getDataObjectComponent();
-	if(data == nullptr || data->get() == nullptr || !data->get()->isVendorData()) {
+	if(data == NULL || data->get() == NULL || !data->get()->isVendorData()) {
 		return;
 	}
 
 	VendorDataComponent* vendorData = cast<VendorDataComponent*>(data->get());
-	if(vendorData == nullptr) {
+	if(vendorData == NULL) {
 		return;
 	}
 
@@ -98,23 +100,23 @@ void VendorMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
 }
 
 int VendorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
-		CreatureObject* player, byte selectedID) const {
+		CreatureObject* player, byte selectedID) {
 
 	if (!sceneObject->isVendor())
 		return 0;
 
 	DataObjectComponentReference* data = sceneObject->getDataObjectComponent();
-	if(data == nullptr || data->get() == nullptr || !data->get()->isVendorData()) {
+	if(data == NULL || data->get() == NULL || !data->get()->isVendorData()) {
 		return 0;
 	}
 
 	VendorDataComponent* vendorData = cast<VendorDataComponent*>(data->get());
-	if(vendorData == nullptr) {
+	if(vendorData == NULL) {
 		return 0;
 	}
 
 	ManagedReference<TangibleObject*> vendor = cast<TangibleObject*>(sceneObject);
-	if(vendor == nullptr)
+	if(vendor == NULL)
 		return 0;
 
 	bool owner = vendorData->getOwnerId() == player->getObjectID();
@@ -197,7 +199,7 @@ int VendorMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 
 
 	case 79: {
-		if (player->getRootParent() != vendor->getRootParent()) {
+		if (player->getRootParent().get() != vendor->getRootParent().get()) {
 			player->sendSystemMessage("@player_structure:vendor_not_in_same_building");
 			return 0;
 		}

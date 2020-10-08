@@ -30,12 +30,12 @@ public:
 			return GENERALERROR;
 		}
 
-		ManagedReference<CreatureObject*> targetPlayer = nullptr;
+		ManagedReference<CreatureObject*> targetPlayer = NULL;
 		ManagedReference<SceneObject*> targetObject = server->getZoneServer()->getObject(target);
 
 		PlayerManager* playerManager = server->getZoneServer()->getPlayerManager();
 
-		if (targetObject != nullptr) {
+		if (targetObject != NULL) {
 			if (targetObject->isPlayerCreature() || targetObject->isPet())
 				targetPlayer = cast<CreatureObject*>(targetObject.get());
 			else {
@@ -65,7 +65,7 @@ public:
 
 			//If first argument is player name, break loop and kill player
 			ManagedReference<CreatureObject*>findPlayer = playerManager->getPlayer(arg);
-			if (findPlayer != nullptr) {
+			if (findPlayer != NULL) {
 				targetPlayer = findPlayer;
 				break;
 			}
@@ -157,15 +157,13 @@ public:
 			SortedVector<QuadTreeEntry*> closeObjects;
 			Zone* zone = creature->getZone();
 
-			if (creature->getCloseObjects() == nullptr) {
-#ifdef COV_DEBUG
+			if (creature->getCloseObjects() == NULL) {
 				creature->info("Null closeobjects vector in KillPlayerCommand::doQueueCommand", true);
-#endif
 				zone->getInRangeObjects(creature->getPositionX(), creature->getPositionY(), range, &closeObjects, true);
 			}
 			else {
 				CloseObjectsVector* closeVector = (CloseObjectsVector*) creature->getCloseObjects();
-				closeVector->safeCopyReceiversTo(closeObjects, CloseObjectsVector::CREOTYPE);
+				closeVector->safeCopyTo(closeObjects);
 			}
 
 			int count = 0;
@@ -173,7 +171,7 @@ public:
 			//Deal area damage if specified
 			if (damage) {
 				for (int i = 0; i < closeObjects.size(); i++) {
-					SceneObject* targetObject = static_cast<SceneObject*>(closeObjects.get(i));
+					SceneObject* targetObject = cast<SceneObject*>(closeObjects.get(i));
 					if (targetObject->isPlayerCreature() || targetObject->isPet()) {
 						targetPlayer = cast<CreatureObject*>(targetObject);
 
@@ -210,7 +208,7 @@ public:
 			//Kill players in area
 			else {
 				for (int i = 0; i < closeObjects.size(); i++) {
-					SceneObject* targetObject = static_cast<SceneObject*>(closeObjects.get(i));
+					SceneObject* targetObject = cast<SceneObject*>(closeObjects.get(i));
 					if (targetObject->isPlayerCreature() || targetObject->isPet()) {
 						targetPlayer = cast<CreatureObject*>(targetObject);
 
@@ -218,18 +216,16 @@ public:
 							Locker locker (targetPlayer, creature);
 
 							playerManager->killPlayer(creature, targetPlayer, 1);
-							targetPlayer->notifyObservers(ObserverEventType::OBJECTDESTRUCTION, creature, 0);
 
 							++count;
 						} else if (targetPlayer->isPet()) {
 							AiAgent* pet = cast<AiAgent*>(targetPlayer.get());
 
-							if (pet != nullptr) {
+							if (pet != NULL) {
 								Locker locker(pet, creature);
 
 								PetManager* petManager = server->getZoneServer()->getPetManager();
 								petManager->killPet(creature, pet);
-								pet->notifyObservers(ObserverEventType::OBJECTDESTRUCTION, creature, 0);
 
 								++count;
 							}
@@ -243,7 +239,7 @@ public:
 
 		//Deal damage to single target
 		else if (damage) {
-			if (targetPlayer != nullptr) {
+			if (targetPlayer != NULL) {
 				if (targetPlayer->isPlayerCreature() || targetPlayer->isPet()) {
 					Locker locker(targetPlayer, creature);
 
@@ -279,22 +275,15 @@ public:
 
 		//Kill single target
 		else {
-			if (targetPlayer != nullptr) {
+			if (targetPlayer != NULL) {
 				if (targetPlayer->isPlayerCreature()) {
 					Locker locker(targetPlayer, creature);
 
 					playerManager->killPlayer(creature, targetPlayer, 1);
-					targetPlayer->notifyObservers(ObserverEventType::OBJECTDESTRUCTION, creature, 0);
 				} else if (targetPlayer->isPet()) {
-					AiAgent* pet = cast<AiAgent*>(targetPlayer.get());
+					Locker locker(targetPlayer, creature);
 
-					if (pet != nullptr) {
-						Locker locker(pet, creature);
-
-						PetManager* petManager = server->getZoneServer()->getPetManager();
-						petManager->killPet(creature, pet);
-						pet->notifyObservers(ObserverEventType::OBJECTDESTRUCTION, creature, 0);
-					}
+					targetPlayer->notifyObjectDestructionObservers(creature, 0, false);
 				}
 			}
 			else {

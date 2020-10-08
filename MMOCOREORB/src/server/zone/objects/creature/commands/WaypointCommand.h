@@ -11,6 +11,9 @@
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/Zone.h"
 
+
+#include "server/zone/managers/object/ObjectManager.h"
+
 class WaypointCommand : public QueueCommand {
 public:
 
@@ -29,7 +32,7 @@ public:
 
 		Zone* zone = creature->getZone();
 
-		if (zone == nullptr)
+		if (zone == NULL)
 			return GENERALERROR;
 
 		int counter = 0;
@@ -45,13 +48,13 @@ public:
 		float y = creature->getPositionY();
 		float z = 0.0f;
 
-		ManagedReference<SceneObject*> parentObject = creature->getParent().get();
+		ManagedReference<SceneObject*> parentObject = creature->getParent();
 
-		if (parentObject != nullptr) {
+		if (parentObject != NULL) {
 			if (parentObject->isCellObject()) {
-				ManagedReference<SceneObject*> grandParentObject = parentObject->getParent().get();
+				ManagedReference<SceneObject*> grandParentObject = parentObject->getParent();
 
-				if (grandParentObject != nullptr) {
+				if (grandParentObject != NULL) {
 					x = grandParentObject->getPositionX();
 					y = grandParentObject->getPositionY();
 				}
@@ -59,6 +62,14 @@ public:
 		}
 
 		ManagedReference<SceneObject*> targetObject = server->getZoneServer()->getObject(target).get();
+
+		if (targetObject != NULL) {
+			Locker crosslocker(targetObject, creature);
+
+			x = targetObject->getWorldPositionX();
+			y = targetObject->getWorldPositionY();
+			waypointName = targetObject->getDisplayedName();
+		}
 
 		StringTokenizer tokenizer(waypointData);
 		tokenizer.setDelimeter(" ");
@@ -99,7 +110,7 @@ public:
 					//A waypoint in the form of /waypoint planet X Z Y - Planetary Map
 					planet = arg1;
 
-					if (server->getZoneServer()->getZone(planet) == nullptr) { //Not a valid planet name - malformed command
+					if (server->getZoneServer()->getZone(planet) == NULL) { //Not a valid planet name - malformed command
 						creature->sendSystemMessage(usageError);
 						return GENERALERROR;
 					}
@@ -144,12 +155,6 @@ public:
 				//A waypoint in the form of /waypoint <name>
 				waypointName = arg1;
 			}
-		} else if (targetObject != nullptr) {
-			Locker crosslocker(targetObject, creature);
-
-			x = targetObject->getWorldPositionX();
-			y = targetObject->getWorldPositionY();
-			waypointName = targetObject->getDisplayedName();
 		}
 
 		x = (x < -8192) ? -8192 : x;

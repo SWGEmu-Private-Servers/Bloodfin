@@ -1,7 +1,7 @@
 #ifndef PLAYERCREATURE_H_
 #define PLAYERCREATURE_H_
 
-#include "client/zone/objects/creature/CreatureObject.h"
+#include "../creature/CreatureObject.h"
 
 class Zone;
 

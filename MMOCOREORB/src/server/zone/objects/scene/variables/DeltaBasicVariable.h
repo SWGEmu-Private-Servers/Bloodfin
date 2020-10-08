@@ -8,7 +8,7 @@
 #ifndef DELTABASICVARIABLE_H_
 #define DELTABASICVARIABLE_H_
 
-#include "engine/engine.h"
+#include "server/zone/packets/DeltaMessage.h"
 
 template<typename K>
 class DeltaBasicVariable {

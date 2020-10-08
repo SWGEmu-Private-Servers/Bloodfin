@@ -38,16 +38,16 @@ class BlueprintEntry : public Serializable {
 private:
 
 	/// Type of resource
-	SerializableString type;
+	String type;
 
 	/// Unique identifier - Resource = spawnName; Component = server script crc
-	SerializableString key;
+	String key;
 
 	/// Name to display in UI
-	SerializableString displayedName;
+	String displayedName;
 
 	/// Serial number of tangible item
-	SerializableString serialNumber;
+	String serialNumber;
 
 	/// Designates if this item needs to be identical
 	bool identical;
@@ -79,8 +79,6 @@ public:
 	bool operator==(const BlueprintEntry& entry);
 
 	bool equals(BlueprintEntry* entry);
-
-	friend void to_json(nlohmann::json& j, const BlueprintEntry& p);
 
 	/// Inserts string for ManufactureSchematic attributes
 	void insertSchematicAttribute(AttributeListMessage* alm);

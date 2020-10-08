@@ -6,19 +6,21 @@ package server.zone.objects.creature.buffs;
 
 import engine.core.ManagedObject;
 import system.util.VectorMap;
+import system.lang.ref.Reference;
+import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.creature.CreatureObject;
 import system.lang.Time;
 import engine.log.Logger;
+include server.zone.ZoneProcessServer;
 import server.zone.objects.creature.buffs.BuffDurationEvent;
 include server.zone.objects.creature.buffs.BuffType;
 include server.chat.StringIdChatParameter;
-include system.util.Vector;
+import system.lang.Time;
 
-@json
 class Buff extends ManagedObject implements Logger {
 	@weakReference
 	protected CreatureObject creature;
-
+	
 	@dereferenced
 	protected Time timeApplied;
 
@@ -107,9 +109,7 @@ class Buff extends ManagedObject implements Logger {
 
 	public native void init();
 
-	@dirty
 	public native abstract void sendTo(CreatureObject player);
-	@dirty
 	public native abstract void sendDestroyTo(CreatureObject player);
 
 	@preLocked
@@ -125,28 +125,22 @@ class Buff extends ManagedObject implements Logger {
 		deactivate(true);
 	}
 
-	@read
-	public abstract boolean checkRenew() {
-		return false;
-	}
-
 	@local
-	@read
-	public final VectorMap<string, int> getSkillModifiers() {
+	public VectorMap<string, int> getSkillModifiers() {
 		return skillModifiers;
 	}
 
 	public native abstract void applyAttributeModifiers();
 	public native abstract void applySkillModifiers();
 	public native abstract void applyStates();
-
+	
 	@preLocked
 	public native abstract void applyAllModifiers();
 
 	public native abstract void removeAttributeModifiers();
 	public native abstract void removeSkillModifiers();
 	public native abstract void removeStates();
-
+	
 	@preLocked
 	public native abstract void removeAllModifiers();
 
@@ -160,7 +154,7 @@ class Buff extends ManagedObject implements Logger {
 	public native void scheduleBuffEvent();
 
 	/*
-	 * This updates the duration event for this buff only
+	 * This updates the duration event for this buff only  
 	 * Does not affect secondaryBuffs or update the client
 	 * You should probably use the CreatureObject::renewBuff() instead
 	 */
@@ -172,13 +166,9 @@ class Buff extends ManagedObject implements Logger {
 	@preLocked
 	public native abstract void parseSkillModifierString(final string modifierstring);
 
-	@read
 	public native abstract string getAttributeModifierString();
-
-	@read
 	public native abstract string getSkillModifierString();
 
-	@read
 	public native abstract float getTimeLeft();
 
 	@preLocked
@@ -212,7 +202,6 @@ class Buff extends ManagedObject implements Logger {
 		setSkillModifier("private_acceleration_multiplier", multiplier * 100);
 	}
 
-	@read
 	public float getSpeedMultiplierMod() {
 		int speed = getSkillModifierValue("private_speed_multiplier");
 		float multiplier = speed / 100.0;
@@ -220,7 +209,6 @@ class Buff extends ManagedObject implements Logger {
 		return multiplier;
 	}
 
-	@read
 	public float getAccelerationMultiplierMod() {
 		int acceleration = getSkillModifierValue("private_acceleration_multiplier");
 		float multiplier = acceleration / 100.0;
@@ -234,51 +222,47 @@ class Buff extends ManagedObject implements Logger {
 	}
 
 	//Getters
-	@read
 	public string getBuffName() {
 		return buffName;
 	}
 
-	@read
 	public unsigned int getBuffCRC() {
 		return buffCRC;
 	}
 
-	@read
 	public float getBuffDuration() {
 		return buffDuration;
 	}
 
-	@read
 	public int getBuffType() {
 		return buffType;
 	}
 
 	@local
-	@read
-	public final VectorMap<byte, int> getAttributeModifiers() {
+	public VectorMap<byte, int> getAttributeModifiers() {
 		return attributeModifiers;
 	}
 
-	@read
 	public abstract int getAttributeModifierValue(byte attribute) {
-		return attributeModifiers.get(attribute);
+		if (attributeModifiers.contains(attribute))
+			return attributeModifiers.get(attribute);
+
+		return 0;
 	}
 
-	@read
 	public abstract int getSkillModifierValue(final string modname) {
-		return skillModifiers.get(modname);
+		if (skillModifiers.contains(modname))
+			return skillModifiers.get(modname);
+
+		return 0;
 	}
 
-	@read
 	public native boolean isActive();
 
-	@read
 	public boolean isSpiceBuff() {
 		return (buffType == BuffType.SPICE);
 	}
 
-	@read
 	public boolean isAttributeBuff() {
 		return (attributeModifiers.size() != 0);
 	}
@@ -314,19 +298,18 @@ class Buff extends ManagedObject implements Logger {
 		if (secondaryCRC != 0 && !secondaryBuffCRCs.contains(secondaryCRC))
 			secondaryBuffCRCs.add(secondaryCRC);
 	}
-
-	@read
+	
+	@dirty
 	@local
 	@dereferenced
 	public native Time getTimeApplied();
+	
+	@dirty
+	public abstract native int compareTo(Buff obj);
 
-	@read
 	@local
-	public abstract native int compareTo(final Buff obj);
-
-	@local
-	@read
-	public final Vector<unsigned long> getSecondaryBuffCRCs() {
+	@dirty
+	public Vector<unsigned long> getSecondaryBuffCRCs() {
 		return secondaryBuffCRCs;
 	}
 
@@ -338,10 +321,5 @@ class Buff extends ManagedObject implements Logger {
 	@preLocked
 	public void setModsApplied(boolean applied) {
 		modsApplied = applied;
-	}
-
-	@read
-	public abstract boolean removeOnClearBuffs() {
-		return true;
 	}
 }

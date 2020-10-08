@@ -5,21 +5,25 @@
 package server.zone.objects.creature.buffs;
 
 include engine.core.ManagedObject;
+
+import engine.log.Logger;
+import engine.core.ManagedReference;
+import system.lang.ref.Reference;
+import engine.core.Task;
 import engine.util.Observer;
 import engine.util.Observable;
-import server.zone.objects.creature.buffs.SquadLeaderBuff;
 import server.zone.objects.creature.CreatureObject;
+include server.zone.objects.scene.ObserverEventType;
+import server.zone.objects.creature.buffs.SquadLeaderBuff;
 
-@json
 class SquadLeaderBuffObserver extends Observer {
 	@weakReference
 	protected SquadLeaderBuff buff;
-
+	
 	public SquadLeaderBuffObserver(SquadLeaderBuff b) {
 		buff = b;
 	}
 
 	public native int notifyObserverEvent(unsigned int eventType, Observable observable, ManagedObject arg1, long arg2);
-
-	public native void handleObserverEvent(CreatureObject player, SquadLeaderBuff slBuff);
+	
 }

@@ -5,7 +5,9 @@
 #ifndef STATMIGRATIONTARGETSMESSAGE_H_
 #define STATMIGRATIONTARGETSMESSAGE_H_
 
-#include "engine/service/proto/BaseMessage.h"
+#include "engine/engine.h"
+
+// StatMigrationTargetsMessage
 
 class StatMigrationTargetsMessage : public BaseMessage {
 public:
@@ -13,7 +15,7 @@ public:
 		insertShort(0x09);
 		insertInt(0xEFAC38C4);  // CRC
 
-		const DeltaVector<int>* baseHam = creo->getBaseHAM();
+		DeltaVector<int>* baseHam = creo->getBaseHAM();
 
 		for (int i = 0; i < 9; ++i) {
 			insertInt(baseHam->get(i));

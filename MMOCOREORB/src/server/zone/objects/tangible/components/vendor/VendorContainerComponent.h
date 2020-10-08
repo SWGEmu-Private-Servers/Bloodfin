@@ -12,7 +12,7 @@
 
 class VendorContainerComponent : public ContainerComponent {
 public:
-	bool checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) const;
+	bool checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission);
 };
 
 #endif /* VENDORCONTAINERCOMPONENT_H_ */

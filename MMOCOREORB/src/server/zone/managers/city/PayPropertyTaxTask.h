@@ -7,7 +7,7 @@
 
 #ifndef PAYCITYTAXTASK_H_
 #define PAYCITYTAXTASK_H_
-
+#include "engine/engine.h"
 #include "server/zone/objects/region/CityRegion.h"
 
 class PayPropertyTaxTask : public Task {
@@ -24,12 +24,15 @@ public:
 
 		ManagedReference<CityRegion*> strongRefCity = cityObject.get();
 
-		if (strongRefCity == nullptr)
+		if (strongRefCity == NULL)
 			return;
 
 		Locker lock(strongRefCity);
 		strongRefCity->addToCityTreasury(amount);
+
+
 	}
 };
+
 
 #endif /* PAYCITYTAXTASK_H_ */

@@ -9,6 +9,7 @@
 #include "server/zone/objects/resource/ResourceContainer.h"
 #include "server/zone/objects/building/BuildingObject.h"
 #include "server/zone/objects/tangible/tasks/GrowablePlantPulseTask.h"
+#include "server/zone/Zone.h"
 #include "server/zone/ZoneServer.h"
 
 void PlantObjectImplementation::fillObjectMenuResponse(ObjectMenuResponse* menuResponse, CreatureObject* player) {
@@ -31,15 +32,15 @@ void PlantObjectImplementation::fillObjectMenuResponse(ObjectMenuResponse* menuR
 
 int PlantObjectImplementation::handleObjectMenuSelect(CreatureObject* player, byte selectedID) {
 	ManagedReference<SceneObject*> rootParent = getRootParent();
-	ManagedReference<SceneObject*> parent = getParent().get();
+	ManagedReference<SceneObject*> parent = getParent();
 
-	if (rootParent == nullptr || parent == nullptr) {
+	if (rootParent == NULL || parent == NULL) {
 		return 0;
 	}
 
 	ManagedReference<BuildingObject*> building = cast<BuildingObject*>( rootParent.get());
 
-	if ((building == nullptr || !building->isOnAdminList(player) || !parent->isCellObject()) && selectedID >= 69 && selectedID <= 74) {
+	if ((building == NULL || !building->isOnAdminList(player) || !parent->isCellObject()) && selectedID >= 69 && selectedID <= 74) {
 		player->sendSystemMessage("@plant_grow:must_be_in_building"); // The plant must be in a building which you administrate.
 		return 0;
 	}
@@ -80,7 +81,7 @@ int PlantObjectImplementation::handleObjectMenuSelect(CreatureObject* player, by
 		String fruitTemplate = "object/tangible/item/plant/force_melon.iff";
 		Reference<SceneObject*> fruit = zserv->createObject(fruitTemplate.hashCode(), 1);
 
-		if(fruit == nullptr) {
+		if(fruit == NULL) {
 			return 0;
 		}
 
@@ -105,8 +106,7 @@ void PlantObjectImplementation::fillAttributeList(AttributeListMessage* alm, Cre
 	else if (temp < 0)
 		temp = 0;
 
-	int tempHealth = ceil(temp / 10.f);
-	alm->insertAttribute("plant_health_n", "@plant_grow:health_" + String::valueOf(tempHealth));
+	alm->insertAttribute("plant_health_n", "@plant_grow:health_" + String::valueOf(temp / 10));
 
 	if (fruitCount > 0)
 		alm->insertAttribute("plant_fruit", fruitCount);
@@ -141,11 +141,6 @@ void PlantObjectImplementation::fillAttributeList(AttributeListMessage* alm, Cre
 }
 
 void PlantObjectImplementation::sendResourceSUI(CreatureObject* player, int type) {
-	ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
-
-	if (ghost == nullptr)
-		return;
-
 	ManagedReference<SuiListBox*> suiBox = new SuiListBox(player, SuiWindowType::GROWABLE_PLANT, SuiListBox::HANDLETWOBUTTON);
 	suiBox->setCallback(new GrowablePlantSuiCallback(player->getZoneServer()));
 	suiBox->setPromptTitle("@plant_grow:select_resource_sub");
@@ -156,23 +151,28 @@ void PlantObjectImplementation::sendResourceSUI(CreatureObject* player, int type
 	suiBox->setForceCloseDistance(32.f);
 
 	ManagedReference<SceneObject*> inventory = player->getSlottedObject("inventory");
-	ManagedReference<SceneObject*> sceneObject = nullptr;
+	ManagedReference<SceneObject*> sceneObject = NULL;
+
+	ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
+
+	if (ghost == NULL)
+		return;
 
 	for (int i=0; i< inventory->getContainerObjectsSize(); i++) {
 		sceneObject = inventory->getContainerObject(i);
 
-		if (sceneObject == nullptr)
+		if (sceneObject == NULL)
 			continue;
 
 		if (sceneObject->isResourceContainer()) {
 			ManagedReference<ResourceContainer*> rcno = cast<ResourceContainer*>( sceneObject.get());
 
-			if (rcno == nullptr)
+			if (rcno == NULL)
 				continue;
 
 			ManagedReference<ResourceSpawn*> spawn = rcno->getSpawnObject();
 
-			if (spawn == nullptr)
+			if (spawn == NULL)
 				continue;
 
 			if ((type == 1 && spawn->isType("organic")) || (type == 2 && spawn->isType("water"))) {
@@ -183,7 +183,7 @@ void PlantObjectImplementation::sendResourceSUI(CreatureObject* player, int type
 
 	if (suiBox->getMenuSize() > 0) {
 		ghost->closeSuiWindowType(SuiWindowType::GROWABLE_PLANT);
-		ghost->addSuiBox(suiBox);
+		player->getPlayerObject()->addSuiBox(suiBox);
 		player->sendMessage(suiBox->generateMessage());
 	} else {
 		if (type == 1)
@@ -194,11 +194,6 @@ void PlantObjectImplementation::sendResourceSUI(CreatureObject* player, int type
 }
 
 void PlantObjectImplementation::initializePlant(int size) {
-	plantSize = size;
-
-	if (size == 0)
-		return;
-
 	lastPulse.updateToCurrentTime();
 
 	if (size == 1) {
@@ -230,17 +225,17 @@ void PlantObjectImplementation::changeSize(int size) {
 
 	ManagedReference<ZoneServer*> zoneServer = getZoneServer();
 
-	if (zoneServer == nullptr)
+	if (zoneServer == NULL)
 		return;
 
-	ManagedReference<SceneObject*> parent = getParent().get();
+	ManagedReference<SceneObject*> parent = getParent();
 
-	if (parent == nullptr || !parent->isCellObject())
+	if (parent == NULL || !parent->isCellObject())
 		return;
 
 	ManagedReference<SceneObject*> obj = zoneServer->createObject(plantTemplate.hashCode(), getPersistenceLevel());
 
-	if (obj == nullptr)
+	if (obj == NULL)
 		return;
 
 	Locker clocker(obj, _this.getReferenceUnsafeStaticCast());
@@ -248,25 +243,23 @@ void PlantObjectImplementation::changeSize(int size) {
 	obj->initializePosition(getPositionX(), getPositionZ(), getPositionY());
 	obj->setDirection(Math::deg2rad(getDirectionAngle()));
 
-	if (size > 0) {
-		ManagedReference<PlantObject*> newPlant = cast<PlantObject*>( obj.get());
+	ManagedReference<PlantObject*> newPlant = cast<PlantObject*>( obj.get());
 
-		if (newPlant == nullptr)
-			return;
+	if (newPlant == NULL)
+		return;
 
-		newPlant->setWaterLevel(waterLevel);
-		newPlant->setNutrientLevel(nutrientLevel);
-		newPlant->setWaterQuality(waterQuality);
-		newPlant->setNutrientQuality(nutrientQuality);
-		newPlant->setPlantHealth(health);
-		newPlant->initializePlant(size);
-	}
+	newPlant->setWaterLevel(waterLevel);
+	newPlant->setNutrientLevel(nutrientLevel);
+	newPlant->setWaterQuality(waterQuality);
+	newPlant->setNutrientQuality(nutrientQuality);
+	newPlant->setPlantHealth(health);
+
+	newPlant->initializePlant(size);
 
 	parent->transferObject(obj, -1);
 
 	clocker.release();
 
-	pulseTask->cancel();
 	destroyObjectFromWorld(true);
 	destroyObjectFromDatabase();
 }
@@ -285,18 +278,16 @@ int PlantObjectImplementation::getCriticalAttribute(int index) {
 }
 
 void PlantObjectImplementation::startPulse() {
-	if (plantSize == 0)
-		return;
+	Time currentTime;
+	int timeSinceLast = currentTime.getMiliTime() - lastPulse.getMiliTime();
 
-	int timeSinceLast = lastPulse.miliDifference();
-
-	if (pulseTask != nullptr)
-		pulseTask->cancel();
-
-	pulseTask = new GrowablePlantPulseTask(_this.getReferenceUnsafeStaticCast());
+	if (pulseTask == NULL)
+		pulseTask = new GrowablePlantPulseTask(_this.getReferenceUnsafeStaticCast());
 
 	if (timeSinceLast >= (PULSERATE * 1000))
 		pulseTask->execute();
+	else if (pulseTask->isScheduled())
+		pulseTask->reschedule((PULSERATE * 1000) - timeSinceLast);
 	else
 		pulseTask->schedule((PULSERATE * 1000) - timeSinceLast);
 }

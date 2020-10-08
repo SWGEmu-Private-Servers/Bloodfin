@@ -8,7 +8,7 @@
 #ifndef VERIFYPLAYERNAMECALLBACK_H_
 #define VERIFYPLAYERNAMECALLBACK_H_
 
-#include "server/zone/packets/MessageCallback.h"
+#include "../MessageCallback.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/managers/player/PlayerManager.h"
 #include "server/zone/packets/ui/VerifyPlayerNameResponseMessage.h"
@@ -30,10 +30,12 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> playerCreature = client->getPlayer();
+		ManagedReference<SceneObject*> playerClient = client->getPlayer();
 
-		if (playerCreature == nullptr)
+		if (playerClient == NULL)
 			return;
+
+		CreatureObject* playerCreature = cast<CreatureObject*>( playerClient.get());
 
 		ManagedReference<PlayerManager*> playerManager = server->getPlayerManager();
 		bool success = playerManager->existsName(name.toString());

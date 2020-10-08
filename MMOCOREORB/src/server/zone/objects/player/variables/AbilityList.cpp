@@ -8,17 +8,18 @@
 #include "AbilityList.h"
 #include "Ability.h"
 
+#include "server/zone/objects/creature/variables/Skill.h"
 #include "server/zone/ZoneServer.h"
 #include "server/ServerCore.h"
 #include "server/zone/managers/skill/SkillManager.h"
 
-bool AbilityList::contains(const String& element) const {
+bool AbilityList::contains(const String& element) {
 	String lowCase = element.toLowerCase();
 
 	for (int i = 0; i < vector.size(); ++i) {
 		Ability* ability = vector.get(i);
 
-		if (ability == nullptr)
+		if (ability == NULL)
 			continue;
 
 		String skill = ability->getAbilityName().toLowerCase();
@@ -30,7 +31,7 @@ bool AbilityList::contains(const String& element) const {
 	return false;
 }
 
-void AbilityList::insertToMessage(BaseMessage* msg) const {
+void AbilityList::insertToMessage(BaseMessage* msg) {
 	ReadLocker locker(getLock());
 
 	msg->insertInt(size());
@@ -44,53 +45,32 @@ void AbilityList::insertToMessage(BaseMessage* msg) const {
 }
 
 bool AbilityList::toBinaryStream(ObjectOutputStream* stream) {
-	TypeInfo<uint32>::toBinaryStream(&updateCounter, stream);
-
-#ifdef ODB_SERIALIZATION
-	abilities.toBinaryStream(stream);
-#else
 	Vector<String> names;
 	getStringList(names);
 
+	TypeInfo<uint32>::toBinaryStream(&updateCounter, stream);
 	names.toBinaryStream(stream);
-#endif
 
 	return true;
 }
 
-void to_json(nlohmann::json& j, const AbilityList& l) {
-	Vector<String> names;
-	l.getStringList(names);
-
-	j["updateCounter"] = l.updateCounter;
-	j["names"] = names;
-}
-
-void AbilityList::getStringList(Vector<String>& abilities) const {
-#ifdef ODB_SERIALIZATION
-	abilities = this->abilities;
-#else
+void AbilityList::getStringList(Vector<String>& abilities) {
 	for (int i = 0; i < vector.size(); ++i) {
-		Ability* ability = vector.getUnsafe(i);
+		Ability* ability = vector.get(i);
 
-		const auto& name = ability->getAbilityName();
+		String name = ability->getAbilityName();
 
-		abilities.emplace(name);
+		abilities.add(name);
 	}
-#endif
 }
 
 bool AbilityList::parseFromBinaryStream(ObjectInputStream* stream) {
-	TypeInfo<uint32>::parseFromBinaryStream(&updateCounter, stream);
-
-#ifdef ODB_SERIALIZATION
-	abilities.parseFromBinaryStream(stream);
-#else
 	Vector<String> abilities;
+
+	TypeInfo<uint32>::parseFromBinaryStream(&updateCounter, stream);
 	abilities.parseFromBinaryStream(stream);
 
 	loadFromNames(abilities);
-#endif
 
 	return true;
 }
@@ -101,11 +81,11 @@ void AbilityList::loadFromNames(Vector<String>& abilities) {
 	SkillManager* skillManager = server->getSkillManager();
 
 	for (int i = 0; i < abilities.size(); ++i) {
-		const String& name = abilities.get(i);
+		String name = abilities.get(i);
 
 		Ability* ability = skillManager->getAbility(name);
 
-		if (ability == nullptr) {
+		if (ability == NULL) {
 			Logger::console.error(name + " is null when trying to load from database");
 		} else {
 			vector.add(ability);
@@ -113,13 +93,13 @@ void AbilityList::loadFromNames(Vector<String>& abilities) {
 	}
 }
 
-bool AbilityList::add(Ability* const& ability, DeltaMessage* message, int updates) {
-	if (ability == nullptr)
+bool AbilityList::add(Ability* ability, DeltaMessage* message, int updates) {
+	if (ability == NULL)
 		return false;
 
 	bool val = vector.add(ability);
 
-	if (message != nullptr) {
+	if (message != NULL) {
 		if (updates != 0)
 			message->startList(updates, updateCounter += updates);
 

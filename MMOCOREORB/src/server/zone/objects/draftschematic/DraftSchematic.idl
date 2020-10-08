@@ -4,17 +4,18 @@
 
 package server.zone.objects.draftschematic;
 
+import engine.service.proto.BaseMessage;
 import server.zone.objects.scene.SceneObject;
 import server.zone.packets.scene.AttributeListMessage;
 include server.zone.packets.object.ObjectControllerMessage;
 import server.zone.objects.intangible.IntangibleObject;
-include templates.intangible.DraftSchematicObjectTemplate;
-include templates.crafting.draftslot.DraftSlot;
-include templates.crafting.resourceweight.ResourceWeight;
-include templates.SharedObjectTemplate;
+include server.zone.templates.intangible.DraftSchematicObjectTemplate;
+include server.zone.objects.draftschematic.draftslot.DraftSlot;
+include server.zone.objects.draftschematic.resourceweight.ResourceWeight;
+import server.zone.templates.SharedObjectTemplate;
 import server.zone.objects.creature.CreatureObject;
+import system.util.Vector;
 
-@json
 class DraftSchematic extends IntangibleObject {
 
 	/// Name of schematic group this belongs to
@@ -87,7 +88,7 @@ class DraftSchematic extends IntangibleObject {
 	public native SceneObject createManufactureSchematic(SceneObject craftingTool = null);
 
 	@preLocked
-	public void setGroupName(final string name) {
+	public void setGroupName(string name) {
 		groupName = name;
 	}
 
@@ -101,7 +102,7 @@ class DraftSchematic extends IntangibleObject {
 
 	@dirty
 	public boolean isValidDraftSchematic() {
-		return schematicTemplate;
+		return schematicTemplate != null;
 	}
 
 	@local
@@ -204,5 +205,5 @@ class DraftSchematic extends IntangibleObject {
 	public native int getLabratory();
 
 	@dirty
-	public native int getFactoryCrateSize();
+	public native boolean allowFactoryRun();
 }

@@ -1,7 +1,7 @@
 #ifndef CREATUREOBJECT_H_
 #define CREATUREOBJECT_H_
 
-#include "client/zone/objects/tangible/TangibleObject.h"
+#include "../tangible/TangibleObject.h"
 
 class CreatureObject : public TangibleObject {
 protected:

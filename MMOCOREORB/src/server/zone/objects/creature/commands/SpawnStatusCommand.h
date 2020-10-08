@@ -5,6 +5,7 @@
 #ifndef SPAWNSTATUSCOMMAND_H_
 #define SPAWNSTATUSCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 
@@ -25,7 +26,7 @@ public:
 			return INVALIDLOCOMOTION;
 
 		ManagedReference<AiAgent*> targetObj = server->getZoneServer()->getObject(creature->getTargetID()).castTo<AiAgent*>();
-		if (targetObj == nullptr)
+		if (targetObj == NULL)
 			return GENERALERROR;
 
 		targetObj->outputLuaTimes(creature);

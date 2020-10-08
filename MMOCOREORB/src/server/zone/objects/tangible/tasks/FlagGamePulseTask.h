@@ -2,8 +2,9 @@
 #ifndef FLAGGAMEPULSETASK_H_
 #define FLAGGAMEPULSETASK_H_
 
+#include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/tangible/eventperk/FlagGame.h"
-#include "templates/faction/Factions.h"
+#include "server/zone/managers/faction/FactionManager.h"
 
 namespace server {
 namespace zone {
@@ -20,16 +21,16 @@ public:
 	}
 
 	void run() {
-		if (game == nullptr || game->isGameEnded())
+		if (game == NULL || game->isGameEnded())
 			return;
 
 		Locker locker(game);
 
 		uint32 factionControl = game->getFactionControl();
 
-		if (factionControl == Factions::FACTIONREBEL) {
+		if (factionControl == FactionManager::FACTIONREBEL) {
 			game->increaseRebelScore();
-		} else if (factionControl == Factions::FACTIONIMPERIAL) {
+		} else if (factionControl == FactionManager::FACTIONIMPERIAL) {
 			game->increaseImperialScore();
 		}
 

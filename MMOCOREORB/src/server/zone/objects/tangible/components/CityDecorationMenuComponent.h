@@ -9,6 +9,7 @@
 #define CITYDECORATIONMENUCOMPONENT_H_
 
 #include "TangibleObjectMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 
 class CityDecorationMenuComponent : public TangibleObjectMenuComponent {
 public:
@@ -19,7 +20,7 @@ public:
 	 * @post { this object is locked, menuResponse is complete}
 	 * @param menuResponse ObjectMenuResponse that will be sent to the client
 	 */
-	virtual void fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const;
+	virtual void fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player);
 
 	/**
 	 * Handles the radial selection sent by the client, must be overriden by inherited objects
@@ -29,9 +30,9 @@ public:
 	 * @param selectedID selected menu id
 	 * @returns 0 if successfull
 	 */
-	virtual int handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const;
+	virtual int handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID);
 
-	bool isInInventory(SceneObject* sceneObject, CreatureObject* player) const;
+	bool isInInventory(SceneObject* sceneObject, CreatureObject* player);
 };
 
 

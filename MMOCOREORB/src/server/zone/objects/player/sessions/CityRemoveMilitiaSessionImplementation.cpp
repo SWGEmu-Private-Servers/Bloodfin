@@ -6,6 +6,8 @@
  */
 
 #include "server/zone/objects/player/sessions/CityRemoveMilitiaSession.h"
+#include "server/zone/Zone.h"
+#include "server/zone/managers/city/CityManager.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/region/CityRegion.h"
@@ -15,22 +17,21 @@
 
 int CityRemoveMilitiaSessionImplementation::initializeSession() {
 	ManagedReference<CreatureObject*> creature = creatureObject.get();
-	ManagedReference<CityRegion*> city = cityRegion.get();
 
-	if (creature == nullptr || city == nullptr)
+	if (creature == NULL)
 		return cancelSession();
 
 	PlayerObject* ghost = creature->getPlayerObject();
 
-	if (ghost == nullptr)
+	if (ghost == NULL)
 		return cancelSession();
 
-	if (!city->isMayor(creature->getObjectID()) && !ghost->isAdmin())
+	if (!cityRegion.get()->isMayor(creature->getObjectID()) && !ghost->isAdmin())
 		return cancelSession();
 
 	ManagedReference<SceneObject*> militiaMember = creature->getZoneServer()->getObject(militiaID);
 
-	if (militiaMember == nullptr)
+	if (militiaMember == NULL)
 		return cancelSession();
 
 	StringBuffer text;
@@ -39,7 +40,7 @@ int CityRemoveMilitiaSessionImplementation::initializeSession() {
 	ManagedReference<SuiMessageBox*> sui = new SuiMessageBox(creature, SuiWindowType::CITY_REMOVE_MILITIA);
 	sui->setPromptTitle("@city/city:remove_militia_confirm"); //Confirm Removal
 	sui->setPromptText(text.toString());
-	sui->setCallback(new CityRemoveMilitiaMemberSuiCallback(creature->getZoneServer(), city));
+	sui->setCallback(new CityRemoveMilitiaMemberSuiCallback(creatureObject.get()->getZoneServer(), cityRegion.get()));
 	sui->setUsingObject(terminalObject.get());
 	sui->setForceCloseDistance(16.f);
 

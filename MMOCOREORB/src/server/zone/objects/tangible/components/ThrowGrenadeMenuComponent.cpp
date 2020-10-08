@@ -8,16 +8,17 @@
 #include "ThrowGrenadeMenuComponent.h"
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/tangible/weapon/WeaponObject.h"
 
-void ThrowGrenadeMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
-		if (sceneObject == nullptr || !sceneObject->isTangibleObject() || player == nullptr)
+void ThrowGrenadeMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
+		if (sceneObject == NULL || !sceneObject->isTangibleObject() || player == NULL)
 		return;
 
 	WeaponObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, player);
 }
 
-int ThrowGrenadeMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int ThrowGrenadeMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isTangibleObject() || !player->isPlayerCreature())
 		return 0;
 
@@ -26,18 +27,11 @@ int ThrowGrenadeMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, 
 	}
 
 	ManagedReference<WeaponObject*> weapon = cast<WeaponObject*>(sceneObject);
-	if(weapon == nullptr)
+	if(weapon == NULL)
 		return 1;
 
 	if(selectedID == 20) {
-		Reference<CreatureObject*> strongRef = player;
-		Reference<WeaponObject*> strongRefWeapon = weapon;
-
-		Core::getTaskManager()->executeTask([strongRef, strongRefWeapon] () {
-			Locker locker(strongRef);
-
-			strongRef->sendCommand(STRING_HASHCODE("throwgrenade"), String::valueOf(strongRefWeapon->getObjectID()), strongRef->getTargetID());
-		}, "ThrowGrenadeSendCommandLambda");
+		player->sendCommand(STRING_HASHCODE("throwgrenade"), String::valueOf(sceneObject->getObjectID()), player->getTargetID());
 
 		return 1;
 	}

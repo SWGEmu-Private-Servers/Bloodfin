@@ -5,11 +5,11 @@
 #ifndef STRINGIDCHATPARAMETER_H_
 #define STRINGIDCHATPARAMETER_H_
 
+#include "engine/engine.h"
+
 #include "server/chat/ChatParameter.h"
 #include "server/zone/objects/scene/variables/StringIdParameter.h"
 #include "server/zone/objects/scene/variables/StringId.h"
-
-#include "engine/util/json_utils.h"
 
 namespace server {
 namespace zone {
@@ -45,7 +45,7 @@ protected:
 	* @post { data is inserted into packet }
 	* @param packet Message that data is to be inserted into
 	*/
-	void addToPacketStream(Message* packet) const override;
+	void addToPacketStream(Message* packet);
 
 public:
 	StringIdChatParameter();
@@ -55,12 +55,10 @@ public:
 	StringIdChatParameter(const String& fil, const String& stringId);
 	StringIdChatParameter(const StringIdChatParameter& custom);
 
-	bool toBinaryStream(ObjectOutputStream* stream) override;
-	bool parseFromBinaryStream(ObjectInputStream* stream) override;
+	bool toBinaryStream(ObjectOutputStream* stream);
+	bool parseFromBinaryStream(ObjectInputStream* stream);
 
-	friend void to_json(nlohmann::json& j, const StringIdChatParameter& p);
-
-	virtual String toString() const override {
+	virtual String toString() {
 		return StringId::getFullPath();
 	}
 
@@ -83,7 +81,7 @@ public:
 		return *this;
 	}
 
-	void parse(Message* message) override;
+	void parse(Message* message);
 
 	/**
 	* Sets the TT variable
@@ -193,18 +191,6 @@ public:
 	}
 
 	StringIdParameter* getTO() {
-		return &TO;
-	}
-
-	const StringIdParameter* getTT() const {
-		return &TT;
-	}
-
-	const StringIdParameter* getTU() const {
-		return &TU;
-	}
-
-	const StringIdParameter* getTO() const {
 		return &TO;
 	}
 };

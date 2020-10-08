@@ -5,6 +5,8 @@
 #ifndef SABER2HHIT1COMMAND_H_
 #define SABER2HHIT1COMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/managers/combat/CombatManager.h"
 #include "JediCombatQueueCommand.h"
 
 class Saber2hHit1Command : public JediCombatQueueCommand {
@@ -22,6 +24,10 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
 
 		if (isWearingArmor(creature)) {
 			return NOJEDIARMOR;

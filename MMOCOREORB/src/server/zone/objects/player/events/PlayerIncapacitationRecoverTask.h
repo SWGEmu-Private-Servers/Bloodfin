@@ -8,8 +8,11 @@
 #ifndef PLAYERINCAPACITATIONRECOVERTASK_H_
 #define PLAYERINCAPACITATIONRECOVERTASK_H_
 
-#include "templates/params/creature/CreatureAttribute.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/packets/tangible/UpdatePVPStatusMessage.h"
+#include "server/zone/packets/creature/CreatureObjectMessage6.h"
+#include "server/zone/packets/tangible/UpdatePVPStatusMessage.h"
 
 namespace server {
 namespace zone {
@@ -43,7 +46,7 @@ public:
 
 			PlayerObject* ghost = player->getPlayerObject();
 
-			if (ghost == nullptr) {
+			if (ghost == NULL) {
 				return;
 			}
 
@@ -54,8 +57,6 @@ public:
 				return;
 			else if (deadRecovery && !player->isDead())
 				return;
-
-			ghost->setCloning(false);
 
 			int health = player->getHAM(CreatureAttribute::HEALTH);
 
@@ -76,7 +77,7 @@ public:
 
 			player->setPosture(CreaturePosture::UPRIGHT);
 
-			player->notifyObservers(ObserverEventType::CREATUREREVIVED, nullptr, 0);
+			player->notifyObservers(ObserverEventType::CREATUREREVIVED, NULL, 0);
 
 			if (ghost->getForcePowerMax() > 0 && ghost->getForcePower() < ghost->getForcePowerMax()) {
 				ghost->activateForcePowerRegen();

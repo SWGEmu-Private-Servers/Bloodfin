@@ -11,12 +11,12 @@
 #include "MapLocationType.h"
 #include "server/zone/managers/planet/PlanetManager.h"
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/area/ActiveArea.h"
 #include "server/zone/objects/region/CityRegion.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/tangible/terminal/mission/MissionTerminal.h"
 #include "server/zone/objects/building/BuildingObject.h"
-#include "templates/building/CloningBuildingObjectTemplate.h"
-#include "templates/faction/Factions.h"
+
 
 uint64 MapLocationEntry::getObjectID() const {
 	return object->getObjectID();
@@ -47,17 +47,17 @@ void MapLocationEntry::setObject(SceneObject *obj) {
 	object = obj;
 	icon = 0;
 
-	if(object == nullptr)
+	if(object == NULL)
 		return;
 
-	const PlanetMapCategory* category = object->getPlanetMapCategory();
+	PlanetMapCategory* category = object->getPlanetMapCategory();
 
-	if (category == nullptr)
+	if (category == NULL)
 		return;
 
 	ManagedReference<Zone*> zone = object->getZone();
 
-	if(zone == nullptr)
+	if(zone == NULL)
 		return;
 
 	if (object->isBuildingObject()) {
@@ -72,7 +72,7 @@ void MapLocationEntry::setObject(SceneObject *obj) {
 	if (object->isVendor()) {
 		newName = newName.subString(8); // Removes the "Vendor: " prefix
 	} else if (object->isCreatureObject()) { // Try FirstName + LastName if it's a creature
-		CreatureObject* creature = object->asCreatureObject();
+		CreatureObject* creature = cast<CreatureObject*>(object.get());
 
 		String fName = creature->getFirstName();
 		String lName = creature->getLastName();
@@ -87,10 +87,10 @@ void MapLocationEntry::setObject(SceneObject *obj) {
 		ManagedReference<PlanetManager*> planetManager = zone->getPlanetManager();
 		PlanetTravelPoint* ptp = planetManager->getNearestPlanetTravelPoint(object, 64.f);
 
-		if(ptp != nullptr) {
+		if(ptp != NULL) {
 			newName = ptp->getPointName();
 		}
-	} else if(category->getIndex() == MapLocationType::TERMINAL && (object->getPlanetMapSubCategory() != nullptr)) {
+	} else if(category->getIndex() == MapLocationType::TERMINAL && (object->getPlanetMapSubCategory() != NULL)) {
 		newName = object->getPlanetMapSubCategory()->getName();
 
 		if (newName == "terminal_bank") {
@@ -101,7 +101,7 @@ void MapLocationEntry::setObject(SceneObject *obj) {
 			if (object->isMissionTerminal()) {
 				ManagedReference<MissionTerminal*> terminal = dynamic_cast<MissionTerminal*>(object.get());
 
-				if (terminal != nullptr)
+				if (terminal != NULL)
 					newName = terminal->getTerminalName();
 			}
 		} else {
@@ -113,7 +113,7 @@ void MapLocationEntry::setObject(SceneObject *obj) {
 
 		ManagedReference<CityRegion *> region = planetManager->getRegionAt(object->getWorldPositionX(), object->getWorldPositionY());
 
-		if(region != nullptr) {
+		if(region != NULL) {
 			newName = region->getRegionName();
 		}
 	}
@@ -122,37 +122,19 @@ void MapLocationEntry::setObject(SceneObject *obj) {
 	displayName = newName;
 }
 
-bool MapLocationEntry::insertToMessage(BaseMessage* message, CreatureObject* player) {
-	if (object == nullptr)
+bool MapLocationEntry::insertToMessage(BaseMessage* message, unsigned int faction) const {
+	if (object == NULL)
 		return false;
 
-	const PlanetMapCategory* category = object->getPlanetMapCategory();
+	PlanetMapCategory* category = object->getPlanetMapCategory();
 
-	if (category == nullptr)
+	if (category == NULL)
 		return false;
 
 	if (category->isFactionVisibleOnly()) {
 		unsigned int entryFaction = category->getFaction().hashCode();
 
-		if (entryFaction != player->getFaction())
-			return false;
-	}
-
-	if (category->getName() == "cloningfacility") {
-		CloningBuildingObjectTemplate* cbot = cast<CloningBuildingObjectTemplate*>(object->getObjectTemplate());
-
-		if (cbot == nullptr)
-			return false;
-
-		if (cbot->getFacilityType() == CloningBuildingObjectTemplate::FACTION_IMPERIAL && player->getFaction() != Factions::FACTIONIMPERIAL)
-			return false;
-		else if (cbot->getFacilityType() == CloningBuildingObjectTemplate::FACTION_REBEL && player->getFaction() != Factions::FACTIONREBEL)
-			return false;
-		else if (cbot->getFacilityType() == CloningBuildingObjectTemplate::JEDI_ONLY && !player->hasSkill("force_title_jedi_rank_01"))
-			return false;
-		else if (cbot->getFacilityType() == CloningBuildingObjectTemplate::LIGHT_JEDI_ONLY && !player->hasSkill("force_rank_light_novice"))
-			return false;
-		else if (cbot->getFacilityType() == CloningBuildingObjectTemplate::DARK_JEDI_ONLY && !player->hasSkill("force_rank_dark_novice"))
+		if (entryFaction != faction)
 			return false;
 	}
 
@@ -164,7 +146,7 @@ bool MapLocationEntry::insertToMessage(BaseMessage* message, CreatureObject* pla
 	message->insertFloat(object->getWorldPositionY());
 
 	message->insertByte(category->getIndex());
-	message->insertByte((object->getPlanetMapSubCategory() != nullptr) ? object->getPlanetMapSubCategory()->getIndex() : 0);
+	message->insertByte((object->getPlanetMapSubCategory() != NULL) ? object->getPlanetMapSubCategory()->getIndex() : 0);
 
 	message->insertByte(icon);
 

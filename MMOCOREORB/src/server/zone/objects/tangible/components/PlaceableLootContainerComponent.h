@@ -11,8 +11,8 @@
 
 class PlaceableLootContainerComponent: public ContainerComponent {
 public:
-	bool checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) const;
-	int canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) const;
+	bool checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission);
+	int canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription);
 };
 
 #endif /* PLACEABLELOOTCONTAINERCOMPONENT_H_ */

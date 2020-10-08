@@ -24,7 +24,6 @@ public:
 	int sendTo(lua_State* L);
 	int sendUpdateTo(lua_State* L);
 	int setProperty(lua_State* L);
-	int getPropertyValue(lua_State* L);
 	int setDefaultCallback(lua_State* L);
 	int setTargetNetworkId(lua_State* L);
 	int getTargetNetworkId(lua_State* L);
@@ -37,9 +36,6 @@ public:
 	int subscribeToEvent(lua_State* L);
 	int getPageId(lua_State* L);
 	int subscribeToPropertyForEvent(lua_State* L);
-	int getStoredData(lua_State* L);
-	int setStoredData(lua_State* L);
-	int deleteStoredData(lua_State* L);
 private:
 	Reference<SuiPageData*> realObject;
 };

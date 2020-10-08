@@ -5,27 +5,19 @@
 #ifndef FEATURES_H_
 #define FEATURES_H_
 
-#include "system/lang.h"
-#include "system/util/HashTable.h"
+#include "engine/engine.h"
 
-namespace server {
- namespace features {
-
-class Features {
-protected:
-	HashTable<String, String> options;
+class Features : public HashTable<String, String> {
 
 public:
 	Features();
+	~Features();
 
 	bool loadFeatures();
 
 	inline bool hasFeature(const String& key) {
-		return options.containsKey(key);
+		return containsKey(key);
 	}
 };
-
-}
-}
 
 #endif /* FEATURES_H_ */

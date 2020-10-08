@@ -5,8 +5,8 @@
 #ifndef ADDBANNEDPLAYERCOMMAND_H_
 #define ADDBANNEDPLAYERCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
-#include "server/login/account/Account.h"
 
 class AddBannedPlayerCommand: public QueueCommand {
 public:
@@ -27,11 +27,11 @@ public:
 
 		ManagedReference<PlayerObject*> adminGhost = creature->getPlayerObject();
 
-		if (adminGhost == nullptr)
+		if (adminGhost == NULL)
 			return GENERALERROR;
 
-		ManagedReference<CreatureObject*> targetCreature = nullptr;
-		ManagedReference<PlayerObject*> ghost = nullptr;
+		ManagedReference<CreatureObject*> targetCreature = NULL;
+		ManagedReference<PlayerObject*> ghost = NULL;
 		ManagedReference<PlayerManager*> playerManager = server->getPlayerManager();
 
 		StringTokenizer args(arguments.toString());
@@ -48,12 +48,12 @@ public:
 
 		}
 
-		if (targetCreature == nullptr || !targetCreature->isPlayerCreature())
+		if (targetCreature == NULL || !targetCreature->isPlayerCreature())
 			return INVALIDTARGET;
 
 		ghost = targetCreature->getPlayerObject();
 
-		if (ghost == nullptr) {
+		if (ghost == NULL) {
 			creature->sendSystemMessage("Player Ghost not found");
 			return SUCCESS;
 		}
@@ -76,13 +76,10 @@ public:
 		}
 
 		if(banReason.toString().isEmpty()) {
-			creature->sendSystemMessage("Usage: /AddBannedPlayer <player name> <reason>");
-			return GENERALERROR;
+			creature->sendSystemMessage("Usage: /AddBannedPlayer <player name> <reason>");			return GENERALERROR;
 		}
 
-		ManagedReference<Account*> account = ghost->getAccount();
-
-		Locker alocker(account);
+		ManagedReference<Account*> account = playerManager->getAccount(ghost->getAccountID());
 
 		String reason = banReason.toString();
 		playerManager->banCharacter(adminGhost, account, targetCreature->getFirstName(), server->getZoneServer()->getGalaxyID(), duration, reason);

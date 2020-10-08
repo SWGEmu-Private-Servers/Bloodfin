@@ -6,6 +6,7 @@
  */
 
 #include "FactoryBlueprint.h"
+#include "server/zone/objects/resource/ResourceContainer.h"
 #include "server/zone/objects/installation/factory/FactoryObject.h"
 
 FactoryBlueprint::FactoryBlueprint() :  Serializable() {
@@ -154,7 +155,3 @@ void FactoryBlueprint::print() {
 	System::out << "*******************" << endl;
 }
 
-void to_json(nlohmann::json& j, const FactoryBlueprint& p) {
-	j["completeEntries"] = p.completeEntries;
-	j["consolidatedEntries"] = p.consolidatedEntries;
-}

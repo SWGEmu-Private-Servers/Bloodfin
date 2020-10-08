@@ -5,7 +5,7 @@
 #ifndef REGISTERWITHLOCATIONCOMMAND_H_
 #define REGISTERWITHLOCATIONCOMMAND_H_
 
-#include "templates/building/SharedBuildingObjectTemplate.h"
+#include "server/zone/objects/scene/SceneObject.h"
 
 class RegisterWithLocationCommand : public QueueCommand {
 public:
@@ -26,10 +26,10 @@ public:
 		if (!player->isPlayerCreature())
 			return GENERALERROR;
 
-		ManagedReference<BuildingObject*> building = cast<BuildingObject*>(player->getRootParent());
+		ManagedReference<BuildingObject*> building = player->getRootParent().get().castTo<BuildingObject*>();
 
 		// If outside don't bother doing anything ...
-		if (building == nullptr) {
+		if (building == NULL) {
 			player->sendSystemMessage("@faction/faction_hq/faction_hq_response:no_support"); // This location does not support active/inactive registration status.
 			return GENERALERROR;
 		}
@@ -83,12 +83,12 @@ public:
 	}
 
 	bool isInMedicalBuilding(CreatureObject* player, BuildingObject* building) const {
-		const PlanetMapCategory* pmc = building->getPlanetMapSubCategory();
+		PlanetMapCategory* pmc = building->getPlanetMapSubCategory();
 
-		if (pmc == nullptr)
+		if (pmc == NULL)
 			pmc = building->getPlanetMapCategory();
 
-		if (pmc == nullptr)
+		if (pmc == NULL)
 			return false;
 
 		String categoryName = pmc->getName();
@@ -96,9 +96,9 @@ public:
 			return true;
 
 		if (categoryName == "imperial_hq" || categoryName == "rebel_hq") {
-			const SharedBuildingObjectTemplate* buildingTemplate = cast<const SharedBuildingObjectTemplate*>(building->getObjectTemplate());
+			SharedBuildingObjectTemplate* buildingTemplate = cast<SharedBuildingObjectTemplate*>(building->getObjectTemplate());
 
-			if (buildingTemplate != nullptr && buildingTemplate->getSkillMod("private_medical_rating") > 0) {
+			if (buildingTemplate != NULL && buildingTemplate->getSkillMod("private_medical_rating") > 0) {
 				return true;
 			}
 		}
@@ -107,12 +107,12 @@ public:
 	}
 
 	bool isInEntertainingBuilding(CreatureObject* player, BuildingObject* building) const {
-		const PlanetMapCategory* pmc = building->getPlanetMapSubCategory();
+		PlanetMapCategory* pmc = building->getPlanetMapSubCategory();
 
-		if (pmc == nullptr)
+		if (pmc == NULL)
 			pmc = building->getPlanetMapCategory();
 
-		if (pmc == nullptr)
+		if (pmc == NULL)
 			return false;
 
 		String categoryName = pmc->getName();
@@ -120,9 +120,9 @@ public:
 			return true;
 
 		if (categoryName == "imperial_hq" || categoryName == "rebel_hq") {
-			const SharedBuildingObjectTemplate* buildingTemplate = cast<const SharedBuildingObjectTemplate*>(building->getObjectTemplate());
+			SharedBuildingObjectTemplate* buildingTemplate = cast<SharedBuildingObjectTemplate*>(building->getObjectTemplate());
 
-			if (buildingTemplate != nullptr && buildingTemplate->getSkillMod("private_med_battle_fatigue") > 0) {
+			if (buildingTemplate != NULL && buildingTemplate->getSkillMod("private_med_battle_fatigue") > 0) {
 				return true;
 			}
 		}

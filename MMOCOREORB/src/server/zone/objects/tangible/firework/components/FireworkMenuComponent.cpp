@@ -6,13 +6,15 @@
  */
 
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/Zone.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "FireworkMenuComponent.h"
 #include "server/zone/objects/tangible/firework/FireworkObject.h"
 
 void FireworkMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
-		ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+		ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
 	if (!sceneObject->isFireworkObject())
 		return;
@@ -23,21 +25,21 @@ void FireworkMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
 }
 
 int FireworkMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
-		CreatureObject* player, byte selectedID) const {
+		CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isFireworkObject())
 		return 0;
 
 	if (!player->isPlayerCreature())
 		return 0;
 
-	if (player->getZone() == nullptr)
+	if (player->getZone() == NULL)
 		return 0;
 
 	if (!sceneObject->isASubChildOf(player))
 		return 0;
 
 	if (selectedID == 20) {
-		if (player->getParent() != nullptr)
+		if(player->getParent() != NULL)
 			return 0;
 
 		FireworkObject* firework = cast<FireworkObject*>(sceneObject);

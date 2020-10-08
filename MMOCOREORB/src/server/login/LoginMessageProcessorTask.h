@@ -5,13 +5,15 @@
 #ifndef LOGINMESSAGEPROCESSORTASK_H_
 #define LOGINMESSAGEPROCESSORTASK_H_
 
+#include "engine/engine.h"
+
 #include "LoginPacketHandler.h"
 
 namespace server {
 	namespace login {
-
+	
 		class LoginMessageProcessorTask : public Task {
-			Reference<Message*> message;
+			ManagedReference<Message*> message;
 
 			LoginPacketHandler* packetHandler;
 
@@ -26,20 +28,24 @@ namespace server {
 			}
 
 			void run() {
-				static Logger logger("LoginMessageProcessorTask", Logger::INFO);
-
 				try {
 					message->reset();
 
 					packetHandler->handleMessage(message);
-				} catch (const PacketIndexOutOfBoundsException& e) {
-					logger.error() << e.getMessage();
+				} catch (PacketIndexOutOfBoundsException& e) {
+					System::out << e.getMessage();
 
-					logger.debug() << "incorrect packet - " << *message;
-				} catch (const Exception& e) {
-					logger.error() << e.getMessage();
+				/*	StringBuffer str;
+					str << "incorrect packet - " << msg->toStringData();
+					error(str);*/
 
-					logger.debug() << "incorrect packet - " << *message;
+					e.printStackTrace();
+				} catch (Exception& e) {
+					StringBuffer msg;
+					msg << e.getMessage();
+					//error(msg);
+
+					e.printStackTrace();
 				}
 			}
 

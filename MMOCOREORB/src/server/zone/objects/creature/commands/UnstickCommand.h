@@ -5,6 +5,8 @@
 #ifndef UNSTICKCOMMAND_H_
 #define UNSTICKCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class UnstickCommand : public QueueCommand {
 public:
 
@@ -20,9 +22,6 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
-
-		if (creature != nullptr)
-			creature->error("used /unstick " + arguments.toString());
 
 		/*
 string/en/cmd_err.stf	7	unstick_in_progress	Unstick in progress

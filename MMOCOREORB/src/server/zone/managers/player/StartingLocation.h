@@ -8,7 +8,10 @@
 #ifndef STARTINGLOCATION_H_
 #define STARTINGLOCATION_H_
 
-#include "templates/datatables/DataTableRow.h"
+#include "engine/engine.h"
+#include "server/zone/templates/datatables/DataTableRow.h"
+#include "server/zone/templates/datatables/DataTableCell.h"
+
 
 class StartingLocation : public Object {
 	String zoneName;
@@ -71,7 +74,7 @@ public:
 	}
 
 	void parseFromDataTableRow(DataTableRow* row) {
-		if (row == nullptr)
+		if (row == NULL)
 			return;
 
 		try {

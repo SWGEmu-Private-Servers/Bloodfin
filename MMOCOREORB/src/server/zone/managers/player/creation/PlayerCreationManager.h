@@ -6,12 +6,10 @@
 #ifndef PLAYERCREATIONMANAGER_H_
 #define PLAYERCREATIONMANAGER_H_
 
-#include "engine/lua/Lua.h"
-#include "server/zone/packets/charcreation/ClientCreateCharacterCallback.h"
+#include "engine/engine.h"
+#include "server/zone/objects/scene/variables/CustomizationVariables.h"
 
-#include "ProfessionDefaultsInfo.h"
-#include "RacialCreationData.h"
-#include "HairStyleInfo.h"
+class Skill;
 
 namespace server {
 namespace zone {
@@ -20,6 +18,16 @@ namespace zone {
 }
 
 using namespace server::zone;
+
+namespace server {
+namespace zone {
+namespace packets {
+	class MessageCallback;
+}
+}
+}
+
+using namespace server::zone::packets;
 
 namespace server {
 namespace zone {
@@ -74,8 +82,8 @@ class PlayerCreationManager : public Singleton<PlayerCreationManager>, public Lo
 
 	bool freeGodMode;
 
-	mutable HashTable<uint32, Time> lastCreatedCharacter;
-	mutable Mutex charCountMutex;
+	HashTable<uint32, Time> lastCreatedCharacter;
+	Mutex charCountMutex;
 
 	void loadLuaConfig();
 	void loadRacialCreationData();
@@ -90,11 +98,11 @@ class PlayerCreationManager : public Singleton<PlayerCreationManager>, public Lo
 	 */
 	void loadLuaStartingItems(Lua* lua);
 
-	void addCustomization(CreatureObject* creature, const String& customizationString, const String& appearanceFilename) const;
-	void addHair(CreatureObject* creature, const String& hairTemplate, const String& hairCustomization) const;
-	void addRacialMods(CreatureObject* creature, const String& race, const Vector<String>* startingSkills, const Vector<String>* startingItems, bool equipmentOnly) const;
-	void addStartingItems(CreatureObject* creature, const String& clientTemplate, bool equipmentOnly) const;
-	void addProfessionStartingItems(CreatureObject* creature, const String& profession, const String& clientTemplate, bool equipmentOnly) const;
+	void addCustomization(CreatureObject* creature, const String& customizationString, const String& appearanceFilename);
+	void addHair(CreatureObject* creature, const String& hairTemplate, const String& hairCustomization);
+	void addRacialMods(CreatureObject* creature, const String& race, Vector<String>* startingSkills, Vector<String>* startingItems, bool equipmentOnly);
+	void addStartingItems(CreatureObject* creature, const String& clientTemplate, bool equipmentOnly);
+	void addProfessionStartingItems(CreatureObject* creature, const String& profession, const String& clientTemplate, bool equipmentOnly);
 	//void generateHologrindProfessions(CreatureObject* creature);
 
 public:
@@ -105,11 +113,11 @@ public:
 	 * Validates the character's name.
 	 * @param characterName The character's name.
 	 */
-	bool validateCharacterName(const String& characterName) const;
+	bool validateCharacterName(const String& characterName);
 	/**
 	 * Attempts to create a character, validating the information passed back by the client.
 	 */
-	bool createCharacter(ClientCreateCharacterCallback* callback) const;
+	bool createCharacter(MessageCallback* data);
 
 	/**
 	 * Returns the requested maximum attribute limit for the specified race.
@@ -117,7 +125,7 @@ public:
 	 * @param attributeNumber The attribute number (starting from 0).
 	 * @return maximum attribute limit.
 	 */
-	int getMaximumAttributeLimit(const String& race, int attributeNumber) const;
+	int getMaximumAttributeLimit(const String& race, int attributeNumber);
 
 	/**
 	 * Returns the requested minimum attribute limit for the specified race.
@@ -125,28 +133,28 @@ public:
 	 * @param attributeNumber The attribute number (starting from 0).
 	 * @return minimum attribute limit.
 	 */
-	int getMinimumAttributeLimit(const String& race, int attributeNumber) const;
+	int getMinimumAttributeLimit(const String& race, int attributeNumber);
 
 	/**
 	 * Returns the total attribute limit for the specified race.
 	 * @param race the race of interest.
 	 * @return total attribute limit.
 	 */
-	int getTotalAttributeLimit(const String& race) const;
+	int getTotalAttributeLimit(const String& race);
 
 	/**
 	 * Adds starting Weapons into the target container
 	 * @param creature the player creature
 	 * @param container the target container
 	 */
-	void addStartingWeaponsInto(CreatureObject* creature, SceneObject* container) const;
+	void addStartingWeaponsInto(CreatureObject* creature, SceneObject* container);
 
 	/**
 	 * Adds starting Items except Weapons into the target container
 	 * @param creature the player creature
 	 * @param container the target container
 	 */
-	void addStartingItemsInto(CreatureObject* creature, SceneObject* container) const;
+	void addStartingItemsInto(CreatureObject* creature, SceneObject* container);
 };
 
 }

@@ -5,6 +5,8 @@
 #ifndef LOGINPACKETHANDLER_H_
 #define LOGINPACKETHANDLER_H_
 
+#include "engine/engine.h"
+
 #include "LoginClient.h"
 
 namespace server {
@@ -15,13 +17,13 @@ namespace login {
 
 	class LoginPacketHandler : public Logger {
 		LoginProcessServerImplementation* processServer;
-		Reference<LoginServer*> server;
+		ManagedReference<LoginServer*> server;
 
 	public:
 
 		LoginPacketHandler() : Logger() {
-			server = nullptr;
-			processServer = nullptr;
+			server = NULL;
+			processServer = NULL;
 		}
 
 		LoginPacketHandler(const String& s, LoginProcessServerImplementation* serv);

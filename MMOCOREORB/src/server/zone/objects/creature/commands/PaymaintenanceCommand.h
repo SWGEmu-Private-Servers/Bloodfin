@@ -30,11 +30,14 @@ public:
 
 		ManagedReference<PlayerManager*> playerManager = server->getPlayerManager();
 
-		uint64 targetid = creature->getTargetID();
+		uint64 targetid = target;
+		if(targetid <= 0)
+			targetid = creature->getTargetID();
 
 		ManagedReference<SceneObject*> obj = playerManager->getInRangeStructureWithAdminRights(creature, targetid);
 
-		if (obj == nullptr || !obj->isStructureObject())
+
+		if (obj == NULL || !obj->isStructureObject())
 			return INVALIDTARGET;
 
 		StructureObject* structure = cast<StructureObject*>(obj.get());
@@ -43,7 +46,7 @@ public:
 
 		ManagedReference<Zone*> zone = structure->getZone();
 
-		if (zone == nullptr)
+		if (zone == NULL)
 			return INVALIDPARAMETERS;
 
 		if (structure->isCivicStructure()) {

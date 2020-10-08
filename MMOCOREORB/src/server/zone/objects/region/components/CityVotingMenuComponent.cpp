@@ -12,10 +12,10 @@
 #include "server/zone/managers/city/CityManager.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 
-void CityVotingMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
-	ManagedReference<CityRegion*> city = sceneObject->getCityRegion().get();
+void CityVotingMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
+	ManagedReference<CityRegion*> city = sceneObject->getCityRegion();
 
-	if (city == nullptr || (!city->isCitizen(player->getObjectID()) && !player->getPlayerObject()->isPrivileged()))
+	if (city == NULL || (!city->isCitizen(player->getObjectID()) && !player->getPlayerObject()->isPrivileged()))
 			return;
 
 	Locker _lock(city);
@@ -34,10 +34,10 @@ void CityVotingMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, O
 		menuResponse->addRadialMenuItemToRadialID(224, 228, 3, "@city/city:mayoral_unregister"); //Unregister from Race
 }
 
-int CityVotingMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectID) const {
-	ManagedReference<CityRegion*> city = sceneObject->getCityRegion().get();
+int CityVotingMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectID) {
+	ManagedReference<CityRegion*> city = sceneObject->getCityRegion();
 
-	if (city == nullptr)
+	if (city == NULL)
 		return 0;
 
 	sceneObject->unlock();

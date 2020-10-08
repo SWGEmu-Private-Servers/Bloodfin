@@ -3,7 +3,8 @@
 		See file COPYING for copying conditions.*/
 
 #include "server/zone/objects/tangible/component/armor/ArmorComponent.h"
-#include "templates/tangible/SharedWeaponObjectTemplate.h"
+#include "server/zone/objects/manufactureschematic/ManufactureSchematic.h"
+#include "server/zone/objects/tangible/weapon/WeaponObject.h"
 
 void ArmorComponentImplementation::initializeTransientMembers() {
 	ComponentImplementation::initializeTransientMembers();
@@ -34,24 +35,24 @@ void ArmorComponentImplementation::updateCraftingValues(CraftingValues* values, 
 	float specialbase = values->getCurrentValue("armor_special_effectiveness");
 	int specialResists = values->getCurrentValue("armor_special_type");
 
-	if (specialResists != ValuesMap::VALUENOTFOUND) {
-		if (specialResists & SharedWeaponObjectTemplate::KINETIC)
+	if(specialResists != CraftingValues::VALUENOTFOUND) {
+		if (specialResists & WeaponObject::KINETIC)
 			addProperty("kineticeffectiveness", specialbase + kinetic, 10, expProp);
-		if (specialResists & SharedWeaponObjectTemplate::ENERGY)
+		if (specialResists & WeaponObject::ENERGY)
 			addProperty("energyeffectiveness", specialbase + energy, 10, expProp);
-		if (specialResists & SharedWeaponObjectTemplate::BLAST)
+		if (specialResists & WeaponObject::BLAST)
 			addProperty("blasteffectiveness", specialbase + blast, 10, expProp);
-		if (specialResists & SharedWeaponObjectTemplate::STUN)
+		if (specialResists & WeaponObject::STUN)
 			addProperty("stuneffectiveness", specialbase + stun, 10, expProp);
-		if (specialResists & SharedWeaponObjectTemplate::LIGHTSABER)
+		if (specialResists & WeaponObject::LIGHTSABER)
 			addProperty("restraineffectiveness", specialbase + lightSaber, 10, expProp);
-		if (specialResists & SharedWeaponObjectTemplate::HEAT)
+		if (specialResists & WeaponObject::HEAT)
 			addProperty("heateffectiveness", specialbase + heat, 10, expProp);
-		if (specialResists & SharedWeaponObjectTemplate::COLD)
+		if (specialResists & WeaponObject::COLD)
 			addProperty("coldeffectiveness", specialbase + cold, 10, expProp);
-		if (specialResists & SharedWeaponObjectTemplate::ACID)
+		if (specialResists & WeaponObject::ACID)
 			addProperty("acideffectiveness", specialbase + acid, 10, expProp);
-		if (specialResists & SharedWeaponObjectTemplate::ELECTRICITY)
+		if (specialResists & WeaponObject::ELECTRICITY)
 			addProperty("electricaleffectiveness", specialbase + electricity, 10, expProp);
 	}
 }
@@ -59,12 +60,14 @@ void ArmorComponentImplementation::updateCraftingValues(CraftingValues* values, 
 void ArmorComponentImplementation::calculateSpecialProtection(CraftingValues* craftingValues) {
 
 	for (int i = 0; i <= 8; ++i) {
-		int type = pow((float)2, i);
+
+		int type = pow((float)2,i);
 
 		String subtitle = getStringType(type);
 		float value = craftingValues->getCurrentValue(subtitle);
 
-		if (value != ValuesMap::VALUENOTFOUND) {
+		if(value != CraftingValues::VALUENOTFOUND) {
+
 			setProtectionValue(type, value);
 		}
 	}
@@ -73,31 +76,31 @@ void ArmorComponentImplementation::calculateSpecialProtection(CraftingValues* cr
 String ArmorComponentImplementation::getStringType(int type) {
 
 	switch(type) {
-	case SharedWeaponObjectTemplate::KINETIC:
+	case WeaponObject::KINETIC:
 		return "kineticeffectiveness";
 		break;
-	case SharedWeaponObjectTemplate::ENERGY:
+	case WeaponObject::ENERGY:
 		return "energyeffectiveness";
 	break;
-	case SharedWeaponObjectTemplate::ELECTRICITY:
+	case WeaponObject::ELECTRICITY:
 		return "electricaleffectiveness";
 		break;
-	case SharedWeaponObjectTemplate::STUN:
+	case WeaponObject::STUN:
 		return "stuneffectiveness";
 		break;
-	case SharedWeaponObjectTemplate::BLAST:
+	case WeaponObject::BLAST:
 		return "blasteffectiveness";
 		break;
-	case SharedWeaponObjectTemplate::HEAT:
+	case WeaponObject::HEAT:
 		return "heateffectiveness";
 		break;
-	case SharedWeaponObjectTemplate::COLD:
+	case WeaponObject::COLD:
 		return "coldeffectiveness";
 		break;
-	case SharedWeaponObjectTemplate::ACID:
+	case WeaponObject::ACID:
 		return "acideffectiveness";
 		break;
-	case SharedWeaponObjectTemplate::LIGHTSABER:
+	case WeaponObject::LIGHTSABER:
 		return "restraineffectiveness";
 		break;
 	default:
@@ -107,22 +110,22 @@ String ArmorComponentImplementation::getStringType(int type) {
 
 void ArmorComponentImplementation::setProtectionValue(int type, float value) {
 
-	if (type & SharedWeaponObjectTemplate::KINETIC)
+	if (type & WeaponObject::KINETIC)
 		setKinetic(value);
-	if (type & SharedWeaponObjectTemplate::ENERGY)
+	if (type & WeaponObject::ENERGY)
 		setEnergy(value);
-	if (type & SharedWeaponObjectTemplate::BLAST)
+	if (type & WeaponObject::BLAST)
 		setBlast(value);
-	if (type & SharedWeaponObjectTemplate::STUN)
+	if (type & WeaponObject::STUN)
 		setStun(value);
-	if (type & SharedWeaponObjectTemplate::LIGHTSABER)
+	if (type & WeaponObject::LIGHTSABER)
 		setLightSaber(value);
-	if (type & SharedWeaponObjectTemplate::HEAT)
+	if (type & WeaponObject::HEAT)
 		setHeat(value);
-	if (type & SharedWeaponObjectTemplate::COLD)
+	if (type & WeaponObject::COLD)
 		setCold(value);
-	if (type & SharedWeaponObjectTemplate::ACID)
+	if (type & WeaponObject::ACID)
 		setAcid(value);
-	if (type & SharedWeaponObjectTemplate::ELECTRICITY)
+	if (type & WeaponObject::ELECTRICITY)
 		setElectricity(value);
 }

@@ -8,18 +8,19 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "DataStorageUnitMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/objects/tangible/components/generic/DataStorageUnitDataComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
 
 void DataStorageUnitMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
-		ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+		ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
 	if(!sceneObject->isTangibleObject())
 		return;
 
 	TangibleObject* tano = cast<TangibleObject*>(sceneObject);
-	if(tano == nullptr)
+	if(tano == NULL)
 		return;
 
 	menuResponse->addRadialMenuItem(18, 3, "@ui_radial:item_activate"); // Activate
@@ -28,7 +29,7 @@ void DataStorageUnitMenuComponent::fillObjectMenuResponse(SceneObject* sceneObje
 }
 
 int DataStorageUnitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
-		CreatureObject* player, byte selectedID) const {
+		CreatureObject* player, byte selectedID) {
 
 	if (selectedID != 20 && selectedID != 18) {
 		return TangibleObjectMenuComponent::handleObjectMenuSelect(sceneObject, player, selectedID);
@@ -43,11 +44,11 @@ int DataStorageUnitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObjec
 		return 0;
 
 	DataObjectComponent* data = tano->getDataObjectComponent()->get();
-	if(data == nullptr || !data->isDataStorageUnitData())
+	if(data == NULL || !data->isDataStorageUnitData())
 		return 0;
 
 	DataStorageUnitDataComponent* dsuData = cast<DataStorageUnitDataComponent*>(data);
-	if( dsuData == nullptr )
+	if( dsuData == NULL )
 		return 0;
 
 	// ID is an integer from 1 to 12

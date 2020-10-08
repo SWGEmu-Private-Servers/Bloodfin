@@ -4,14 +4,19 @@
 
 package server.zone.objects.tangible;
 
+import server.zone.templates.SharedObjectTemplate;
 import server.zone.objects.tangible.TangibleObject;
 import server.zone.objects.scene.SceneObject;
-include templates.SharedObjectTemplate;
-include templates.tangible.InstrumentObjectTemplate;
+import server.zone.Zone;
+import engine.lua.LuaObject;
+import server.zone.templates.SharedObjectTemplate;
+include server.zone.templates.tangible.InstrumentObjectTemplate;
 import server.zone.packets.object.ObjectMenuResponse;
 import server.zone.objects.creature.CreatureObject;
+import server.zone.managers.object.ObjectManager;
+include server.zone.objects.scene.ObserverEventType;
+import server.zone.objects.tangible.InstrumentObserver;
 
-@json
 class Instrument extends TangibleObject {
 	protected int instrumentType;
 	protected boolean beingUsed;
@@ -59,7 +64,15 @@ class Instrument extends TangibleObject {
 		Logger.setLoggingName("Instrument");
 	}
 
-	public native void notifyLoadFromDatabase();
+	public void notifyLoadFromDatabase() {
+		super.notifyLoadFromDatabase();
+
+		beingUsed = false;
+
+		if (spawnedObject != null) {
+			spawnedObject.destroyObjectFromWorld(false);
+		}
+	}
 
 	@local
 	public void loadTemplateData(SharedObjectTemplate templateData) {
@@ -99,7 +112,7 @@ class Instrument extends TangibleObject {
 	@dirty
 	public native boolean canDropInstrument();
 
-	@read
+	@dirty
 	public int getInstrumentType() {
 		return instrumentType;
 	}

@@ -5,8 +5,9 @@
 #ifndef HARVESTEROBJECTMESSAGE3_H_
 #define HARVESTEROBJECTMESSAGE3_H_
 
-#include "server/zone/packets/BaseLineMessage.h"
-#include "server/zone/objects/installation/harvester/HarvesterObject.h"
+#include "../BaseLineMessage.h"
+
+#include "../../objects/installation/harvester/HarvesterObject.h"
 
 class HarvesterObjectMessage3 : public BaseLineMessage {
 public:
@@ -32,7 +33,7 @@ public:
 
 
 		insertInt(0);
-		insertInt(STRING_HASHCODE("rebel"));
+		insertInt(String::hashCode("rebel"));
 
 
 		insertInt(hino->getConditionDamage());//insertInt(0x03E80000); // max condition ??
@@ -58,5 +59,4 @@ This could be short, int, int. I dont know.
 
 	}
 };
-
 #endif /*HARVESTEROBJECTMESSAGE3_H_*/

@@ -5,19 +5,21 @@
  *      Author: root
  */
 
+#include "server/zone/objects/scene/components/ZoneComponent.h"
 #include "TurretZoneComponent.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/installation/InstallationObject.h"
 #include "TurretDataComponent.h"
 #include "server/zone/Zone.h"
 #include "server/zone/objects/installation/components/TurretObserver.h"
 
-void TurretZoneComponent::notifyInsertToZone(SceneObject* sceneObject, Zone* zne) const {
-	if (zne == nullptr)
+void TurretZoneComponent::notifyInsertToZone(SceneObject* sceneObject, Zone* zne) {
+	if (zne == NULL)
 		return;
 
 	ManagedReference<InstallationObject*> installation = cast<InstallationObject*>(sceneObject);
-	if (installation == nullptr)
+	if (installation == NULL)
 		return;
 
 	SortedVector<ManagedReference<Observer*> > destructionObservers = installation->getObservers(ObserverEventType::OBJECTDESTRUCTION);
@@ -25,7 +27,7 @@ void TurretZoneComponent::notifyInsertToZone(SceneObject* sceneObject, Zone* zne
 	for (int i = 0; i < destructionObservers.size(); i++) {
 		TurretObserver* turretObserver = destructionObservers.get(i).castTo<TurretObserver*>();
 
-		if (turretObserver != nullptr) {
+		if (turretObserver != NULL) {
 			return;
 		}
 	}
@@ -35,46 +37,42 @@ void TurretZoneComponent::notifyInsertToZone(SceneObject* sceneObject, Zone* zne
 	installation->registerObserver(ObserverEventType::OBJECTDESTRUCTION, observer);
 }
 
-void TurretZoneComponent::notifyInsert(SceneObject* sceneObject, QuadTreeEntry* entry) const {
+void TurretZoneComponent::notifyInsert(SceneObject* sceneObject, QuadTreeEntry* entry) {
 	ManagedReference<SceneObject*> target = cast<SceneObject*>(entry);
 
-	if (!sceneObject->isTurret() || target == nullptr || !target->isPlayerCreature())
+	if (!sceneObject->isTurret() || target == NULL || !target->isPlayerCreature())
 		return;
 
 	ManagedReference<TangibleObject*> turret = cast<TangibleObject*>(sceneObject);
 	TurretDataComponent* turretData = cast<TurretDataComponent*>(sceneObject->getDataObjectComponent()->get());
 	CreatureObject* player = target.castTo<CreatureObject*>();
 
-	if (turret == nullptr || turretData == nullptr || player == nullptr || player->isInvisible())
+	if (turret == NULL || turretData == NULL || player == NULL || player->isInvisible())
 		return;
+
+	Locker locker(turret);
 
 	int newValue = (int) turretData->incrementNumberOfPlayersInRange();
 
 	if (newValue == 1) {
-		Core::getTaskManager()->executeTask([=] () {
-			Locker locker(turret);
-
-			TurretDataComponent* data = cast<TurretDataComponent*>(turret->getDataObjectComponent()->get());
-
-			if (data) {
-				data->scheduleFireTask(nullptr, nullptr, System::random(1000));
-			}
-		}, "ScheduleTurretFireTaskLambda");
+		turretData->scheduleFireTask(NULL, NULL, System::random(1000));
 	}
 }
 
-void TurretZoneComponent::notifyDissapear(SceneObject* sceneObject, QuadTreeEntry* entry) const {
+void TurretZoneComponent::notifyDissapear(SceneObject* sceneObject, QuadTreeEntry* entry) {
 	ManagedReference<SceneObject*> target = cast<SceneObject*>(entry);
 
-	if (!sceneObject->isTurret() || target == nullptr || !target->isPlayerCreature())
+	if (!sceneObject->isTurret() || target == NULL || !target->isPlayerCreature())
 		return;
 
 	ManagedReference<TangibleObject*> turret = cast<TangibleObject*>(sceneObject);
 	TurretDataComponent* turretData = cast<TurretDataComponent*>(sceneObject->getDataObjectComponent()->get());
 	CreatureObject* player = target.castTo<CreatureObject*>();
 
-	if (turret == nullptr || turretData == nullptr || player == nullptr || player->isInvisible())
+	if (turret == NULL || turretData == NULL || player == NULL || player->isInvisible())
 		return;
+
+	Locker locker(turret);
 
 	int32 newValue = (int32) turretData->decrementNumberOfPlayersInRange();
 

@@ -26,13 +26,11 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
-		/*
 		creature->info("transfer item armor");
 
 		StringBuffer infoMsg;
 		infoMsg << "target: 0x" << hex << target << " arguments" << arguments.toString();
 		creature->info(infoMsg.toString());
-		*/
 
 		StringTokenizer tokenizer(arguments.toString());
 
@@ -44,23 +42,23 @@ public:
 
 		ManagedReference<TradeSession*> tradeContainer = creature->getActiveSession(SessionFacadeType::TRADE).castTo<TradeSession*>();
 
-		if (tradeContainer != nullptr) {
+		if (tradeContainer != NULL) {
 			server->getZoneServer()->getPlayerManager()->handleAbortTradeMessage(creature);
 		}
 
 		ManagedReference<SceneObject*> objectToTransfer = server->getZoneServer()->getObject(target);
 
-		if (objectToTransfer == nullptr) {
-			creature->error("objectToTransfer nullptr in transferitemarmor command");
+		if (objectToTransfer == NULL) {
+			creature->error("objectToTransfer NULL in transferitemarmor command");
 			return GENERALERROR;
 		}
 
 		if (!objectToTransfer->checkContainerPermission(creature, ContainerPermissions::MOVECONTAINER))
 			return GENERALERROR;
 
-		ManagedReference<SceneObject*> objectsParent = objectToTransfer->getParent().get();
+		ManagedReference<SceneObject*> objectsParent = objectToTransfer->getParent();
 
-		if (objectsParent == nullptr)
+		if (objectsParent == NULL)
 			return GENERALERROR;
 
 		if (!objectsParent->checkContainerPermission(creature, ContainerPermissions::MOVEOUT))
@@ -76,8 +74,8 @@ public:
 
 		ManagedReference<SceneObject*> destinationObject = server->getZoneServer()->getObject(destinationID);
 
-		if (destinationObject == nullptr) {
-			creature->error("destinationObject nullptr in transferitemarmor command");
+		if (destinationObject == NULL) {
+			creature->error("destinationObject NULL in transferitemarmor command");
 			return GENERALERROR;
 		}
 
@@ -87,10 +85,10 @@ public:
 		}
 
 		if (transferType == 4) {
-			ManagedReference<SceneObject*> parent = objectToTransfer->getParent().get();
+			ManagedReference<SceneObject*> parent = objectToTransfer->getParent();
 
-			if (parent == nullptr) {
-				creature->error("objectToTransfer parent is nullptr in transferitemarmor command");
+			if (parent == NULL) {
+				creature->error("objectToTransfer parent is NULL in transferitemarmor command");
 				return GENERALERROR;
 			}
 
@@ -112,7 +110,7 @@ public:
 						for (int j = 0; j < descriptors->size(); ++j) {
 							const String& descriptor = descriptors->get(j);
 
-							if (destinationObject->getSlottedObject(descriptor) == nullptr && arrangementGroupToUse == -1) {
+							if (destinationObject->getSlottedObject(descriptor) == NULL && arrangementGroupToUse == -1) {
 								arrangementGroupToUse = i;
 							} else if (arrangementGroupToUse != -1) {
 								arrangementGroupToUse = -1;
@@ -128,7 +126,7 @@ public:
 
 						ManagedReference<SceneObject*> objectToRemove = destinationObject->getSlottedObject(childArrangement);
 
-						if (objectToRemove == nullptr)
+						if (objectToRemove == NULL)
 							return GENERALERROR;
 
 						if (!objectController->transferObject(objectToRemove, parent, 0xFFFFFFFF, true))
@@ -158,10 +156,10 @@ public:
 				TangibleObject* targetTanoObject;
 				targetTanoObject = cast<TangibleObject*>( player->getInventoryItem(target));
 
-				if (targetTanoObject != nullptr) {
+				if (targetTanoObject != NULL) {
 					Inventory* inventory = player->getInventory();
 
-					if (inventory != nullptr)
+					if (inventory != NULL)
 						inventory->moveObjectToTopLevel(player, targetTanoObject);
 
 					player->changeArmor(target, false);

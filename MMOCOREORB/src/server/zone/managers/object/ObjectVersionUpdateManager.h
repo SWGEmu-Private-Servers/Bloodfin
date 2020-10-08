@@ -9,9 +9,10 @@
 #define OBJECTVERSIONUPDATEMANAGER_H_
 
 #include "engine/engine.h"
+#include "server/zone/ZoneServer.h"
 
 class ObjectVersionUpdateManager : public Singleton<ObjectVersionUpdateManager>, public Logger, public Object {
-
+	Lua* luaInstance;
 public:
 	ObjectVersionUpdateManager();
 
@@ -27,6 +28,7 @@ public:
 	int getVariableDataOffset(const uint32& variableHashCode, ObjectInputStream* stream);
 	ObjectOutputStream* changeVariableData(const uint32& variableHashCode, ObjectInputStream* object, Stream* newVariableData);
 
+
 	void updateTangibleObjectsVersion6();
 	void updateResidences();
 	void setResidence(uint64 buildingID, bool isResidence);
@@ -38,6 +40,9 @@ public:
 	void updateCityTreasuryToDouble();
 	int run();
 
+private:
+	int count;
 };
+
 
 #endif /* OBJECTVERSIONUPDATEMANAGER_H_ */

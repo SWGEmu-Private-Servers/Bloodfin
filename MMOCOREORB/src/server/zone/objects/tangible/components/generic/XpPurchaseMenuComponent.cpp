@@ -1,15 +1,17 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "XpPurchaseMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/objects/draftschematic/DraftSchematic.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
 #include "server/zone/objects/player/sui/callbacks/XpPurchaseSuiCallback.h"
 
-#include "templates/tangible/XpPurchaseTemplate.h"
+#include "server/zone/templates/tangible/XpPurchaseTemplate.h"
 #include "server/zone/managers/crafting/schematicmap/SchematicMap.h"
 
-void XpPurchaseMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void XpPurchaseMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
+
 	if (!sceneObject->isTangibleObject())
 		return;
 
@@ -17,7 +19,7 @@ void XpPurchaseMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, O
 
 	XpPurchaseTemplate* templateData = cast<XpPurchaseTemplate*>(sceneObject->getObjectTemplate());
 
-	if (templateData == nullptr) {
+	if (templateData == NULL) {
 		error("No XpPurchaseTemplate for: " + String::valueOf(sceneObject->getServerObjectCRC()));
 		return;
 	}
@@ -25,7 +27,7 @@ void XpPurchaseMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, O
 	menuResponse->addRadialMenuItem(50, 3, "@item/xp_purchase:menu_learn"); //Learn
 }
 
-int XpPurchaseMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int XpPurchaseMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isTangibleObject())
 		return 0;
 
@@ -40,12 +42,12 @@ int XpPurchaseMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Cr
 
 		Reference<PlayerObject*> ghost = player->getSlottedObject("ghost").castTo<PlayerObject*>();
 
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return 0;
 
 		XpPurchaseTemplate* templateData = cast<XpPurchaseTemplate*>(sceneObject->getObjectTemplate());
 
-		if (templateData == nullptr) {
+		if (templateData == NULL) {
 			error("No XpPurchaseTemplate for: " + String::valueOf(sceneObject->getServerObjectCRC()));
 			return 0;
 		}

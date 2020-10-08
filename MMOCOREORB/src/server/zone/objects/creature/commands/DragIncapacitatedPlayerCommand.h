@@ -8,7 +8,6 @@
 #include "server/zone/objects/scene/SceneObject.h"
 
 #include "server/zone/managers/collision/CollisionManager.h"
-#include "server/zone/managers/collision/PathFinderManager.h"
 
 class DragIncapacitatedPlayerCommand : public QueueCommand {
 	float maxRange, maxMovement;
@@ -17,20 +16,20 @@ public:
 
 	DragIncapacitatedPlayerCommand(const String& name, ZoneProcessServer* server)
 		: QueueCommand(name, server) {
-
+		
 		maxRange = 31.0;
 		maxMovement = 5.0;
 		needsConsent = true;
 	}
 
 	void getCoordinate(SceneObject* object1, SceneObject* object2, float distanceFromObject1, WorldCoordinates* newPosition) const {
-		ManagedReference<CellObject*> object1Cell = object1->getParent().get().castTo<CellObject*>();
-		ManagedReference<CellObject*> object2Cell = object2->getParent().get().castTo<CellObject*>();
+		ManagedReference<SceneObject*> object1Cell = object1->getParent().get();
+		ManagedReference<SceneObject*> object2Cell = object2->getParent().get();
 		Vector3 object1Position = object1->getPosition();
 		Vector3 object2Position = object2->getPosition();
 
-		if (object2Cell != nullptr) {
-			if (object1Cell == nullptr)
+		if (object2Cell != NULL) {
+			if (object1Cell == NULL)
 				object1Position = PathFinderManager::transformToModelSpace(object1Position, object2Cell->getParent().get());
 		} else {
 			object1Position = object1->getWorldPosition();
@@ -56,9 +55,9 @@ public:
 		newPosition->setY(object1Position.getY() + (distanceFromObject1 * (dy / distance)));
 		newPosition->setCell(object2Cell);
 
-		if (object2Cell == nullptr) {
+		if (object2Cell == NULL) {
 			Zone* zone = object1->getZone();
-			if (zone != nullptr) {
+			if (zone != NULL) {
 				IntersectionResults intersections;
 				CollisionManager::getWorldFloorCollisions(newPosition->getX(), newPosition->getY(), zone, &intersections, (CloseObjectsVector*) object1->getCloseObjects());
 				newPosition->setZ(zone->getPlanetManager()->findClosestWorldFloor(newPosition->getX(), newPosition->getY(), object1->getWorldPositionZ(), 0, &intersections, (CloseObjectsVector*) object1->getCloseObjects()));
@@ -72,7 +71,7 @@ public:
 	}
 
 	void drag(CreatureObject* player, CreatureObject* targetPlayer, float maxRange, float maxMovement, bool needsConsent, bool canDragLiveTarget) const {
-		if (targetPlayer == nullptr) {
+		if (targetPlayer == NULL) {
 			return;
 		}
 
@@ -80,18 +79,17 @@ public:
 			player->sendSystemMessage("@healing_response:healing_response_a5"); //"You must first have a valid target to drag before you can perform this command."
 			return;
 		}
-		float sqDistance = targetPlayer->getWorldPosition().squaredDistanceTo(player->getWorldPosition());
 
 		//Check minimum range.
-		if (sqDistance < 0.01f*0.01f) {
+		if (player->isInRange(targetPlayer, 0.01f)) {
 			return;
 		}
 
 		//Check maximum range.
-		if (sqDistance > maxRange*maxRange) {
+		if (!player->isInRange(targetPlayer, maxRange)) {
 			StringIdChatParameter stringId("healing_response", "healing_response_b1"); //"Your maximum drag range is %DI meters! Try getting closer."
 			stringId.setDI(maxRange);
-			player->sendSystemMessage(stringId);
+			player->sendSystemMessage(stringId); 
 			return;
 		}
 
@@ -111,7 +109,7 @@ public:
 			bool isGroupedWith = false;
 			ManagedReference<GroupObject*> group = player->getGroup();
 
-			if (group != nullptr && group->hasMember(targetPlayer))
+			if (group != NULL && group->hasMember(targetPlayer))
 				isGroupedWith = true;
 
 			if (!hasConsentFrom && !isGroupedWith) {
@@ -149,10 +147,10 @@ public:
 		getCoordinate(targetPlayer, player, maxMovement, &newPosition);
 		targetPlayer->setPosition(newPosition.getX(), newPosition.getZ(), newPosition.getY());
 		targetPlayer->incrementMovementCounter();
-		ManagedReference<CellObject*> cell = newPosition.getCell();
+		ManagedReference<SceneObject*> cell = newPosition.getCell();
 		uint64 parentID = 0;
 
-		if (cell != nullptr) {
+		if (cell != NULL) {
 			parentID = cell->getObjectID();
 			targetPlayer->updateZoneWithParent(cell, false);
 		} else {
@@ -163,7 +161,6 @@ public:
 
 		//Visuals.
 		targetPlayer->showFlyText("base_player", "fly_drag", 255, 0, 0);
-		//TODO: Figure out why all players--except for the dragged corpsed player--are only seeing the initial 5m first drag onscreen serverside but not any subsequent drags.
 
 		StringIdChatParameter stringId("healing_response", "healing_response_b5"); //"Attempting to drag %TT to your location..."
 		stringId.setTT(targetPlayer->getObjectID());
@@ -182,7 +179,7 @@ public:
 
 		ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-		if (object == nullptr || !object->isPlayerCreature() || object == creature) {
+		if (object == NULL || !object->isPlayerCreature() || object == creature) {
 			creature->sendSystemMessage("@healing_response:healing_response_a5"); //"You must first have a valid target to drag before you can perform this command."
 			return GENERALERROR;
 		}
@@ -192,20 +189,15 @@ public:
 
 		Locker clocker(targetPlayer, creature);
 
-		if (creature->getZone() == nullptr)
+		if (creature->getZone() == NULL)
 			return GENERALERROR;
 
-		if (targetPlayer->getZone() == nullptr)
+		if (targetPlayer->getZone() == NULL)
 			return GENERALERROR;
 
 		//Determine if the player has the proper skill.
 		if (!player->hasSkill("science_medic_injury_speed_02")) {
 			player->sendSystemMessage("@healing_response:healing_response_a9"); //"You lack the ability to drag incapacitated players!"
-			return GENERALERROR;
-		}
-
-		if (checkForArenaDuel(targetPlayer)) {
-			creature->sendSystemMessage("@jedi_spam:no_help_target"); // You are not permitted to help that target.
 			return GENERALERROR;
 		}
 
@@ -215,38 +207,18 @@ public:
 		}
 
 		if (!CollisionManager::checkLineOfSight(creature, targetPlayer)) {
-			StringIdChatParameter nocansee;
-			nocansee.setStringId("@container_error_message:container18_prose"); //You can't see %TT. You may have to move closer to it.
-			nocansee.setTT(target);
-			creature->sendSystemMessage(nocansee);
+			creature->sendSystemMessage("@container_error_message:container18");
 			return GENERALERROR;
 		}
 
-		if (targetPlayer->getLocalZone() == nullptr) {
-			player->sendSystemMessage("@error_message:corpse_drag_inside"); //You cannot drag a corpse within a building. Go outside to have your corpse ejected.
-			return GENERALERROR;
-		}
+		Reference<CellObject*> targetCell = creature->getParent().castTo<CellObject*>();
 
-		if (creature->getLocalZone() == nullptr) {
-			if (targetPlayer->getLocalZone() != nullptr) {
-				player->sendSystemMessage("@error_message:corpse_drag_into"); //You cannot drag a corpse into a structure.
-				return GENERALERROR;
-			} else
-
-			return true;
-		}
-
-		Reference<CellObject*> targetCell = creature->getParent().get().castTo<CellObject*>();
-
-		if (targetCell != nullptr) {
-			auto perms = targetCell->getContainerPermissions();
+		if (targetCell != NULL) {
+			ContainerPermissions* perms = targetCell->getContainerPermissions();
 
 			if (!perms->hasInheritPermissionsFromParent()) {
 				if (!targetCell->checkContainerPermission(targetPlayer, ContainerPermissions::WALKIN)) {
-					StringIdChatParameter nocansee;
-					nocansee.setStringId("@container_error_message:container18_prose");
-					nocansee.setTT(target);
-					creature->sendSystemMessage(nocansee);
+					creature->sendSystemMessage("@container_error_message:container18");
 					return GENERALERROR;
 				}
 			}

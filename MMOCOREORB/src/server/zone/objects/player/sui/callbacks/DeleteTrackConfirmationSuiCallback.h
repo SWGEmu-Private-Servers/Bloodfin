@@ -12,7 +12,7 @@
 
 class DeleteTrackConfirmationSuiCallback : public SuiCallback {
 public:
-	Reference<DroidPlaybackModuleDataComponent*> module;
+	ManagedReference<DroidPlaybackModuleDataComponent*> module;
 	int track;
 	DeleteTrackConfirmationSuiCallback(ZoneServer* server, DroidPlaybackModuleDataComponent* m, int index)
 		: SuiCallback(server) {
@@ -27,19 +27,19 @@ public:
 			return;
 
 		SuiMessageBox* listBox = cast<SuiMessageBox*>( suiBox);
-		ManagedReference<SceneObject*> object = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> object = suiBox->getUsingObject();
 
-		if (object == nullptr) {
+		if (object == NULL) {
 			return;
 		}
 
 		DroidObject* droid = cast<DroidObject*>(object.get());
-		if (droid == nullptr){
+		if (droid == NULL){
 			return;
 		}
 		// should be locked before hand
 
-		if(module == nullptr) {
+		if(module == NULL) {
 			return;
 		}
 

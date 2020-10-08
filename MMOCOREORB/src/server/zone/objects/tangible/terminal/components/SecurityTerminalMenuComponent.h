@@ -10,6 +10,7 @@
 
 #include "engine/engine.h"
 #include "server/zone/objects/scene/components/ObjectMenuComponent.h"
+#include "server/zone/objects/building/BuildingObject.h"
 
 class SecurityTerminalMenuComponent : public ObjectMenuComponent {
 protected:
@@ -23,7 +24,7 @@ public:
 	 * @post { this object is locked, menuResponse is complete}
 	 * @param menuResponse ObjectMenuResponse that will be sent to the client
 	 */
-	void fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const;
+	void fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player);
 
 	/**
 	 * Handles the radial selection sent by the client, must be overriden by inherited objects
@@ -33,7 +34,7 @@ public:
 	 * @param selectedID selected menu id
 	 * @returns 0 if successfull
 	 */
-	int handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const;
+	int handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID);
 
 
 };

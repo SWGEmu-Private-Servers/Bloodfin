@@ -28,21 +28,21 @@ public:
 		if (args->size() < 1)
 			return;
 
-		ManagedReference<SceneObject*> object = suiBox->getUsingObject().get();
-		if (object == nullptr || !object->isBuildingObject())
+		ManagedReference<SceneObject*> object = suiBox->getUsingObject();
+		if (object == NULL || !object->isBuildingObject())
 			return;
 
 		SuiListBox* suiListBox = cast<SuiListBox*>( suiBox);
 		int index = Integer::valueOf(args->get(0).toString());
 
-		if (index < 0 || index >= suiListBox->getMenuSize())
+		if (index < 0)
 			return;
 
 		String suiItem = suiListBox->getMenuItemName(index);
 
 		StructureObject* structure = cast<StructureObject*>(object.get());
 		ManagedReference<Zone*> zone = structure->getZone();
-		if (zone == nullptr)
+		if (zone == NULL)
 			return;
 
 		//Creature is already locked (done in handleSuiEventNotification in SuiManager).

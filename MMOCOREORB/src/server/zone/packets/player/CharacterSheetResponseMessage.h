@@ -5,8 +5,9 @@
 #ifndef CHARACTERSHEETRESPONSEMESSAGE_H_
 #define CHARACTERSHEETRESPONSEMESSAGE_H_
 
-#include "engine/service/proto/BaseMessage.h"
+#include "engine/engine.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/building/BuildingObject.h"
 
 class CharacterSheetResponseMessage : public BaseMessage {
 public:
@@ -23,7 +24,7 @@ public:
 		uint64 preDesignatedFacilityOid = ghost->getCloningFacility();
 		ManagedReference<SceneObject*> cloningFacility = player->getZoneServer()->getObject(preDesignatedFacilityOid);
 
-		if (cloningFacility != nullptr && cloningFacility->getZone() != nullptr) {
+		if (cloningFacility != NULL && cloningFacility->getZone() != NULL) {
 			insertFloat(cloningFacility->getPositionX());
 			insertFloat(cloningFacility->getPositionZ());
 			insertFloat(cloningFacility->getPositionY());
@@ -44,7 +45,7 @@ public:
 
 		ManagedReference<SceneObject*> declaredResidence = player->getZoneServer()->getObject(declaredOidResidence);
 
-		if (declaredResidence != nullptr && declaredResidence->getZone() != nullptr) {
+		if (declaredResidence != NULL && declaredResidence->getZone() != NULL) {
 			insertFloat(declaredResidence->getPositionX()); //Home Location X
 			insertFloat(declaredResidence->getPositionZ()); //Home Location Z
 			insertFloat(declaredResidence->getPositionY()); //Home Location Y
@@ -60,7 +61,7 @@ public:
 		insertInt(ghost->getLotsRemaining()); //Lots Remaining
 
 		insertInt(player->getFaction()); //Faction CRC (or hashCode?)
-		insertInt(player->getFactionStatus()); //Faction Status
+		insertInt(ghost->getFactionStatus()); //Faction Status
 
 		setCompression(true);
 	}

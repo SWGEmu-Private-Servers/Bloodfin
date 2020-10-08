@@ -5,6 +5,8 @@
 #ifndef REQUESTSTATMIGRATIONDATACOMMAND_H_
 #define REQUESTSTATMIGRATIONDATACOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/sessions/MigrateStatsSession.h"
 #include "server/zone/packets/player/StatMigrationTargetsMessage.h"
 
@@ -27,10 +29,10 @@ public:
 		ManagedReference<Facade*> facade = creature->getActiveSession(SessionFacadeType::MIGRATESTATS);
 		ManagedReference<MigrateStatsSession*> session = dynamic_cast<MigrateStatsSession*>(facade.get());
 
-		if (session == nullptr) {
+		if (session == NULL) {
 			session = new MigrateStatsSession(creature);
 
-			const DeltaVector<int>* baseHam = creature->getBaseHAM();
+			DeltaVector<int>* baseHam = creature->getBaseHAM();
 
 			for (int i = 0; i < 9; ++i) {
 				session->setAttributeToModify(i, baseHam->get(i));

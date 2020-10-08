@@ -6,14 +6,14 @@
 #include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
 #include "server/zone/objects/player/sui/callbacks/CoaMessageFragmentSuiCallback.h"
 
-void CoaMessageFragmentMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void CoaMessageFragmentMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	TangibleObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, player);
 
 	menuResponse->addRadialMenuItem(20,3,"@sui:read_option"); // Read
 
 }
 
-int CoaMessageFragmentMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int CoaMessageFragmentMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!player->isPlayerCreature()) {
 		return 0;
 	}
@@ -24,12 +24,12 @@ int CoaMessageFragmentMenuComponent::handleObjectMenuSelect(SceneObject* sceneOb
 	}
 
 	TangibleObject* fragment = cast<TangibleObject*>(sceneObject);
-	if (fragment == nullptr) {
+	if (fragment == NULL) {
 		return 0;
 	}
 
 	PlayerObject* ghost = player->getPlayerObject();
-	if (ghost == nullptr) {
+	if (ghost == NULL) {
 		return 0;
 	}
 

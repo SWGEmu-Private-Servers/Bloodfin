@@ -6,20 +6,25 @@
  */
 
 #include "DnaManager.h"
-#include "server/zone/ZoneServer.h"
+#include "server/conf/ConfigManager.h"
+#include "server/zone/managers/resource/ResourceManager.h"
+#include "server/zone/managers/combat/CombatManager.h"
+#include "server/zone/managers/creature/CreatureManager.h"
+#include "server/zone/managers/creature/DnaManager.h"
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "server/zone/objects/creature/ai/CreatureTemplate.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
+#include "server/zone/templates/mobile/CreatureTemplate.h"
+#include "server/zone/templates/tangible/DnaSampleTemplate.h"
 #include "server/zone/objects/tangible/component/dna/DnaComponent.h"
 #include "server/zone/objects/tangible/deed/pet/PetDeed.h"
 #include "server/zone/managers/crafting/labratories/Genetics.h"
-#include "server/zone/managers/crafting/CraftingManager.h"
 
 AtomicInteger DnaManager::loadedDnaData;
 
 DnaManager::DnaManager() : Logger("DnaManager") {
 	lua = new Lua();
 	lua->init();
-	lua->registerFunction("addQualityTemplate", addQualityTemplate);
+	lua_register(lua->getLuaState(), "addQualityTemplate", addQualityTemplate);
 
 	lua->setGlobalInt("FORTITUDE", DnaManager::FORTITUDE);
 	lua->setGlobalInt("ENDURANCE", DnaManager::ENDURANCE);
@@ -32,12 +37,8 @@ DnaManager::DnaManager() : Logger("DnaManager") {
 	lua->setGlobalInt("HARDINESS", DnaManager::HARDINESS);
 	lua->setGlobalInt("INTELLIGENCE", DnaManager::INTELLIGENCE);
 }
-
 DnaManager::~DnaManager() {
-	if (lua != nullptr) {
-		delete lua;
-		lua = nullptr;
-	}
+
 }
 
 void DnaManager::loadSampleData() {
@@ -74,7 +75,7 @@ void DnaManager::loadSampleData() {
 	}
 	info("Loaded " + String::valueOf(dnaDPS.size()) + " dna stats.", true);
 	delete lua;
-	lua = nullptr;
+	lua = NULL;
 }
 
 int DnaManager::generateXp(int creatureLevel) {
@@ -82,7 +83,7 @@ int DnaManager::generateXp(int creatureLevel) {
 	float x2 = 0.0025801845 * (creatureLevel * 3);
 	float x3 = 0.1673150401 * (creatureLevel * 2);
 	float x4 = 6.757844921 * creatureLevel;
-	float x5 = 46.75746899f;
+	float x5 = 46.75746899;
 	return (int)ceil(x1-x2+x3+x4+x5);
 }
 int DnaManager::addQualityTemplate(lua_State * L) {
@@ -121,7 +122,7 @@ void DnaManager::generationalSample(PetDeed* deed, CreatureObject* player,int qu
 
 	// calculate rest of stats here
 	ManagedReference<DnaComponent*> prototype = player->getZoneServer()->createObject(qualityTemplates.get(quality), 1).castTo<DnaComponent*>();
-	if (prototype == nullptr) {
+	if (prototype == NULL) {
 		return;
 	}
 	Locker clocker(prototype);
@@ -145,24 +146,24 @@ void DnaManager::generationalSample(PetDeed* deed, CreatureObject* player,int qu
 	prototype->setArmorRating(deed->getArmor());
 	prototype->setSpecialAttackOne(deed->getSpecial1());
 	prototype->setSpecialAttackTwo(deed->getSpecial2());
-	if (deed->isSpecialResist(SharedWeaponObjectTemplate::STUN))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::STUN);
-	if (deed->isSpecialResist(SharedWeaponObjectTemplate::KINETIC))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::KINETIC);
-	if (deed->isSpecialResist(SharedWeaponObjectTemplate::ENERGY))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::ENERGY);
-	if (deed->isSpecialResist(SharedWeaponObjectTemplate::BLAST))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::BLAST);
-	if (deed->isSpecialResist(SharedWeaponObjectTemplate::HEAT))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::HEAT);
-	if (deed->isSpecialResist(SharedWeaponObjectTemplate::COLD))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::COLD);
-	if (deed->isSpecialResist(SharedWeaponObjectTemplate::ELECTRICITY))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::ELECTRICITY);
-	if (deed->isSpecialResist(SharedWeaponObjectTemplate::ACID))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::ACID);
-	if (deed->isSpecialResist(SharedWeaponObjectTemplate::LIGHTSABER))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::LIGHTSABER);
+	if (deed->isSpecialResist(WeaponObject::STUN))
+		prototype->setSpecialResist(WeaponObject::STUN);
+	if (deed->isSpecialResist(WeaponObject::KINETIC))
+		prototype->setSpecialResist(WeaponObject::KINETIC);
+	if (deed->isSpecialResist(WeaponObject::ENERGY))
+		prototype->setSpecialResist(WeaponObject::ENERGY);
+	if (deed->isSpecialResist(WeaponObject::BLAST))
+		prototype->setSpecialResist(WeaponObject::BLAST);
+	if (deed->isSpecialResist(WeaponObject::HEAT))
+		prototype->setSpecialResist(WeaponObject::HEAT);
+	if (deed->isSpecialResist(WeaponObject::COLD))
+		prototype->setSpecialResist(WeaponObject::COLD);
+	if (deed->isSpecialResist(WeaponObject::ELECTRICITY))
+		prototype->setSpecialResist(WeaponObject::ELECTRICITY);
+	if (deed->isSpecialResist(WeaponObject::ACID))
+		prototype->setSpecialResist(WeaponObject::ACID);
+	if (deed->isSpecialResist(WeaponObject::LIGHTSABER))
+		prototype->setSpecialResist(WeaponObject::LIGHTSABER);
 
 	Locker locker(inventory);
 	if (inventory->transferObject(prototype, -1, true, false)) {
@@ -176,9 +177,8 @@ void DnaManager::generateSample(Creature* creature, CreatureObject* player,int q
 	if (quality < 0 || quality > 7) {
 		return;
 	}
-
-	Locker lock(creature, player);
-	auto creatureTemplate = dynamic_cast<const CreatureTemplate*>(creature->getCreatureTemplate());
+	Locker lock(creature,player);
+	CreatureTemplate* creatureTemplate = dynamic_cast<CreatureTemplate*>(creature->getCreatureTemplate());
 
 	int ferocity = creatureTemplate->getFerocity();
 	int cl = creature->getLevel();
@@ -204,12 +204,12 @@ void DnaManager::generateSample(Creature* creature, CreatureObject* player,int q
 
 	// We should now have enough to generate a sample
 	ManagedReference<DnaComponent*> prototype = player->getZoneServer()->createObject(qualityTemplates.get(quality), 1).castTo<DnaComponent*>();
-	if (prototype == nullptr) {
+	if (prototype == NULL) {
 		return;
 	}
 	Locker clocker(prototype);
 	// Check Here for unique npcs
-	const StringId* nameId = creature->getObjectName();
+	StringId* nameId = creature->getObjectName();
 	if (nameId->getFile().isEmpty() || nameId->getStringID().isEmpty()) {
 		prototype->setSource(creature->getCreatureName().toString());
 	} else {
@@ -232,26 +232,26 @@ void DnaManager::generateSample(Creature* creature, CreatureObject* player,int q
 	prototype->setRanged(creatureTemplate->getWeapons().size() > 0);
 	prototype->setArmorRating(creatureTemplate->getArmor());
 
-	if (creatureTemplate->isSpecialProtection(SharedWeaponObjectTemplate::STUN))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::STUN);
-	if (creatureTemplate->isSpecialProtection(SharedWeaponObjectTemplate::KINETIC))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::KINETIC);
-	if (creatureTemplate->isSpecialProtection(SharedWeaponObjectTemplate::ENERGY))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::ENERGY);
-	if (creatureTemplate->isSpecialProtection(SharedWeaponObjectTemplate::BLAST))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::BLAST);
-	if (creatureTemplate->isSpecialProtection(SharedWeaponObjectTemplate::HEAT))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::HEAT);
-	if (creatureTemplate->isSpecialProtection(SharedWeaponObjectTemplate::COLD))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::COLD);
-	if (creatureTemplate->isSpecialProtection(SharedWeaponObjectTemplate::ELECTRICITY))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::ELECTRICITY);
-	if (creatureTemplate->isSpecialProtection(SharedWeaponObjectTemplate::ACID))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::ACID);
-	if (creatureTemplate->isSpecialProtection(SharedWeaponObjectTemplate::LIGHTSABER))
-		prototype->setSpecialResist(SharedWeaponObjectTemplate::LIGHTSABER);
+	if (creatureTemplate->isSpecialProtection(WeaponObject::STUN))
+		prototype->setSpecialResist(WeaponObject::STUN);
+	if (creatureTemplate->isSpecialProtection(WeaponObject::KINETIC))
+		prototype->setSpecialResist(WeaponObject::KINETIC);
+	if (creatureTemplate->isSpecialProtection(WeaponObject::ENERGY))
+		prototype->setSpecialResist(WeaponObject::ENERGY);
+	if (creatureTemplate->isSpecialProtection(WeaponObject::BLAST))
+		prototype->setSpecialResist(WeaponObject::BLAST);
+	if (creatureTemplate->isSpecialProtection(WeaponObject::HEAT))
+		prototype->setSpecialResist(WeaponObject::HEAT);
+	if (creatureTemplate->isSpecialProtection(WeaponObject::COLD))
+		prototype->setSpecialResist(WeaponObject::COLD);
+	if (creatureTemplate->isSpecialProtection(WeaponObject::ELECTRICITY))
+		prototype->setSpecialResist(WeaponObject::ELECTRICITY);
+	if (creatureTemplate->isSpecialProtection(WeaponObject::ACID))
+		prototype->setSpecialResist(WeaponObject::ACID);
+	if (creatureTemplate->isSpecialProtection(WeaponObject::LIGHTSABER))
+		prototype->setSpecialResist(WeaponObject::LIGHTSABER);
 
-	auto attackMap = creatureTemplate->getAttacks();
+	CreatureAttackMap* attackMap = creatureTemplate->getAttacks();
 	if (attackMap->size() > 0) {
 		prototype->setSpecialAttackOne(String(attackMap->getCommand(0)));
 		if(attackMap->size() > 1) {

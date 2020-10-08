@@ -16,22 +16,19 @@ public:
 
 	}
 
-	static void consent(CreatureObject* player, CreatureObject* targetPlayer) {
-		String name = targetPlayer->getFirstName().toLowerCase();
-
+	static void consent(CreatureObject* player, const String& name) {
 		PlayerObject* ghost = player->getPlayerObject();
+
 		ghost->addToConsentList(name);
 
-		StringIdChatParameter stringId("base_player", "prose_consent"); //You give your consent to %TO.
+		StringIdChatParameter stringId("base_player", "prose_consent");
 		stringId.setTO(name);
 		player->sendSystemMessage(stringId);
-
-		StringIdChatParameter stringId2("base_player", "prose_got_consent"); // %TO consents you.
-		stringId2.setTO(player->getFirstName());
-		targetPlayer->sendSystemMessage(stringId2);
 	}
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
+
+		//System::out << "entering ConsentCommand" << endl;
 		if (!checkStateMask(creature))
 			return INVALIDSTATE;
 
@@ -41,20 +38,14 @@ public:
 		if (!creature->isPlayerCreature())
 			return GENERALERROR;
 
-		PlayerObject* ghost = creature->getPlayerObject();
+		//System::out << "past initiali checks ConsentCommand" << endl;
 
-		if (ghost == nullptr)
-			return GENERALERROR;
+		CreatureObject* player = cast<CreatureObject*>(creature);
+
+		PlayerObject* ghost = player->getPlayerObject();
 
 		if (ghost->getConsentListSize() >= 20) {
-			creature->sendSystemMessage("You have too many players on your consent list.");
-			return GENERALERROR;
-		}
-
-		uint64 targetID = creature->getTargetID();
-
-		if (arguments.isEmpty() && targetID == 0) {
-			creature->sendSystemMessage("To give consent, you must either specify the player name or target that player and use the command.");
+			player->sendSystemMessage("You are consenting too many people");
 			return GENERALERROR;
 		}
 
@@ -67,43 +58,24 @@ public:
 				tokenizer.getStringToken(name);
 				name = name.toLowerCase();
 
-				if (ghost->hasInConsentList(name)) {
-					creature->sendSystemMessage("You already gave that player your consent.");
-					return GENERALERROR;
-				}
-
-				PlayerManager* playerManager = server->getPlayerManager();
-				bool validName = playerManager->existsName(name);
-
-				if (!validName) {
-					creature->sendSystemMessage("@ui_cmnty:friend_location_failed_noname"); //No player with that name exists.
-					return GENERALERROR;
-				} else if (creature->getFirstName().toLowerCase() == name) {
-					creature->sendSystemMessage("You cannot give consent to yourself!");
-					return INVALIDTARGET;
-				} else {
-					CreatureObject* targetPlayer = playerManager->getPlayer(name);
-
-					if (targetPlayer == nullptr)
-						return INVALIDTARGET;
-
-					consent(creature, targetPlayer);
-				}
+				if (server->getZoneServer()->getPlayerManager()->existsName(name))
+					consent(player, name);
 			}
 		} else {
-			ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(targetID);
-			CreatureObject* playerTarget = cast<CreatureObject*>( object.get());
+			ManagedReference<SceneObject*> object = server->getZoneServer()->getObject(target);
 
-			if (playerTarget == nullptr || !playerTarget->isPlayerCreature() || playerTarget == creature) {
+			if (object == NULL || !object->isPlayerCreature() || object == creature) {
+				//System::out << "invalid target" << endl;
 				return INVALIDTARGET;
 			}
 
-			if (ghost->hasInConsentList(playerTarget->getFirstName().toLowerCase())) {
-				creature->sendSystemMessage("You already gave that player your consent.");
-				return GENERALERROR;
-			}
+			CreatureObject* playerTarget = cast<CreatureObject*>( object.get());
 
-			consent(creature, playerTarget);
+			consent(player, playerTarget->getFirstName().toLowerCase());
+
+			StringIdChatParameter stringId2("base_player", "prose_got_consent");
+			stringId2.setTO(player->getObjectID());
+			playerTarget->sendSystemMessage(stringId2);
 		}
 
 		return SUCCESS;

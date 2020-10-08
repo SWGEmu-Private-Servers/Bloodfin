@@ -7,7 +7,7 @@
 
 #include "CreatureTemplateManager.h"
 #include "SpawnGroup.h"
-#include "conf/ConfigManager.h"
+#include "server/conf/ConfigManager.h"
 #include "server/zone/managers/name/NameManager.h"
 
 AtomicInteger CreatureTemplateManager::loadedMobileTemplates;
@@ -28,18 +28,17 @@ CreatureTemplateManager::CreatureTemplateManager() : Logger("CreatureTemplateMan
 		lua->setLogging(true);
 	}
 
-	hashTable.setNullValue(nullptr);
+	hashTable.setNullValue(NULL);
 
-	lua->registerFunction("includeFile", includeFile);
-	lua->registerFunction("addTemplate", addTemplate);
-	lua->registerFunction("addWeapon", addWeapon);
-	lua->registerFunction("addConversationTemplate", addConversationTemplate);
-	lua->registerFunction("addLairTemplate", addLairTemplate);
-	lua->registerFunction("addSpawnGroup", addSpawnGroup);
-	lua->registerFunction("addDestroyMissionGroup", addDestroyMissionGroup);
-	lua->registerFunction("addPatrolPathTemplate", addPatrolPathTemplate);
-	lua->registerFunction("addOutfitGroup", addOutfitGroup);
-	lua->registerFunction("addDressGroup", addDressGroup);
+	lua_register(lua->getLuaState(), "includeFile", includeFile);
+	lua_register(lua->getLuaState(), "addTemplate", addTemplate);
+	lua_register(lua->getLuaState(), "addWeapon", addWeapon);
+	lua_register(lua->getLuaState(), "addConversationTemplate", addConversationTemplate);
+	lua_register(lua->getLuaState(), "addLairTemplate", addLairTemplate);
+	lua_register(lua->getLuaState(), "addSpawnGroup", addSpawnGroup);
+	lua_register(lua->getLuaState(), "addDestroyMissionGroup", addDestroyMissionGroup);
+	lua_register(lua->getLuaState(), "addPatrolPathTemplate", addPatrolPathTemplate);
+	lua_register(lua->getLuaState(), "addOutfitGroup", addOutfitGroup);
 
 	lua->setGlobalInt("NONE", CreatureFlag::NONE);
 	lua->setGlobalInt("ATTACKABLE", CreatureFlag::ATTACKABLE);
@@ -48,8 +47,8 @@ CreatureTemplateManager::CreatureTemplateManager() : Logger("CreatureTemplateMan
 	lua->setGlobalInt("TEF", CreatureFlag::TEF);
 	lua->setGlobalInt("PLAYER", CreatureFlag::PLAYER);
 	lua->setGlobalInt("ENEMY", CreatureFlag::ENEMY);
-	lua->setGlobalInt("WILLBEDECLARED", CreatureFlag::WILLBEDECLARED);
-	lua->setGlobalInt("WASDECLARED", CreatureFlag::WASDECLARED);
+	lua->setGlobalInt("CHANGEFACTIONSTATUS", CreatureFlag::CHANGEFACTIONSTATUS);
+	lua->setGlobalInt("BLINK_GREEN", CreatureFlag::BLINK_GREEN);
 
 	lua->setGlobalInt("CONVERSABLE", OptionBitmask::CONVERSE);
 	lua->setGlobalInt("AIENABLED", OptionBitmask::AIENABLED);
@@ -72,52 +71,13 @@ CreatureTemplateManager::CreatureTemplateManager() : Logger("CreatureTemplateMan
 	// NameManager Types
 	lua->setGlobalInt("NAME_TAG", NameManagerType::TAG);
 	lua->setGlobalInt("NAME_GENERIC", NameManagerType::GENERIC);
-	lua->setGlobalInt("NAME_R2", NameManagerType::R2);
-	lua->setGlobalInt("NAME_R3", NameManagerType::R3);
-	lua->setGlobalInt("NAME_R4", NameManagerType::R4);
-	lua->setGlobalInt("NAME_R5", NameManagerType::R5);
-	lua->setGlobalInt("NAME_3PO", NameManagerType::DROID_3P0);
-	lua->setGlobalInt("NAME_EG6", NameManagerType::DROID_EG6);
-	lua->setGlobalInt("NAME_WED", NameManagerType::DROID_WED);
-	lua->setGlobalInt("NAME_LE", NameManagerType::DROID_LE);
-	lua->setGlobalInt("NAME_RA7", NameManagerType::DROID_RA7);
 	lua->setGlobalInt("NAME_STORMTROOPER", NameManagerType::STORMTROOPER);
 	lua->setGlobalInt("NAME_SCOUTTROOPER", NameManagerType::SCOUTTROOPER);
 	lua->setGlobalInt("NAME_DARKTROOPER", NameManagerType::DARKTROOPER);
 	lua->setGlobalInt("NAME_SWAMPTROOPER", NameManagerType::SWAMPTROOPER);
-
-	loadLuaConfig();
-}
-
-void CreatureTemplateManager::loadLuaConfig() {
-	lua->runFile("scripts/managers/creature_manager.lua");
-
-	LuaObject luaObject = lua->getGlobalObject("aiSpeciesData");
-
-	if (luaObject.isValidTable()) {
-		for (int i = 1; i <= luaObject.getTableSize(); ++i) {
-			LuaObject speciesData = luaObject.getObjectAt(i);
-
-			if (speciesData.isValidTable()) {
-				int speciesID = speciesData.getIntAt(1);
-				String skeleton = speciesData.getStringAt(2);
-				bool canSit = speciesData.getBooleanAt(3);
-				bool canLieDown = speciesData.getBooleanAt(4);
-
-				Reference<AiSpeciesData*> data = new AiSpeciesData(speciesID, skeleton, canSit, canLieDown);
-
-				aiSpeciesData.add(speciesID, data);
-			}
-
-			speciesData.pop();
-		}
-	}
-
-	luaObject.pop();
 }
 
 CreatureTemplateManager::~CreatureTemplateManager() {
-
 }
 
 int CreatureTemplateManager::loadTemplates() {
@@ -134,7 +94,7 @@ int CreatureTemplateManager::loadTemplates() {
 		ret = false;
 	}
 
-	lua = nullptr;
+	lua = NULL;
 
 	if (!ret)
 		ERROR_CODE = GENERAL_ERROR;
@@ -232,18 +192,6 @@ int CreatureTemplateManager::addConversationTemplate(lua_State* L) {
 
 	LuaObject obj(L);
 	Reference<ConversationTemplate*> newTemp = new ConversationTemplate(crc);
-
-	if (instance()->conversations.containsKey(crc)) {
-		luaL_where (L, 2);
-		String luaMethodName = lua_tostring(L, -1);
-
-		lua_pop(L, 1);
-
-		instance()->error("overwriting convoTemplate " + ascii + " with " + luaMethodName);
-
-		ERROR_CODE = DUPLICATE_CONVO;
-	}
-
 	CreatureTemplateManager::instance()->conversations.put(crc, newTemp);
 
 	newTemp->readObject(&obj);
@@ -359,40 +307,6 @@ int CreatureTemplateManager::addOutfitGroup(lua_State* L) {
 	templ->readObject(&obj);
 
 	instance()->outfits.put(ascii, templ);
-
-	return 0;
-}
-
-int CreatureTemplateManager::addDressGroup(lua_State* L) {
-	if (checkArgumentCount(L, 2) == 1) {
-		instance()->error("incorrect number of arguments passed to CreatureTemplateManager::addDressGroup");
-		ERROR_CODE = INCORRECT_ARGUMENTS;
-		return 0;
-	}
-
-	String ascii = lua_tostring(L, -2);
-	uint32 crc = (uint32) ascii.hashCode();
-
-	LuaObject obj(L);
-
-	if (obj.isValidTable()) {
-		Vector<String> dressGroup;
-
-		for (int i = 1; i <= obj.getTableSize(); ++i) {
-			String templ = obj.getStringAt(i);
-
-			SharedObjectTemplate* dressTemplate = TemplateManager::instance()->getTemplate(templ.hashCode());
-
-			if (dressTemplate == nullptr) {
-				instance()->error("Unable to add " + templ + " to dress group " + ascii + ", invalid template.");
-				continue;
-			}
-
-			dressGroup.add(templ);
-		}
-
-		CreatureTemplateManager::instance()->dressMap.put(crc, dressGroup);
-	}
 
 	return 0;
 }

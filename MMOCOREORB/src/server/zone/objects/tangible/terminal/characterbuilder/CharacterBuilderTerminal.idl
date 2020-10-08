@@ -5,18 +5,21 @@
 package server.zone.objects.tangible.terminal.characterbuilder;
 
 import server.zone.objects.tangible.terminal.Terminal;
+import server.zone.objects.scene.SceneObject;
+import engine.lua.LuaObject;
+import system.util.VectorMap;
 import server.zone.objects.creature.CreatureObject;
-include templates.SharedObjectTemplate;
-include templates.tangible.CharacterBuilderMenuNode;
+import server.zone.Zone;
+import server.zone.templates.SharedObjectTemplate;
+include server.zone.objects.tangible.terminal.characterbuilder.CharacterBuilderMenuNode;
 
-@json
 class CharacterBuilderTerminal extends Terminal {
-	protected transient final CharacterBuilderMenuNode rootNode;
-
+	public transient CharacterBuilderMenuNode rootNode;
+	
 	public CharacterBuilderTerminal() {
 		Logger.setLoggingName("CharacterBuilderTerminal");
 	}
-
+	
 	/**
 	 * Reads and sets the template data from a SharedTangibleObjectTemplate LuaObject
 	 * @pre { templateData is a valid pointer }
@@ -25,9 +28,9 @@ class CharacterBuilderTerminal extends Terminal {
 	 */
 	@local
 	public native void loadTemplateData(SharedObjectTemplate templateData);
-
+	
 	public native void initializeTransientMembers();
-
+	
 	/**
 	 * Handles the radial selection sent by the client
 	 * @pre { this object is locked, player is locked }
@@ -35,9 +38,9 @@ class CharacterBuilderTerminal extends Terminal {
 	 * @returns 0 if successfull
 	 */
 	public native int handleObjectMenuSelect(CreatureObject player, byte selectedID);
-
+	
 	public native void sendInitialChoices(CreatureObject player);
-
+	
 	/**
 	 * Player gets all languages available
 	 * @pre { player is locked }
@@ -58,6 +61,4 @@ class CharacterBuilderTerminal extends Terminal {
 	 * @post { player is locked }
 	 */
 	public native void grantGlowyBadges(CreatureObject player);
-
-	public native void grantJediInitiate(CreatureObject player);
 }

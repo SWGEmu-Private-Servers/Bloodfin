@@ -5,6 +5,8 @@
 #ifndef ATTACKCOMMAND_H_
 #define ATTACKCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/managers/combat/CombatManager.h"
 #include "CombatQueueCommand.h"
 
 class AttackCommand : public CombatQueueCommand {
@@ -21,6 +23,11 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+
+		}
 
 		return doCombatAction(creature, target);
 	}

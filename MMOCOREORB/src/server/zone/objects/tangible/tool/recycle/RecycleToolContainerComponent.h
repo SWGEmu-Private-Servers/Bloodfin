@@ -7,15 +7,15 @@
 
 class RecycleToolContainerComponent : public ContainerComponent {
 public:
-	int notifyObjectInserted(SceneObject* sceneObject, SceneObject* object) const {
+	int notifyObjectInserted(SceneObject* sceneObject, SceneObject* object) {
 		RecycleTool* recycler = cast <RecycleTool* >(sceneObject);
 
 		TangibleObject* tano = cast <TangibleObject* >(object);
 
-		if (recycler != nullptr && tano != nullptr) {
+		if (recycler != NULL && tano != NULL) {
 			RecycleResourceTask* task = new RecycleResourceTask(recycler, tano);
 
-			if (task != nullptr) {
+			if (task != NULL) {
 				task->run();
 			}
 		}
@@ -23,18 +23,19 @@ public:
 		return ContainerComponent::notifyObjectInserted(sceneObject, object);
 	}
 
-	bool removeObject(SceneObject* sceneObject, SceneObject* object, SceneObject* destination, bool notifyClient) const {
+	bool removeObject(SceneObject* sceneObject, SceneObject* object, SceneObject* destination, bool notifyClient) {
 
 		return ContainerComponent::removeObject(sceneObject, object, destination, notifyClient);
 	}
 
-	int canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) const {
-		ManagedReference<SceneObject*> parent = sceneObject->getParentRecursively(SceneObjectType::PLAYERCREATURE);
+	int canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) {
 
-		if (parent == nullptr)
+		if (sceneObject->getParentRecursively(SceneObjectType::PLAYERCREATURE) != object->getParentRecursively(SceneObjectType::PLAYERCREATURE))
 			return TransferErrorCode::MUSTBEINPLAYERINVENTORY;
 
-		if (parent != object->getParentRecursively(SceneObjectType::PLAYERCREATURE))
+		ManagedReference<SceneObject*> parent = sceneObject->getParentRecursively(SceneObjectType::PLAYERCREATURE).get();
+
+		if (parent == NULL)
 			return TransferErrorCode::MUSTBEINPLAYERINVENTORY;
 
 		int containerObjects = parent->getSlottedObject("inventory")->getContainerObjectsSize();

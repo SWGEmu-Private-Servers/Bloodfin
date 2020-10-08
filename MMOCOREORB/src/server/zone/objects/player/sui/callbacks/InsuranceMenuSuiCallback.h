@@ -10,10 +10,8 @@
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
 #include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
-#include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/player/sui/callbacks/InsuranceAllConfirmSuiCallback.h"
-#include "templates/params/OptionBitmask.h"
-#include "server/zone/objects/transaction/TransactionLog.h"
+#include "server/zone/objects/tangible/OptionBitmask.h"
 
 class InsuranceMenuSuiCallback : public SuiCallback {
 public:
@@ -24,7 +22,7 @@ public:
 	void run(CreatureObject* player, SuiBox* suiBox, uint32 eventIndex, Vector<UnicodeString>* args) {
 		bool cancelPressed = (eventIndex == 1);
 
-		if (!suiBox->isListBox() || cancelPressed || player == nullptr)
+		if (!suiBox->isListBox() || cancelPressed || player == NULL)
 			return;
 
 		if (args->size() < 2)
@@ -42,9 +40,9 @@ public:
 
 		int cost = 100;
 
-		ManagedReference<SceneObject*> term = listBox->getUsingObject().get();
+		ManagedReference<SceneObject*> term = listBox->getUsingObject();
 
-		if (term == nullptr) {
+		if (term == NULL) {
 			StringIdChatParameter params;
 			params.setStringId("@ui:action_target_not_found_prose");
 			params.setTT("@terminal_name:terminal_insurance");
@@ -84,7 +82,7 @@ public:
 				uint64 objectID = listBox->getMenuObjectID(index);
 				ManagedReference<SceneObject*> obj = zoneServer->getObject(objectID);
 
-				if (obj == nullptr || !obj->isTangibleObject()) {
+				if (obj == NULL || !obj->isTangibleObject()) {
 					player->sendSystemMessage("@error_message:unable_to_insure");
 					return;
 				}
@@ -107,21 +105,9 @@ public:
 						}
 
 						//pay bank portion
-						TransactionLog trxBank(player, TrxCode::INSURANCESYSTEM, cost - diff);
-						trxBank.addRelatedObject(objectID);
-
 						player->subtractBankCredits(cost - diff);
-
-						TransactionLog trxCash(player, TrxCode::INSURANCESYSTEM, diff, true);
-						trxCash.addRelatedObject(objectID);
-						trxCash.addState("insuredCount", 1);
-						trxCash.groupWith(trxBank);
-
 						player->subtractCashCredits(diff);
 					} else {
-						TransactionLog trx(player, TrxCode::INSURANCESYSTEM, cost);
-						trx.addRelatedObject(objectID);
-						trx.addState("insuredCount", 1);
 						player->subtractBankCredits(cost);
 					}
 

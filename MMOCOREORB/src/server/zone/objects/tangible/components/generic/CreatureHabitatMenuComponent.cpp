@@ -7,36 +7,39 @@
 
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "CreatureHabitatMenuComponent.h"
-#include "templates/tangible/LiveSampleTemplate.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
+#include "server/zone/objects/scene/components/DataObjectComponentReference.h"
+#include "server/zone/templates/tangible/LiveSampleTemplate.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
+#include "server/zone/packets/chat/ChatSystemMessage.h"
 #include "server/zone/packets/object/PlayClientEffectObjectMessage.h"
 #include "server/zone/objects/building/BuildingObject.h"
 
 void CreatureHabitatMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
-		ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+		ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	TangibleObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, player);
 
 	if (!sceneObject->isCreatureHabitat())
 		return;
 
 	TangibleObject* creatureHabitat = cast<TangibleObject*>(sceneObject);
-	if( creatureHabitat == nullptr )
+	if( creatureHabitat == NULL )
 		return;
 
 	// Get live sample from habitat
 	ManagedReference<TangibleObject*> creatures = getLiveCreatures( creatureHabitat );
-	if( creatures == nullptr )
+	if( creatures == NULL )
 		return;
 
 	// Check permissions if item is in a building
 	ManagedReference<SceneObject*> parent = creatureHabitat->getParent().get();
-	if( parent != nullptr && parent->isCellObject() ){
+	if( parent != NULL && parent->isCellObject() ){
 
 		ManagedReference<SceneObject*> obj = parent->getParent().get();
-		if( obj != nullptr && obj->isBuildingObject() ){
+		if( obj != NULL && obj->isBuildingObject() ){
 
 			ManagedReference<BuildingObject*> buio = cast<BuildingObject*>( obj.get());
-			if ( buio != nullptr && buio->isOnAdminList(player) ){
+			if ( buio != NULL && buio->isOnAdminList(player) ){
 				menuResponse->addRadialMenuItem(69, 3, "@lair_n:release_creatures");
 			}
 		}
@@ -47,30 +50,31 @@ void CreatureHabitatMenuComponent::fillObjectMenuResponse(SceneObject* sceneObje
 
 }
 
-ManagedReference<TangibleObject*> CreatureHabitatMenuComponent::getLiveCreatures(TangibleObject* creatureHabitat) const {
+ManagedReference<TangibleObject*> CreatureHabitatMenuComponent::getLiveCreatures( TangibleObject* creatureHabitat ){
 
 	ManagedReference<SceneObject*> craftedContainer = creatureHabitat->getSlottedObject("crafted_components");
-	if(craftedContainer == nullptr || craftedContainer->getContainerObjectsSize() == 0)
-		return nullptr;
+	if(craftedContainer == NULL || craftedContainer->getContainerObjectsSize() == 0)
+		return NULL;
 
 	SceneObject* satchel = craftedContainer->getContainerObject(0);
-	if(satchel != nullptr && satchel->getContainerObjectsSize() > 0) {
+	if(satchel != NULL && satchel->getContainerObjectsSize() > 0) {
 
 		for (int i = 0; i < satchel->getContainerObjectsSize(); ++i) {
 
 			ManagedReference<SceneObject*> sceno = satchel->getContainerObject(i);
-			if( sceno != nullptr && sceno->isLiveSample() ){
+			if( sceno != NULL && sceno->isLiveSample() ){
 				return cast<TangibleObject*>(sceno.get());
 			}
 
 		}
 	}
 
-	return nullptr;
+	return NULL;
+
 }
 
 int CreatureHabitatMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
-		CreatureObject* player, byte selectedID) const {
+		CreatureObject* player, byte selectedID) {
 
 	if(selectedID == 69) {
 
@@ -80,22 +84,22 @@ int CreatureHabitatMenuComponent::handleObjectMenuSelect(SceneObject* sceneObjec
 		if (!player->isPlayerCreature())
 			return 0;
 
-		if (player->getZone() == nullptr)
+		if (player->getZone() == NULL)
 			return 0;
 
 		TangibleObject* creatureHabitat = cast<TangibleObject*>(sceneObject);
-		if( creatureHabitat == nullptr )
+		if( creatureHabitat == NULL )
 			return 0;
 
 		// Get live sample from habitat
 		ManagedReference<TangibleObject*> creatures = getLiveCreatures( creatureHabitat );
-		if(creatures == nullptr) {
+		if(creatures == NULL) {
 			player->sendSystemMessage("There are no creatures in this habitat");
 			return 0;
 		}
 
 		Reference<LiveSampleTemplate*> liveSampleTemplate = cast<LiveSampleTemplate*>(creatures->getObjectTemplate());
-		if (liveSampleTemplate == nullptr) {
+		if (liveSampleTemplate == NULL) {
 			player->sendSystemMessage("Invalid Creature Template");
 			error("No LiveSampleTemplate for: " + String::valueOf(creatures->getServerObjectCRC()));
 			return 0;

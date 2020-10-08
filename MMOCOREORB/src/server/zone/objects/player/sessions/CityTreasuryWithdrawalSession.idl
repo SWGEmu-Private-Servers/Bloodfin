@@ -4,6 +4,7 @@ import engine.util.Facade;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.region.CityRegion;
 import server.zone.objects.scene.SceneObject;
+import server.zone.objects.structure.StructureObject;
 include server.zone.objects.scene.SessionFacadeType;
 
 class CityTreasuryWithdrawalSession extends Facade {
@@ -38,10 +39,7 @@ class CityTreasuryWithdrawalSession extends Facade {
 	public native int withdrawCredits(int value);
 
 	public int cancelSession() {
-		CreatureObject creature = creatureObject;
-
-		if (creature)
-			creature.dropActiveSession(SessionFacadeType.CITYWITHDRAW);
+		creatureObject.dropActiveSession(SessionFacadeType.CITYWITHDRAW);
 		
 		return 0;
 	}

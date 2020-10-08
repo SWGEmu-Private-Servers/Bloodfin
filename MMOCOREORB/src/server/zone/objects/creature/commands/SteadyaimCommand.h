@@ -5,6 +5,7 @@
 #ifndef STEADYAIMCOMMAND_H_
 #define STEADYAIMCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "SquadLeaderCommand.h"
 
 class SteadyaimCommand : public SquadLeaderCommand {
@@ -22,17 +23,21 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
+
 		if (!creature->isPlayerCreature())
 			return GENERALERROR;
 
 		ManagedReference<CreatureObject*> player = cast<CreatureObject*>(creature);
 
-		if (player == nullptr)
+		if (player == NULL)
 			return GENERALERROR;
 
 		ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
 
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return GENERALERROR;
 
 		ManagedReference<GroupObject*> group = player->getGroup();
@@ -59,7 +64,7 @@ public:
 
 		if (!ghost->getCommandMessageString(STRING_HASHCODE("steadyaim")).isEmpty() && creature->checkCooldownRecovery("command_message")) {
 			UnicodeString shout(ghost->getCommandMessageString(STRING_HASHCODE("steadyaim")));
- 	 	 	server->getChatManager()->broadcastChatMessage(player, shout, 0, 80, player->getMoodID(), 0, ghost->getLanguageID());
+ 	 	 	server->getChatManager()->broadcastChatMessage(player, shout, 0, 0, 80, ghost->getLanguageID());
  	 	 	creature->updateCooldownTimer("command_message", 30 * 1000);
 		}
 
@@ -67,40 +72,46 @@ public:
 	}
 
 	bool doSteadyAim(CreatureObject* leader, GroupObject* group, int amount) const {
-		if (leader == nullptr || group == nullptr)
+		if (leader == NULL || group == NULL)
 			return false;
 
 		for (int i = 0; i < group->getGroupSize(); i++) {
-			ManagedReference<CreatureObject*> member = group->getGroupMember(i);
 
-			if (member == nullptr || !member->isPlayerCreature())
+			ManagedReference<SceneObject*> member = group->getGroupMember(i);
+
+			if (!member->isPlayerCreature() || member == NULL || member->getZone() != leader->getZone())
 				continue;
 
-			if (!isValidGroupAbilityTarget(leader, member, false))
+			if(member->getDistanceTo(leader) > 120)
 				continue;
 
-			Locker clocker(member, leader);
+			ManagedReference<CreatureObject*> memberPlayer = cast<CreatureObject*>( member.get());
 
-			sendCombatSpam(member);
+			if (!isValidGroupAbilityTarget(leader, memberPlayer, false))
+				continue;
 
-			ManagedReference<WeaponObject*> weapon = member->getWeapon();
+			Locker clocker(memberPlayer, leader);
+
+			sendCombatSpam(memberPlayer);
+
+			ManagedReference<WeaponObject*> weapon = memberPlayer->getWeapon();
 
 			if (!weapon->isRangedWeapon())
 				continue;
 
 			int duration = 300;
 
-			ManagedReference<Buff*> buff = new Buff(member, actionCRC, duration, BuffType::SKILL);
+			ManagedReference<Buff*> buff = new Buff(memberPlayer, actionCRC, duration, BuffType::SKILL);
 
 			Locker locker(buff);
 
 			buff->setSkillModifier("private_aim", amount);
 			buff->setStartFlyText("combat_effects", "go_steady", 0, 0xFF, 0); // there is no corresponding no_steady fly text
 
-			member->addBuff(buff);
+			memberPlayer->addBuff(buff);
 			//			memberPlayer->showFlyText("combat_effects", "go_steadied", 0, 0xFF, 0); // there is no corresponding no_steady fly text
 
-			checkForTef(leader, member);
+			checkForTef(leader, memberPlayer);
 		}
 
 		return true;

@@ -5,6 +5,8 @@
 #ifndef FORCERESISTPOISONCOMMAND_H_
 #define FORCERESISTPOISONCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class ForceResistPoisonCommand : public JediQueueCommand {
 public:
 
@@ -12,6 +14,8 @@ public:
 		: JediQueueCommand(name, server) {
 
 		buffCRC = BuffCRC::JEDI_RESIST_POISON;
+
+		overrideableCRCs.add(BuffCRC::JEDI_RESIST_POISON);
 
 		skillMods.put("resistance_poison", 25);
 		skillMods.put("absorption_poison", 25);

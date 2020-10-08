@@ -5,14 +5,15 @@
 #ifndef CHANNELFORCECOMMAND_H_
 #define CHANNELFORCECOMMAND_H_
 
-#include "server/zone/objects/creature/buffs/ChannelForceBuff.h"
-#include "templates/params/creature/CreatureAttribute.h"
+#include "server/zone/objects/scene/SceneObject.h"
+#include "ForcePowersQueueCommand.h"
+#include "server/zone/objects/player/events/ChannelForceRegenTask.h"
 
-class ChannelForceCommand : public QueueCommand {
+class ChannelForceCommand : public ForcePowersQueueCommand {
 public:
 
-	ChannelForceCommand(const String& name, ZoneProcessServer* server)
-: QueueCommand(name, server) {
+		ChannelForceCommand(const String& name, ZoneProcessServer* server)
+		: ForcePowersQueueCommand(name, server) {
 
 	}
 
@@ -27,16 +28,42 @@ public:
 		if (creature->hasAttackDelay())
 			return GENERALERROR;
 
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+		}
+
 		if (isWearingArmor(creature)) {
 			return NOJEDIARMOR;
 		}
+		
+                if (!creature->checkCooldownRecovery("channel")) {
+			StringIdChatParameter stringId;
 
-		// Bonus is in between 250-350.
-		int forceRandom = System::random(100);
-		int forceBonus = 250 + (forceRandom);
+			Time* cdTime = creature->getCooldownTime("channel");
 
+			// Returns -time. Multiple by -1 to return positive.
+			int timeLeft = floor((float)cdTime->miliDifference() / 1000) *-1;
+
+			stringId.setStringId("@innate:equil_wait"); // You are still recovering from your last equilization. Command available in %DI seconds.
+			stringId.setDI(timeLeft);
+			creature->sendSystemMessage(stringId);
+			return GENERALERROR;
+		}		
+		uint32 buffcrc;
+
+		uint32 buffcrc1 = BuffCRC::JEDI_AVOID_INCAPACITATION;
+
+		// Bonus is inbetween 200-300.
+		int rand = System::random(10);
+		int forceBonus = 300 + (rand * 10); // Needs to be divisible by amount of ticks.
+
+		if(creature->hasBuff(buffcrc1)) {
+			creature->sendSystemMessage("@jedi_spam:channel_ham_too_low"); // Your body is too weakened to perform that action.
+			return GENERALERROR;
+		}
 		ManagedReference<PlayerObject*> playerObject = creature->getPlayerObject();
-		if (playerObject == nullptr)
+
+		if (playerObject == NULL)
 			return GENERALERROR;
 
 		// Do not execute if the player's force bar is full.
@@ -45,7 +72,7 @@ public:
 
 		// To keep it from going over max...
 		if ((playerObject->getForcePowerMax() - playerObject->getForcePower()) < forceBonus)
-			forceBonus = ((playerObject->getForcePowerMax() - playerObject->getForcePower()) / 10) * 10;
+			forceBonus = (playerObject->getForcePowerMax() - playerObject->getForcePower());
 
 		int health = creature->getHAM(CreatureAttribute::HEALTH);
 		int action = creature->getHAM(CreatureAttribute::ACTION);
@@ -66,47 +93,23 @@ public:
 		}
 
 		// Give Force, and subtract HAM.
+
 		playerObject->setForcePower(playerObject->getForcePower() + forceBonus);
 
-		// Setup buffs.
-		uint32 buffCRC = STRING_HASHCODE("channelforcebuff");
-		Reference<Buff*> buff = creature->getBuff(buffCRC);
-		int duration = ChannelForceBuff::FORCE_CHANNEL_DURATION_SECONDS;
-		if (buff == nullptr) {
-			buff = new ChannelForceBuff(creature, buffCRC, duration);
-			
-			Locker locker(buff);
-			
-			buff->setAttributeModifier(CreatureAttribute::HEALTH, -forceBonus);
-			buff->setAttributeModifier(CreatureAttribute::ACTION, -forceBonus);
-			buff->setAttributeModifier(CreatureAttribute::MIND, -forceBonus);
+		creature->setMaxHAM(CreatureAttribute::HEALTH, maxHealth - forceBonus, true);
+		creature->setMaxHAM(CreatureAttribute::ACTION, maxAction - forceBonus, true);
+		creature->setMaxHAM(CreatureAttribute::MIND, maxMind - forceBonus, true);
+		creature->playEffect("clienteffect/pl_force_channel_self.cef", "");
 
-			creature->addBuff(buff);
-		} else {
-			Locker locker(buff, creature);
-
-			buff->setAttributeModifier(CreatureAttribute::HEALTH,
-									   buff->getAttributeModifierValue(CreatureAttribute::HEALTH)-forceBonus);
-			buff->setAttributeModifier(CreatureAttribute::ACTION,
-									   buff->getAttributeModifierValue(CreatureAttribute::ACTION)-forceBonus);
-			buff->setAttributeModifier(CreatureAttribute::MIND,
-									   buff->getAttributeModifierValue(CreatureAttribute::MIND)-forceBonus);
-			
-			creature->addMaxHAM(CreatureAttribute::HEALTH, -forceBonus);
-			creature->addMaxHAM(CreatureAttribute::ACTION, -forceBonus);
-			creature->addMaxHAM(CreatureAttribute::MIND, -forceBonus);
-			
-			creature->renewBuff(buffCRC, duration);
-			Reference<ChannelForceBuff*> channelBuff = buff.castTo<ChannelForceBuff*>();
-			if (channelBuff != nullptr)
-				channelBuff->activateRegenTick();
-		}
-
+		// Setup task.
+		Reference<ChannelForceRegenTask*> cfTask = new ChannelForceRegenTask(creature, forceBonus);
+		creature->addPendingTask("channelForceRegenTask", cfTask, 1000);
+       	creature->addCooldown("channel", 19 * 1000);
 		return SUCCESS;
 	}
 
 	float getCommandDuration(CreatureObject* object, const UnicodeString& arguments) const {
-		return defaultTime * 3.0;
+		return defaultTime * 1.0;
 	}
 
 };

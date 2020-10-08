@@ -3,7 +3,6 @@
 #define PVPTEFREMOVALTASK_H_
 
 #include "server/zone/objects/player/PlayerObject.h"
-#include "templates/params/creature/CreatureFlag.h"
 
 namespace server {
 namespace zone {
@@ -22,32 +21,23 @@ public:
 	void run() {
 		ManagedReference<CreatureObject*> player = creature.get();
 
-		if (player == nullptr)
+		if (player == NULL)
 			return;
 
 		ManagedReference<PlayerObject*> ghost = player->getPlayerObject().get();
 
-		if (ghost == nullptr) {
+		if (ghost == NULL) {
 			return;
 		}
 
 		Locker locker(player);
 
-		if (ghost->hasTef()) {
-			auto gcwCrackdownTefMs = ghost->getLastGcwCrackdownCombatActionTimestamp().miliDifference();
-			auto gcwTefMs = ghost->getLastGcwPvpCombatActionTimestamp().miliDifference();
-			auto bhTefMs = ghost->getLastBhPvpCombatActionTimestamp().miliDifference();
-			auto rescheduleTime = gcwTefMs < bhTefMs ? gcwTefMs : bhTefMs;
-			rescheduleTime = gcwCrackdownTefMs < rescheduleTime ? gcwCrackdownTefMs : rescheduleTime;
-			this->reschedule(llabs(rescheduleTime));
+		if (ghost->hasPvpTef()) {
+			this->reschedule(llabs(ghost->getLastPvpCombatActionTimestamp().miliDifference()));
 		} else {
 			ghost->updateInRangeBuildingPermissions();
-			ghost->setCrackdownTefTowards(0, false);
 			player->clearPvpStatusBit(CreatureFlag::TEF);
 		}
-
-		if (!ghost->hasBhTef())
-			player->notifyObservers(ObserverEventType::BHTEFCHANGED);
 	}
 };
 

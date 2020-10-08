@@ -9,17 +9,17 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/group/GroupObject.h"
 
-int LootContainerComponent::notifyObjectRemoved(SceneObject* sceneObject, SceneObject* object, SceneObject* destination) const {
-	if (destination != nullptr) {
-		ManagedReference<SceneObject*> rootParent = destination->getParent().get();
+int LootContainerComponent::notifyObjectRemoved(SceneObject* sceneObject, SceneObject* object, SceneObject* destination) {
+	if (destination != NULL) {
+		ManagedReference<SceneObject*> rootParent = destination->getParent();
 
-		if (rootParent != nullptr && rootParent->isCreatureObject()) {
+		if (rootParent != NULL && rootParent->isCreatureObject()) {
 			CreatureObject* creature = cast<CreatureObject*>(rootParent.get());
 
-			if (creature != nullptr) {
+			if (creature != NULL) {
 				ManagedReference<GroupObject*> group = creature->getGroup();
 
-				if (group != nullptr) {
+				if (group != NULL) {
 					StringIdChatParameter params("group", "notify_single_loot"); //[GROUP] %TU looted %TO from %TT.
 					params.setTO(object->getDisplayedName());
 					params.setTU(creature->getDisplayedName());
@@ -28,7 +28,7 @@ int LootContainerComponent::notifyObjectRemoved(SceneObject* sceneObject, SceneO
 					group->sendSystemMessage(params);
 				} else {
 					StringIdChatParameter params("base_player", "prose_item_looted_self"); //You looted: %TT.
-					params.setTT(object->getObjectID());
+					params.setTT(object);
 
 					creature->sendSystemMessage(params);
 				}
@@ -40,8 +40,8 @@ int LootContainerComponent::notifyObjectRemoved(SceneObject* sceneObject, SceneO
 }
 
 
-bool LootContainerComponent::checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) const {
-	auto permissions = sceneObject->getContainerPermissions();
+bool LootContainerComponent::checkContainerPermission(SceneObject* sceneObject, CreatureObject* creature, uint16 permission) {
+	ContainerPermissions* permissions = sceneObject->getContainerPermissions();
 	if(permission == ContainerPermissions::MOVEIN)
 		return false;
 	else if (permission == ContainerPermissions::MOVEOUT ){
@@ -51,13 +51,13 @@ bool LootContainerComponent::checkContainerPermission(SceneObject* sceneObject, 
 	return false;
 }
 
-int LootContainerComponent::canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) const {
+int LootContainerComponent::canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) {
 
 	if(sceneObject->getContainerObjectsSize() >= 0){
 		errorDescription = "@error_message:remove_only_corpse"; //You cannot place items into a corpse.
 		 return TransferErrorCode::INVALIDTYPE;
 	}
-
+	
 	return 1;
 }
 

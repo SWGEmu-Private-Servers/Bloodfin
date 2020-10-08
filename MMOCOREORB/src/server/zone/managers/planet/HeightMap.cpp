@@ -4,11 +4,11 @@ HeightMap::HeightMap() : ReadWriteLock("HeightMap"), Logger() {
 	planes = (HeightMapPlane**) malloc(PLANESSIZE * PLANESSIZE * sizeof(HeightMapPlane*));
 
 	for (int i = 0; i < PLANESSIZE * PLANESSIZE; ++i) {
-		planes[i] = nullptr;
+		planes[i] = NULL;
 	}
 
-	reader = nullptr;
-	file = nullptr;
+	reader = NULL;
+	file = NULL;
 
 	setLoggingName("HeightMap");
 	setLogging(false);
@@ -16,20 +16,20 @@ HeightMap::HeightMap() : ReadWriteLock("HeightMap"), Logger() {
 }
 
 HeightMap::~HeightMap() {
-	if (reader != nullptr) {
+	if (reader != NULL) {
 		delete reader;
-		reader = nullptr;
+		reader = NULL;
 	}
 
-	if (file != nullptr) {
+	if (file != NULL) {
 		delete file;
-		file = nullptr;
+		file = NULL;
 	}
 
 	for (int i = 0; i < PLANESSIZE * PLANESSIZE; ++i) {
 		HeightMapPlane* plane = planes[i];
 
-		if (plane != nullptr)
+		if (plane != NULL)
 			delete plane;
 	}
 
@@ -49,11 +49,11 @@ void HeightMap::load(const String& path) {
 		} else {
 			error("failed to load " + path);
 
-			reader = nullptr;
+			reader = NULL;
 		}
 	} catch (FileNotFoundException& e) {
-		reader = nullptr;
-		file = nullptr;
+		reader = NULL;
+		file = NULL;
 
 		error("failed to load " + path);
 	}
@@ -62,14 +62,10 @@ void HeightMap::load(const String& path) {
 }
 
 float HeightMap::getHeight(float x, float y) {
-	if (reader == nullptr)
+	if (reader == NULL)
 		return 0;
-#ifdef PLATFORM_WIN
-#undef isinf
-#undef isnan
-#endif
 
-	if (std::isinf(x) || std::isnan(x) || std::isinf(y) || std::isnan(y))
+	if (isinf(x) || isnan(x) || isinf(y) || isnan(y))
 		return 0;
 
 	float retHeight = 0;
@@ -82,7 +78,7 @@ float HeightMap::getHeight(float x, float y) {
 
 		HeightMapPlane* plane = planes[planePosition];
 
-		if (plane == nullptr) {
+		if (plane == NULL) {
 			//System::out << "Streaming in heightplane number " << planePosition << ".\n";
 			runlock();
 
@@ -110,16 +106,16 @@ float HeightMap::getHeightFrom(FileInputStream* file, float x, float y) {
 	if (x < -7680 || x > 7680 || y < -7680 || y > 7680)
 		return 0;
 
-	float buffer;
+	byte buffer[sizeof(float)];
 
 	int tableX = (int) x + 7680;
 	int tableY = (int) y + 7680;
 
 	uint32 offset = ((7680 * 2 + 1) * tableX + tableY) * sizeof(float);
 
-	file->read(reinterpret_cast<byte*>(&buffer), offset, sizeof(float));
+	file->read(buffer, offset, sizeof(float));
 
-	return buffer;
+	return *((float*) buffer);
 }
 
 HeightMapPlane* HeightMap::streamPlaneAt(float x, float y) {
@@ -129,7 +125,7 @@ HeightMapPlane* HeightMap::streamPlaneAt(float x, float y) {
 
 	HeightMapPlane* plane = planes[planePosition];
 
-	if (plane != nullptr) {
+	if (plane != NULL) {
 		unlock();
 		return plane;
 	}
@@ -138,7 +134,7 @@ HeightMapPlane* HeightMap::streamPlaneAt(float x, float y) {
 		plane = planes[planePosition] = new HeightMapPlane(planePosition, PLANEWIDTH);
 	} else {
 		plane = planeQueue.remove();
-		planes[plane->getIndex()] = nullptr;
+		planes[plane->getIndex()] = NULL;
 
 		planes[planePosition] = plane;
 		plane->setIndex(planePosition);
@@ -171,7 +167,7 @@ int HeightMap::getPlanePosition(float x, float y) {
 }
 
 void HeightMap::convert(const String& path) {
-	FileInputStream* reader = nullptr;
+	FileInputStream* reader = NULL;
 	try {
 		reader = new FileInputStream(new File(path));
 	} catch (...) {
@@ -180,7 +176,7 @@ void HeightMap::convert(const String& path) {
 		exit(1);
 	}
 
-	FileOutputStream* writer = nullptr;
+	FileOutputStream* writer = NULL;
 
 	try {
 		writer = new FileOutputStream(new File("converted_" + path));
@@ -238,9 +234,6 @@ void HeightMap::convert(const String& path) {
 	}
 
 	writer->close();
-
-	delete writer;
-	delete reader;
 }
 
 void HeightMap::readPlaneForConversion(FileInputStream* file, float* buffer, int planeX, int planeY) {

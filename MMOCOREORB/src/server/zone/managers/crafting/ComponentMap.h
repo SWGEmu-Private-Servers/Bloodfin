@@ -12,9 +12,9 @@
 #include "engine/util/iffstream/IffStream.h"
 #include "engine/util/Singleton.h"
 
-#include "templates/manager/TemplateManager.h"
-#include "templates/datatables/DataTableIff.h"
-#include "templates/datatables/DataTableRow.h"
+#include "server/zone/managers/templates/TemplateManager.h"
+#include "server/zone/templates/datatables/DataTableIff.h"
+#include "server/zone/templates/datatables/DataTableRow.h"
 
 #include "system/util/VectorMap.h"
 #include "system/lang/String.h"
@@ -91,7 +91,7 @@ public:
 
 		IffStream* iffStream = TemplateManager::instance()->openIffFile("datatables/crafting/component.iff");
 
-		if (iffStream == nullptr) {
+		if (iffStream == NULL) {
 			Logger::info("Could not open datatables/crafting/component.iff", true);
 			return;
 		}

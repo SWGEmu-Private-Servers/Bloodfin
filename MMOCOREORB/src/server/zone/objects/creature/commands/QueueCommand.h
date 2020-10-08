@@ -9,7 +9,13 @@
 #include "engine/engine.h"
 
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/creature/CreaturePosture.h"
+#include "server/zone/objects/creature/CreatureLocomotion.h"
+
+
 #include "server/zone/ZoneProcessServer.h"
+#include "server/zone/objects/creature/variables/Skill.h"
+//#include "../../../managers/combat/CombatManager.h"
 
 namespace server {
 namespace zone {
@@ -70,7 +76,6 @@ public:
 	const static int INVALIDSYNTAX = 13;
 	const static int TOOCLOSE = 14;
 	const static int NOSTACKJEDIBUFF = 15;
-	const static int ALREADYAFFECTEDJEDIPOWER = 16;
 
 
 	virtual ~QueueCommand() {
@@ -83,8 +88,6 @@ public:
 
 	void onStateFail(CreatureObject* creature, uint32 actioncntr) const;
 	void onLocomotionFail(CreatureObject* creature, uint32 actioncntr) const;
-
-	bool checkForArenaDuel(CreatureObject* target) const;
 
 	/**
 	 * Gets a string describing this commands syntax usage.
@@ -114,10 +117,6 @@ public:
 	 */
 	void addInvalidLocomotion(int l) {
 		invalidLocomotion.add(l);
-	}
-
-	inline bool checkDistance(SceneObject* source, SceneObject* target, float range) const {
-		return (source->getWorldPosition().distanceTo(target->getWorldPosition()) - source->getTemplateRadius() - target->getTemplateRadius() <= range);
 	}
 
 	/*
@@ -272,23 +271,23 @@ public:
 		return addToQueue;
 	}
 
-	virtual bool isCombatCommand() const {
+	virtual bool isCombatCommand() {
 		return false;
 	}
 
-	virtual bool isForceHealCommand() const {
+	virtual bool isForceHealCommand() {
 		return false;
 	}
 
-	virtual bool isJediQueueCommand() const {
+	virtual bool isJediQueueCommand() {
 		return false;
 	}
 
-	virtual bool isJediCombatCommand() const {
+	virtual bool isJediCombatCommand() {
 		return false;
 	}
 
-	bool isJediCommand() const {
+	bool isJediCommand() {
 		return (isForceHealCommand() || isJediQueueCommand() || isJediCombatCommand());
 	}
 
@@ -296,9 +295,9 @@ public:
 		return skillMods.size();
 	}
 
-	inline int getSkillMod(int index, String& skillMod) const {
+	inline int getSkillMod(int index, String& skillMod) {
 		skillMod = skillMods.elementAt(index).getKey();
-		return skillMods.elementAt(index).getValue();
+		return skillMods.get(skillMod);
 	}
 
 	inline int getCommandGroup() const {
@@ -308,18 +307,18 @@ public:
 	void addSkillMod(const String& skillMod, const int value) {
 		skillMods.put(skillMod, value);
 	}
-
+	
 	bool isWearingArmor(CreatureObject* creo) const {
 		for (int i = 0; i < creo->getSlottedObjectsSize(); ++i) {
 			SceneObject* item = creo->getSlottedObject(i);
-			if (item != nullptr && item->isArmorObject())
+			if (item != NULL && item->isArmorObject())
 				return true;
 		}
 
 		return false;
 	}
 
-	virtual void handleBuff(SceneObject* creature, ManagedObject* object, int64 param) const {
+	virtual void handleBuff(SceneObject* creature, ManagedObject* object, int64 param) {
 	}
 
 	int doCommonMedicalCommandChecks(CreatureObject* creature) const;

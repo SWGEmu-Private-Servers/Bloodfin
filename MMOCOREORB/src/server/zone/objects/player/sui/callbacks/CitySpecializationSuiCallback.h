@@ -23,10 +23,10 @@ public:
 
 		ManagedReference<CitySpecializationSession*> session = player->getActiveSession(SessionFacadeType::CITYSPEC).castTo<CitySpecializationSession*>();
 
-		if (session == nullptr)
+		if (session == NULL)
 			return;
 
-		if (!suiBox->isListBox() || cancelPressed || args->size() <= 0) {
+		if (!suiBox->isListBox() || player == NULL || cancelPressed || args->size() <= 0) {
 			session->cancelSession();
 			return;
 		}

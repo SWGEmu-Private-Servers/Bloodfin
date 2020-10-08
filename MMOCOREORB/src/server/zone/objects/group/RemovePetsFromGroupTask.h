@@ -26,7 +26,7 @@ public:
 		for (int i = 0; i < ghost->getActivePetsSize(); i++) {
 			ManagedReference<AiAgent*> pet = ghost->getActivePet(i);
 
-			if (pet == nullptr)
+			if (pet == NULL)
 				continue;
 
 			if (group->hasMember(pet)) {
@@ -34,7 +34,7 @@ public:
 
 				Locker locker(pet, player);
 
-				pet->updateGroup(nullptr);
+				pet->updateGroup(NULL);
 			}
 		}
 
@@ -43,24 +43,27 @@ public:
 			return;
 		}
 
-		ManagedReference<CreatureObject*> leader = group->getLeader();
+		ManagedReference<SceneObject*> leader = group->getLeader();
 
 		// Make sure new leader isn't a pet
-		if (leader == nullptr || !leader->isPlayerCreature()) {
+		if (leader == NULL || !leader->isPlayerCreature()) {
 			for (int i = 1; i < group->getGroupSize(); i++) {
-				ManagedReference<CreatureObject*> member = group->getGroupMember(i);
+				ManagedReference<SceneObject*> scno = group->getGroupMember(i);
 
-				if (member->isPlayerCreature()) {
-					group->makeLeader(member);
-					break;
-				}
+				if (scno == NULL)
+					continue;
+
+				if (scno->isPlayerCreature())
+					group->makeLeader(scno);
+
+				break;
 			}
 		}
 
 		leader = group->getLeader();
 
 		// Disband if only pets remain
-		if (leader == nullptr || !leader->isPlayerCreature()) {
+		if (leader == NULL || !leader->isPlayerCreature()) {
 			group->disband();
 		}
 	}

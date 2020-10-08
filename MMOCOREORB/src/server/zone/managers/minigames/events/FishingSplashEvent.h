@@ -5,8 +5,9 @@
 #ifndef FISHINGSPLASHEVENT_H_
 #define FISHINGSPLASHEVENT_H_
 
+
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "server/zone/ZoneProcessServer.h"
+#include "server/zone/ZoneServer.h"
 #include "server/zone/managers/minigames/FishingManager.h"
 
 namespace server {
@@ -38,12 +39,12 @@ public:
 			//player->info("command queue action activated");
 
 		} catch (...) {
-			//player = nullptr;
+			//player = NULL;
 
 			throw;
 		}
 
-		//player = nullptr;
+		//player = NULL;
 
 	}
 

@@ -5,16 +5,16 @@
 #ifndef SCENEOBJECTCREATEMESSAGE_H_
 #define SCENEOBJECTCREATEMESSAGE_H_
 
-#include "engine/service/proto/BaseMessage.h"
+#include "engine/engine.h"
 
 #include "server/zone/objects/scene/SceneObject.h"
 
 class SceneObjectCreateMessage : public BaseMessage {
 public:
-	SceneObjectCreateMessage(const SceneObject* scno) : BaseMessage() {
+	SceneObjectCreateMessage(SceneObject* scno) : BaseMessage() {
 		insertShort(0x05);
 		insertInt(0xFE89DDEA);  // CRC
-		insertLong(const_cast<SceneObject*>(scno)->getObjectID());  // ObjectID
+		insertLong(scno->getObjectID());  // ObjectID
 		insertFloat(scno->getDirectionX());
 		insertFloat(scno->getDirectionY());
 		insertFloat(scno->getDirectionZ());

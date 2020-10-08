@@ -8,6 +8,7 @@
 #ifndef TREEDIRECTORY_H_
 #define TREEDIRECTORY_H_
 
+#include "engine/engine.h"
 #include "TreeFileRecord.h"
 
 class TreeDirectory : public SortedVector<Reference<TreeFileRecord*> > {
@@ -29,11 +30,11 @@ public:
 		return *this;
 	}
 
-	int compare(const Reference<TreeFileRecord*>& o1, const Reference<TreeFileRecord*>& o2) const {
+	int compare(Reference<TreeFileRecord*>& o1, const Reference<TreeFileRecord*>& o2) const {
 		return o1->compareTo(*o2.get());
 	}
 
-	int compare(const Reference<TreeFileRecord*>& o1, const String& fileName) const {
+	int compare(Reference<TreeFileRecord*>& o1, const String& fileName) const {
 		return o1->compareTo(fileName);
 	}
 
@@ -44,7 +45,7 @@ public:
 	    while (l <= r) {
         	m = (l + r) / 2;
 
-        	const Reference<TreeFileRecord*>& obj = Vector<Reference<TreeFileRecord*> >::elementData[m];
+        	Reference<TreeFileRecord*>& obj = Vector<Reference<TreeFileRecord*> >::elementData[m];
         	cmp = compare(obj, fileName);
 
         	if (cmp == 0)
@@ -55,8 +56,9 @@ public:
 	            r = m - 1;
 	    }
 
-	    return -1;
+    	return -1;
 	}
 };
+
 
 #endif /* TREEDIRECTORY_H_ */

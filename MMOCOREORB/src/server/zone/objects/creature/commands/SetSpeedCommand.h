@@ -5,6 +5,8 @@
 #ifndef SETSPEEDCOMMAND_H_
 #define SETSPEEDCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class SetSpeedCommand : public QueueCommand {
 public:
 

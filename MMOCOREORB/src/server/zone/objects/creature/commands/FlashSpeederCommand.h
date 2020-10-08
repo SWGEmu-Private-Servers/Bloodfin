@@ -5,6 +5,7 @@
 #ifndef FLASHSPEEDERCOMMAND_H_
 #define FLASHSPEEDERCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
 #include "server/zone/objects/player/sui/callbacks/ReplaceFlashSpeederSuiCallback.h"
 
@@ -29,7 +30,7 @@ public:
 		if( !player->isPlayerCreature() )
 			return GENERALERROR;
 
-		if( player->getPlayerObject() == nullptr )
+		if( player->getPlayerObject() == NULL )
 			return GENERALERROR;
 
 		// Player must have chosen flash speeder as a veteran reward
@@ -39,7 +40,7 @@ public:
 		}
 
 		// Player must have enough credits
-		if(!player->verifyCredits(ReplaceFlashSpeederSuiCallback::FLASH_SPEEDER_COST)){
+		if( player->getCashCredits() + player->getBankCredits() < ReplaceFlashSpeederSuiCallback::FLASH_SPEEDER_COST ){
 			player->sendSystemMessage( "@veteran:flash_speeder_no_credits" ); // "You do not have enough credits to receive a replacement."
 			return GENERALERROR;
 		}

@@ -4,13 +4,18 @@
 
 package server.zone.objects.intangible;
 
+import engine.lua.LuaObject;
 import server.zone.objects.intangible.IntangibleObject;
+import server.zone.objects.creature.VehicleObject;
 import server.zone.objects.creature.CreatureObject;
 import server.zone.objects.tangible.TangibleObject;
+import server.zone.objects.scene.SceneObject;
+import server.zone.Zone;
+include server.zone.managers.radial.RadialOptions;
+import server.zone.objects.creature.CreatureObject;
 include server.zone.objects.scene.variables.ContainerPermissions;
 
 @lua
-@json
 class ControlDevice extends IntangibleObject {
 	@weakReference
 	protected TangibleObject controlledObject;
@@ -22,9 +27,9 @@ class ControlDevice extends IntangibleObject {
 		Logger.setLogging(false);
 		Logger.setGlobalLogging(true);
 
-		ContainerPermissions permissions = super.getContainerPermissionsForUpdate();
+		super.getContainerPermissions().setInheritPermissionsFromParent(true);
 
-		permissions.setInheritPermissionsFromParent(true);
+		ContainerPermissions permissions = super.getContainerPermissions();
 		permissions.clearDefaultDenyPermission(ContainerPermissions.MOVECONTAINER);
 		permissions.clearDenyPermission("owner", ContainerPermissions.MOVECONTAINER);
 	}
@@ -38,7 +43,7 @@ class ControlDevice extends IntangibleObject {
 	public void updateToDatabaseAllObjects(boolean startTask) {
 		TangibleObject obj = controlledObject;
 
-		if (obj) {
+		if (obj != null) {
 			obj.updateToDatabaseWithoutChildren();
 
 			super.updateToDatabaseAllObjects(startTask);

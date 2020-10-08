@@ -15,9 +15,9 @@ public:
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
 
-		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().get().castTo<PetControlDevice*>();
+		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().castTo<PetControlDevice*>();
 
-		if (controlDevice == nullptr)
+		if (controlDevice == NULL)
 			return GENERALERROR;
 
 		// Creature specific command
@@ -28,16 +28,16 @@ public:
 			return GENERALERROR;
 
 		ManagedReference<AiAgent*> pet = cast<AiAgent*>(creature);
-		if( pet == nullptr )
+		if( pet == NULL )
 			return GENERALERROR;
 
 		ManagedReference< CreatureObject*> player = pet->getLinkedCreature().get();
-		if( player == nullptr )
+		if( player == NULL )
 			return GENERALERROR;
 
 		ManagedReference<SceneObject*> commandTarget = server->getZoneServer()->getObject(target);
 
-		if (commandTarget == nullptr || !commandTarget->isPlayerCreature()) {
+		if (commandTarget == NULL || !commandTarget->isPlayerCreature()) {
 			player->sendSystemMessage("Your target must be a player to transfer a pet.");
 			return GENERALERROR;
 		}
@@ -46,7 +46,7 @@ public:
 
 		Locker targetCrosslocker(targetPlayer, creature);
 
-		if (!checkDistance(player, targetPlayer, 15)) {
+		if (!player->isInRange(targetPlayer, 15)) {
 			player->sendSystemMessage("@error_message:target_out_of_range"); // Your target is out of range for this action.
 			return GENERALERROR;
 		}
@@ -63,7 +63,7 @@ public:
 		ManagedReference<PlayerObject*> targetGhost = targetPlayer->getPlayerObject();
 		ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
 
-		if (targetGhost == nullptr || ghost == nullptr)
+		if (targetGhost == NULL || ghost == NULL)
 			return GENERALERROR;
 
 		int activePets = 0;
@@ -74,7 +74,7 @@ public:
 
 			ManagedReference<PetControlDevice*> device = targetPet->getControlDevice().get().castTo<PetControlDevice*>();
 
-			if (device == nullptr)
+			if (device == NULL)
 				continue;
 
 			if (device->getPetType() == PetManager::CREATUREPET) {
@@ -99,13 +99,12 @@ public:
 
 		ManagedReference<SceneObject*> targetDatapad = targetPlayer->getSlottedObject("datapad");
 
-		if (targetDatapad == nullptr)
+		if (targetDatapad == NULL)
 			return GENERALERROR;
 
 		pet->setCreatureLink(targetPlayer);
 		pet->setFaction(targetPlayer->getFaction());
 		pet->setFollowObject(targetPlayer);
-		pet->storeFollowObject();
 
 		if (targetPlayer->getPvpStatusBitmask() & CreatureFlag::PLAYER)
 			pet->setPvpStatusBitmask(targetPlayer->getPvpStatusBitmask() - CreatureFlag::PLAYER, true);

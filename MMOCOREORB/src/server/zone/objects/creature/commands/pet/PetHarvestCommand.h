@@ -4,7 +4,10 @@
 
 #include "server/zone/objects/creature/commands/QueueCommand.h"
 #include "server/zone/objects/creature/ai/AiAgent.h"
+#include "server/zone/objects/scene/ObserverEventType.h"
+#include "server/zone/managers/creature/PetManager.h"
 #include "server/zone/objects/tangible/components/droid/DroidHarvestModuleDataComponent.h"
+#include "server/zone/objects/intangible/tasks/EnqueuePetCommand.h"
 
 class PetHarvestCommand : public QueueCommand {
 public:
@@ -14,33 +17,33 @@ public:
 
 
 	int doQueueCommand(CreatureObject* creature, const uint64& targetID, const UnicodeString& arguments) const {
-		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().get().castTo<PetControlDevice*>();
-		if (controlDevice == nullptr)
+		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().castTo<PetControlDevice*>();
+		if (controlDevice == NULL)
 			return GENERALERROR;
 
 		ManagedReference<AiAgent*> pet = cast<AiAgent*>(creature);
-		if( pet == nullptr )
+		if( pet == NULL )
 			return GENERALERROR;
 		if (pet->hasRidingCreature())
 			return GENERALERROR;
 
 		ManagedReference<CreatureObject*> owner = pet->getLinkedCreature().get();
-		if (owner == nullptr) {
+		if (owner == NULL) {
 			return GENERALERROR;
 		}
 
 		Locker olock(owner);
 		// RE-DO here, pull target form harvest target list on module. and ignore the target id passed in.
 		ManagedReference<DroidObject*> droid = cast<DroidObject*>(creature);
-		if( droid == nullptr )
+		if( droid == NULL )
 			return GENERALERROR;
 
-		if(droid->getPendingTask("harvest_check") != nullptr) {
+		if(droid->getPendingTask("harvest_check") != NULL) {
 			droid->removePendingTask("harvest_check");
 		}
 
-		auto module = droid->getModule("harvest_module").castTo<DroidHarvestModuleDataComponent*>();
-		if(module == nullptr) {
+		DroidHarvestModuleDataComponent* module = cast<DroidHarvestModuleDataComponent*>(droid->getModule("harvest_module"));
+		if(module == NULL) {
 			return GENERALERROR;
 		}
 		uint64 droidTarget = module->getNextHarvestTarget();
@@ -50,7 +53,7 @@ public:
 		// end re-do
 		Reference<CreatureObject*> target = server->getZoneServer()->getObject(droidTarget, true).castTo<CreatureObject*>();
 
-		if (target == nullptr || !target->isCreature()) {
+		if (target == NULL || !target->isCreature()) {
 			owner->sendSystemMessage("@pet/droid_modules:invalid_harvest_target");
 			return GENERALERROR;
 		}
@@ -61,13 +64,12 @@ public:
 		}
 
 		Creature* cr = cast<Creature*>(target.get());
-
-		if (cr->getZone() == nullptr)
+		if (cr->getZone() == NULL)
 			return GENERALERROR;
 		// Check if droid is spawned
-		if( droid->getLocalZone() == nullptr ){  // Not outdoors
-			ManagedReference<SceneObject*> parent = droid->getParent().get();
-			if( parent == nullptr || !parent->isCellObject() ){ // Not indoors either
+		if( droid->getLocalZone() == NULL ){  // Not outdoors
+			ManagedWeakReference<SceneObject*> parent = droid->getParent();
+			if( parent == NULL || !parent.get()->isCellObject() ){ // Not indoors either
 				return GENERALERROR;
 			}
 		}
@@ -83,7 +85,7 @@ public:
 			return GENERALERROR;
 		}
 
-		if (!checkDistance(target, droid,7.0f)) { // this should run the droid to the target for harvesting
+		if (!target->isInRange(droid,7.0f)) { // this should run the droid to the target for harvesting
 			module->addHarvestTarget(droidTarget,true);
 			droid->setTargetObject(target);
 			droid->activateMovementEvent();
@@ -137,29 +139,23 @@ public:
 			if(!cr->getBoneType().isEmpty()) {
 				types.add(236);
 			}
-
 			if(types.size() > 0)
-				type = types.get(System::random(types.size() - 1));
+				type = types.get(System::random(types.size() -1));
 		}
 
 		if (type == 0) {
 			owner->sendSystemMessage("@pet/droid_modules:no_resources_to_harvest");
 			return GENERALERROR;
 		}
-
 		if (cr->getDnaState() == CreatureManager::DNADEATH) {
 			owner->sendSystemMessage("@pet/droid_modules:no_resources_to_harvest");
 			return GENERALERROR;
 		}
-
 		tpLock.release();
 		Locker clock(target,droid);
-
 		ManagedReference<CreatureManager*> manager = cr->getZone()->getCreatureManager();
 		manager->droidHarvest(cr, droid, type,bonus);
 		droid->restoreFollowObject();
-
-
 		return SUCCESS;
 	}
 

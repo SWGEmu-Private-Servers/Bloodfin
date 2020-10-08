@@ -1,8 +1,9 @@
 #ifndef HARVESTEROBJECTMESSAGE7_H_
 #define HARVESTEROBJECTMESSAGE7_H_
 
-#include "server/zone/packets/BaseLineMessage.h"
-#include "server/zone/objects/installation/InstallationObject.h"
+#include "../BaseLineMessage.h"
+
+#include "server/zone/objects/installation/harvester/HarvesterObject.h"
 #include "server/zone/objects/resource/ResourceSpawn.h"
 #include "server/zone/managers/resource/ResourceManager.h"
 #include "server/zone/Zone.h"
@@ -65,7 +66,7 @@ public:
 
 	}
 
-	void insertResourceIDList(const Vector<ManagedReference<ResourceSpawn*> >* hino) {
+	void insertResourceIDList(Vector<ManagedReference<ResourceSpawn*> >* hino) {
 		for (int x = 0; x < 2; x++) {
 			insertInt(hino->size());
 			insertInt(hino->size());
@@ -75,7 +76,7 @@ public:
 		}
 	}
 
-	void insertResourceNameList(const Vector<ManagedReference<ResourceSpawn*> >* hino) {
+	void insertResourceNameList(Vector<ManagedReference<ResourceSpawn*> >* hino) {
 		insertInt(hino->size());
 		insertInt(hino->size());
 		for (int i = 0; i < hino->size(); i++) {
@@ -83,7 +84,7 @@ public:
 		}
 	}
 
-	void insertResourceTypeList(const Vector<ManagedReference<ResourceSpawn*> >* hino) {
+	void insertResourceTypeList(Vector<ManagedReference<ResourceSpawn*> >* hino) {
 		insertInt(hino->size());
 		insertInt(hino->size());
 		for (int i = 0; i < hino->size(); i++) {
@@ -102,5 +103,4 @@ public:
 		hopperList->insertToMessage(this);
 	}
 };
-
 #endif /*HARVESTEROBJECTMESSAGE7_H_*/

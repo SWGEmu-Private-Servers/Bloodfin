@@ -9,8 +9,10 @@
 #include "server/chat/ChatManager.h"
 #include "server/zone/Zone.h"
 
+#include "server/zone/managers/object/ObjectManager.h"
 #include "server/zone/objects/waypoint/WaypointObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
+#include "server/zone/objects/cell/CellObject.h"
 
 class FindFriendCommand : public QueueCommand {
 public:
@@ -41,11 +43,11 @@ public:
 
 		ManagedReference<CreatureObject*> targetPlayer = chatManager->getPlayer(name);
 
-		if (targetPlayer == nullptr) {
-			StringIdChatParameter message("@ui_cmnty:friend_location_failed"); // Unable to locate %TU
-			message.setTU(name);
+		if (targetPlayer == NULL) {
+			ManagedReference<StringIdChatParameter*> message = new StringIdChatParameter("@ui_cmnty:friend_location_failed"); // Unable to locate %TU
+			message->setTU(name);
 
-			player->sendSystemMessage(message);
+			player->sendSystemMessage(*message);
 			return GENERALERROR;
 		}
 
@@ -53,20 +55,20 @@ public:
 		String myFirstName = player->getFirstName().toLowerCase();
 
 		if (!targetGhost->hasFriend(myFirstName)) {
-			StringIdChatParameter message("@ui_cmnty:friend_location_failed"); // Unable to locate %TU
-			message.setTU(name);
+			ManagedReference<StringIdChatParameter*> message = new StringIdChatParameter("@ui_cmnty:friend_location_failed"); // Unable to locate %TU
+			message->setTU(name);
 
-			player->sendSystemMessage(message);
+			player->sendSystemMessage(*message);
 			return GENERALERROR;
 		}
 
 		Zone* zone = targetPlayer->getZone();
 
-		if (zone == nullptr) {
-			StringIdChatParameter message("@ui_cmnty:friend_location_failed"); // Unable to locate %TU
-			message.setTU(name);
+		if (zone == NULL) {
+			ManagedReference<StringIdChatParameter*> message = new StringIdChatParameter("@ui_cmnty:friend_location_failed"); // Unable to locate %TU
+			message->setTU(name);
 
-			player->sendSystemMessage(message);
+			player->sendSystemMessage(*message);
 			return GENERALERROR;
 		}
 
@@ -74,10 +76,10 @@ public:
 
 		float x, z = 0, y;
 
-		ManagedReference<SceneObject*> parent = targetPlayer->getParent().get();
+		ManagedReference<SceneObject*> parent = targetPlayer->getParent();
 
-		if (parent != nullptr && parent->isCellObject()) {
-			ManagedReference<SceneObject*> building = parent->getParent().get();
+		if (parent != NULL && parent->isCellObject()) {
+			ManagedReference<SceneObject*> building = parent->getParent();
 
 			x = building->getPositionX();
 			y = building->getPositionY();
@@ -98,10 +100,10 @@ public:
 
 		ghost->addWaypoint(obj, true, true);
 
-		StringIdChatParameter message("@ui_cmnty:friend_location"); // The friend waypoint has been updated to the location of %TU.
-		message.setTU(name);
+		ManagedReference<StringIdChatParameter*> message = new StringIdChatParameter("@ui_cmnty:friend_location"); // The friend waypoint has been updated to the location of %TU.
+		message->setTU(name);
 
-		player->sendSystemMessage(message);
+		player->sendSystemMessage(*message);
 
 		return SUCCESS;
 	}

@@ -8,6 +8,8 @@
 #ifndef LOGINCLIENTTHREAD_H_
 #define LOGINCLIENTTHREAD_H_
 
+#include "engine/engine.h"
+
 #include "LoginClient.h"
 
 class LoginClientThread : public Thread {
@@ -21,7 +23,7 @@ public:
 	}
 
 	~LoginClientThread() {
-		client = nullptr;
+		client = NULL;
 
 	#ifdef WITH_STM
 		TransactionalMemoryManager::closeThread();
@@ -36,5 +38,6 @@ public:
 		client->stop();
 	}
 };
+
 
 #endif /* LOGINCLIENTTHREAD_H_ */

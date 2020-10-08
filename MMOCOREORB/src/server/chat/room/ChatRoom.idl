@@ -12,14 +12,14 @@ import system.lang.Time;
 import engine.service.proto.BaseMessage;
 import server.zone.ZoneServer;
 import server.zone.objects.creature.CreatureObject;
+import server.zone.managers.objectcontroller.ObjectController;
 import server.chat.ChatManager;
 include system.thread.ReadWriteLock;
 
-@json
 class ChatRoom extends ManagedObject {
 	protected transient ZoneServer server;
 	protected transient ChatManager manager;
-
+	
 	protected string name;
 	protected string fullPath;
 
@@ -50,7 +50,7 @@ class ChatRoom extends ManagedObject {
 	@dereferenced
 	protected transient ReadWriteLock subRoomsMutex;
 
-	@dereferenced
+	@dereferenced 
 	protected transient VectorMap<string, CreatureObject> playerList;
 
 	@dereferenced
@@ -95,16 +95,12 @@ class ChatRoom extends ManagedObject {
 	}
 
 	public native void init(ZoneServer serv, ChatRoom parent, final string roomName);
-
-	@dirty
 	public native void sendTo(CreatureObject player);
-
-	@dirty
 	public native void sendDestroyTo(CreatureObject player);
 
 ////////////////////////////////////////////////////////////////////////////////////////
 //                              SubRoom Management
-
+	
 	public void addSubRoom(final string name, unsigned int roomID) {
 		synchronized (subRoomsMutex) {
 			subRooms.put(name, roomID);
@@ -154,15 +150,17 @@ class ChatRoom extends ManagedObject {
 	public int getPlayerSize() {
 		return playerList.size();
 	}
-
+	
 	@dirty
-	public native CreatureObject getPlayer(int idx);
+	public CreatureObject getPlayer(int idx) {
+		return playerList.get(idx);
+	}
 
 	@dirty
 	public synchronized boolean hasPlayer(CreatureObject player) {
 		return playerList.contains(player.getFirstName());
 	}
-
+	
 	@dirty
 	public synchronized boolean hasPlayer(final string name) {
 		return playerList.contains(name);
@@ -190,7 +188,7 @@ class ChatRoom extends ManagedObject {
 
 	@dirty
 	public native string getModeratorName(int idx);
-
+		
 	@dirty
 	public synchronized boolean hasModerator(CreatureObject player) {
 		return moderatorList.contains(player.getObjectID());
@@ -254,22 +252,32 @@ class ChatRoom extends ManagedObject {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-	@dirty
-	@local
 	public native void broadcastMessage(BaseMessage msg);
-
-	@dirty
-	@local
-	public native void broadcastMessageCheckIgnore(BaseMessage msg, final string senderName );
+	public native void broadcastMessageCheckIgnore(BaseMessage msg, string senderName );
 
 	@dirty
 	public native int checkEnterPermission(CreatureObject player);
 
 	@local
-	public native void broadcastMessages(Vector<BaseMessage> messages);
+	public synchronized void broadcastMessages(Vector<BaseMessage> messages) {
+		for (int i = 0; i < playerList.size(); ++i) {
+			CreatureObject player = playerList.get(i);
+
+			for (int j = 0; j < messages.size(); ++j) {
+				BaseMessage msg = messages.get(j);
+				player.sendMessage(msg.clone());
+			}
+		}
+
+		for (int j = 0; j < messages.size(); ++j) {
+			BaseMessage msg = messages.get(j);
+			msg.finalize();
+		}
+
+		messages.removeAll();
+	}
 
 	@dirty
-	@reference
 	public ChatRoom getParent() {
 		return manager.getChatRoom(parentRoomID);
 	}
@@ -309,7 +317,7 @@ class ChatRoom extends ManagedObject {
 	public void setAllowSubrooms(boolean value) {
 		allowSubrooms = value;
 	}
-
+	
 	@read
 	public boolean isModerated() {
 		return moderated;
@@ -371,7 +379,7 @@ class ChatRoom extends ManagedObject {
 	public unicode getTitle() {
 		return title;
 	}
-
+	
 	@dirty
 	public unsigned int getLastJoinTime() {
 		return lastJoin.miliDifference();
@@ -427,12 +435,12 @@ class ChatRoom extends ManagedObject {
 		disabled = value;
 	}
 
-	@read
+	@dirty
 	public boolean isDisabled() {
 		return disabled == true;
 	}
 
-	@read
+	@dirty
 	public boolean isPersistent() {
 		return roomType == CUSTOM;
 	}

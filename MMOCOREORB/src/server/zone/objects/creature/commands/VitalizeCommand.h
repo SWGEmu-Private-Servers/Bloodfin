@@ -5,6 +5,8 @@
 #ifndef VITALIZECOMMAND_H_
 #define VITALIZECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class VitalizeCommand : public QueueCommand {
 public:
 
@@ -33,7 +35,7 @@ public:
 		if (!player->checkCooldownRecovery("innate_vitalize")) {
 			StringIdChatParameter stringId;
 
-			const Time* cdTime = player->getCooldownTime("innate_vitalize");
+			Time* cdTime = player->getCooldownTime("innate_vitalize");
 
 			// Returns -time. Multiple by -1 to return positive.
 			int timeLeft = floor((float)cdTime->miliDifference() / 1000) *-1;

@@ -8,7 +8,8 @@
 #include "server/zone/objects/tangible/deed/vehicle/VehicleDeed.h"
 #include"server/zone/ZoneServer.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
-#include "templates/tangible/VehicleDeedTemplate.h"
+#include "server/zone/objects/manufactureschematic/ManufactureSchematic.h"
+#include "server/zone/templates/tangible/VehicleDeedTemplate.h"
 #include "server/zone/objects/intangible/VehicleControlDevice.h"
 #include "server/zone/objects/creature/VehicleObject.h"
 #include "server/zone/managers/player/PlayerManager.h"
@@ -18,7 +19,7 @@ void VehicleDeedImplementation::loadTemplateData(SharedObjectTemplate* templateD
 
 	VehicleDeedTemplate* deedData = dynamic_cast<VehicleDeedTemplate*>(templateData);
 
-	if (deedData == nullptr)
+	if (deedData == NULL)
 		return;
 
 	controlDeviceObjectTemplate = deedData->getControlDeviceObjectTemplate();
@@ -49,23 +50,25 @@ void VehicleDeedImplementation::updateCraftingValues(CraftingValues* values, boo
 void VehicleDeedImplementation::fillObjectMenuResponse(ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	DeedImplementation::fillObjectMenuResponse(menuResponse, player);
 
-	if (isASubChildOf(player))
+	if(isASubChildOf(player))
 		menuResponse->addRadialMenuItem(20, 3, "@pet/pet_menu:menu_generate");
 }
 
 int VehicleDeedImplementation::handleObjectMenuSelect(CreatureObject* player, byte selectedID) {
+
 	if (selectedID == 20) {
+
 		if (generated || !isASubChildOf(player))
 			return 1;
 
-		if (player->isInCombat() || player->getParentRecursively(SceneObjectType::BUILDING) != nullptr) {
+		if (player->isInCombat() || player->getParentRecursively(SceneObjectType::BUILDING) != NULL) {
 			player->sendSystemMessage("@pet/pet_menu:cant_call_vehicle"); //You can only unpack vehicles while Outside and not in Combat.
 			return 1;
 		}
 
 		ManagedReference<SceneObject*> datapad = player->getSlottedObject("datapad");
 
-		if (datapad == nullptr) {
+		if (datapad == NULL) {
 			player->sendSystemMessage("Datapad doesn't exist when trying to create vehicle");
 			return 1;
 		}
@@ -79,7 +82,7 @@ int VehicleDeedImplementation::handleObjectMenuSelect(CreatureObject* player, by
 		for (int i = 0; i < datapad->getContainerObjectsSize(); i++) {
 			Reference<SceneObject*> obj =  datapad->getContainerObject(i).castTo<SceneObject*>();
 
-			if (obj != nullptr && obj->isVehicleControlDevice() )
+			if (obj != NULL && obj->isVehicleControlDevice() )
 				vehiclesInDatapad++;
 
 		}
@@ -91,7 +94,7 @@ int VehicleDeedImplementation::handleObjectMenuSelect(CreatureObject* player, by
 
 		Reference<VehicleControlDevice*> vehicleControlDevice = (server->getZoneServer()->createObject(controlDeviceObjectTemplate.hashCode(), 1)).castTo<VehicleControlDevice*>();
 
-		if (vehicleControlDevice == nullptr) {
+		if (vehicleControlDevice == NULL) {
 			player->sendSystemMessage("wrong vehicle control device object template " + controlDeviceObjectTemplate);
 			return 1;
 		}
@@ -100,7 +103,7 @@ int VehicleDeedImplementation::handleObjectMenuSelect(CreatureObject* player, by
 
 		Reference<VehicleObject*> vehicle = (server->getZoneServer()->createObject(generatedObjectTemplate.hashCode(), 1)).castTo<VehicleObject*>();
 
-		if (vehicle == nullptr) {
+		if (vehicle == NULL) {
 			vehicleControlDevice->destroyObjectFromDatabase(true);
 			player->sendSystemMessage("wrong vehicle object template " + generatedObjectTemplate);
 			return 1;

@@ -5,12 +5,13 @@
  *      Author: victor
  */
 
+#include "server/zone/ZoneProcessServer.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/mission/MissionObjective.h"
 #include "server/zone/objects/mission/MissionObserver.h"
 #include "server/zone/objects/mission/MissionObject.h"
 #include "server/zone/managers/planet/PlanetManager.h"
-#include "terrain/manager/TerrainManager.h"
+#include "server/zone/managers/terrain/TerrainManager.h"
 #include "server/zone/managers/object/ObjectManager.h"
 #include "server/zone/Zone.h"
 #include "server/zone/objects/player/PlayerObject.h"
@@ -20,7 +21,7 @@
 #include "server/zone/packets/player/PlayMusicMessage.h"
 #include "server/zone/objects/mission/events/FailMissionAfterCertainTimeTask.h"
 #include "events/CompleteMissionObjectiveTask.h"
-#include "server/zone/objects/transaction/TransactionLog.h"
+#include "server/zone/objects/group/GroupObject.h"
 
 void MissionObjectiveImplementation::destroyObjectFromDatabase() {
 	for (int i = 0; i < observers.size(); ++i) {
@@ -34,26 +35,26 @@ void MissionObjectiveImplementation::destroyObjectFromDatabase() {
 	ObjectManager::instance()->destroyObjectFromDatabase(_this.getReferenceUnsafeStaticCast()->_getObjectID());
 }
 
-Reference<CreatureObject*> MissionObjectiveImplementation::getPlayerOwner() {
+ManagedWeakReference<CreatureObject*> MissionObjectiveImplementation::getPlayerOwner() {
 	ManagedReference<MissionObject*> strongReference = mission.get();
+	ManagedWeakReference<CreatureObject*> weak;
 
-	if (strongReference != nullptr)
-		return strongReference->getParentRecursively(SceneObjectType::PLAYERCREATURE).castTo<CreatureObject*>();
+	if (strongReference != NULL)
+		weak = cast<CreatureObject*>( strongReference->getParentRecursively(SceneObjectType::PLAYERCREATURE).get().get());
 
-	return nullptr;
+	return weak;
 }
 
 void MissionObjectiveImplementation::activate() {
 	if (!activated) {
 		activated = true;
-		int64 timeElapsed = missionStartTime.miliDifference();
-		int64 timeRemaining = MISSIONDURATION - timeElapsed;
+		timeRemaining -= missionStartTime.miliDifference();
 
 		if (timeRemaining < 1) {
 			timeRemaining = 1;
 		}
 
-		failTask = new FailMissionAfterCertainTimeTask(mission.get());
+		failTask = new FailMissionAfterCertainTimeTask(_this.getReferenceUnsafeStaticCast());
 		failTask->schedule(timeRemaining);
 	}
 }
@@ -63,7 +64,7 @@ void MissionObjectiveImplementation::complete() {
 
 	ManagedReference<CreatureObject*> player = getPlayerOwner();
 
-	if (player == nullptr)
+	if (player == NULL)
 		return;
 
 	_lock.release();
@@ -71,13 +72,17 @@ void MissionObjectiveImplementation::complete() {
 	Reference<CompleteMissionObjectiveTask*> task = new CompleteMissionObjectiveTask(_this.getReferenceUnsafeStaticCast());
 	task->execute();
 
-	if (player->isGrouped() && player->getGroup() != nullptr) {
+	if (player->isGrouped() && player->getGroup() != NULL) {
 		GroupObject* group = player->getGroup();
 		Locker locker(group);
 		group->scheduleUpdateNearestMissionForGroup(player->getPlanetCRC());
 	}
 
-	clearFailTask();
+	/*awardReward();
+
+	awardFactionPoints();
+
+	removeMissionFromPlayer();*/
 }
 
 void MissionObjectiveImplementation::addObserver(MissionObserver* observer, bool makePersistent) {
@@ -85,49 +90,42 @@ void MissionObjectiveImplementation::addObserver(MissionObserver* observer, bool
 
 	if (makePersistent) {
 		ObjectManager::instance()->persistObject(observer, 1, "missionobservers");
-	} else if (!observer->isDeployed())
+	} else if (!observer->isDeplyoed())
 		observer->deploy();
 
 	observers.put(observer);
 }
 
 void MissionObjectiveImplementation::abort() {
-	clearFailTask();
-}
-
-void MissionObjectiveImplementation::clearFailTask() {
-	if (failTask != nullptr) {
-		if (failTask->isScheduled())
-			failTask->cancel();
-
-		failTask = nullptr;
+	if (failTask != NULL && failTask->isScheduled()) {
+		failTask->cancel();
 	}
 }
 
 void MissionObjectiveImplementation::awardFactionPoints() {
 	ManagedReference<MissionObject* > mission = this->mission.get();
 
-	if(mission == nullptr)
+	if(mission == NULL)
 		return;
 
 	int factionPointsRebel = mission->getRewardFactionPointsRebel();
 	int factionPointsImperial = mission->getRewardFactionPointsImperial();
 
-	if ((factionPointsRebel <= 0 && factionPointsImperial <= 0) || mission->getFaction() == Factions::FACTIONNEUTRAL) {
+	if ((factionPointsRebel <= 0 && factionPointsImperial <= 0) || mission->getFaction() == FactionManager::FACTIONNEUTRAL) {
 		return;
 	}
 
 	//Award faction points for faction delivery missions.
 	ManagedReference<CreatureObject*> creatureOwner = getPlayerOwner();
 
-	if (creatureOwner != nullptr) {
+	if (creatureOwner != NULL) {
 		ManagedReference<PlayerObject*> ghost = creatureOwner->getPlayerObject();
-		if (ghost != nullptr) {
+		if (ghost != NULL) {
 			Locker lockerGroup(creatureOwner, _this.getReferenceUnsafeStaticCast());
 
 			//Switch to get the correct order.
 			switch (mission->getFaction()) {
-			case Factions::FACTIONIMPERIAL:
+			case FactionManager::FACTIONIMPERIAL:
 				if (factionPointsImperial > 0) {
 					ghost->increaseFactionStanding("imperial", factionPointsImperial);
 				}
@@ -135,7 +133,7 @@ void MissionObjectiveImplementation::awardFactionPoints() {
 					ghost->decreaseFactionStanding("rebel", -factionPointsRebel);
 				}
 				break;
-			case Factions::FACTIONREBEL:
+			case FactionManager::FACTIONREBEL:
 				if (factionPointsRebel > 0) {
 					ghost->increaseFactionStanding("rebel", factionPointsRebel);
 				}
@@ -152,7 +150,7 @@ void MissionObjectiveImplementation::removeMissionFromPlayer() {
 	ManagedReference<CreatureObject*> player = getPlayerOwner();
 	ManagedReference<MissionObject* > mission = this->mission.get();
 
-	if (player != nullptr && mission != nullptr) {
+	if (player != NULL && mission != NULL) {
 		ZoneServer* zoneServer = player->getZoneServer();
 		MissionManager* missionManager = zoneServer->getMissionManager();
 
@@ -168,7 +166,7 @@ void MissionObjectiveImplementation::fail() {
 void MissionObjectiveImplementation::awardReward() {
 	ManagedReference<MissionObject* > mission = this->mission.get();
 
-	if(mission == nullptr)
+	if(mission == NULL)
 		return;
 
 	Vector<ManagedReference<CreatureObject*> > players;
@@ -182,25 +180,17 @@ void MissionObjectiveImplementation::awardReward() {
 
 	int playerCount = 1;
 
-	if (group != nullptr) {
+	if (group != NULL) {
 		Locker lockerGroup(group, _this.getReferenceUnsafeStaticCast());
 
 		playerCount = group->getNumberOfPlayerMembers();
 
-#ifdef LOCKFREE_BCLIENT_BUFFERS
-	Reference<BasePacket*> pack = pmm;
-#endif
+		for(int i = 0; i < group->getGroupSize(); i++) {
+			Reference<CreatureObject*> groupMember = group->getGroupMember(i)->isPlayerCreature() ? (group->getGroupMember(i)).castTo<CreatureObject*>() : NULL;
 
-		for (int i = 0; i < group->getGroupSize(); i++) {
-			Reference<CreatureObject*> groupMember = group->getGroupMember(i);
-
-			if (groupMember != nullptr && groupMember->isPlayerCreature()) {
+			if (groupMember != NULL) {
 				//Play mission complete sound.
-#ifdef LOCKFREE_BCLIENT_BUFFERS
-				groupMember->sendMessage(pack);
-#else
 				groupMember->sendMessage(pmm->clone());
-#endif
 
 				if (groupMember->getWorldPosition().distanceTo(missionEndPoint) < 128) {
 					players.add(groupMember);
@@ -208,9 +198,7 @@ void MissionObjectiveImplementation::awardReward() {
 			}
 		}
 
-#ifndef LOCKFREE_BCLIENT_BUFFERS
 		delete pmm;
-#endif
 	} else {
 		//Play mission complete sound.
 		owner->sendMessage(pmm);
@@ -233,7 +221,7 @@ void MissionObjectiveImplementation::awardReward() {
 		owner->sendSystemMessage("@mission/mission_generic:group_too_far"); // Mission Alert! Some group members are too far away from the group to receive their reward and and are not eligible for reward.
 	}
 
-	int dividedReward = mission->getRewardCredits() / Math::max(divisor, 1);
+	int dividedReward = mission->getRewardCredits() / divisor;
 
 	for (int i = 0; i < players.size(); i++) {
 		ManagedReference<CreatureObject*> player = players.get(i);
@@ -242,11 +230,10 @@ void MissionObjectiveImplementation::awardReward() {
 		player->sendSystemMessage(stringId);
 
 		Locker lockerPl(player, _this.getReferenceUnsafeStaticCast());
-		TransactionLog trx(TrxCode::MISSIONSYSTEMDYNAMIC, player, dividedReward, false);
 		player->addBankCredits(dividedReward, true);
 	}
 
-	if (group != nullptr) {
+	if (group != NULL) {
 		if (expanded) {
 			owner->sendSystemMessage("@mission/mission_generic:group_expanded"); // Group Mission Success! Reward credits have been transmitted to the bank account of all group members in the immediate area. They have been recalculated to reflect the newly added members.
 		} else {
@@ -263,10 +250,10 @@ Vector3 MissionObjectiveImplementation::getEndPosition() {
 	ManagedReference<MissionObject* > mission = this->mission.get();
 
 	Vector3 missionEndPoint;
-	if(mission != nullptr) {
+	if(mission != NULL) {
 		missionEndPoint.setX(mission->getEndPositionX());
 		missionEndPoint.setY(mission->getEndPositionY());
-		TerrainManager* terrain = getPlayerOwner()->getZone()->getPlanetManager()->getTerrainManager();
+		TerrainManager* terrain = getPlayerOwner().get()->getZone()->getPlanetManager()->getTerrainManager();
 		missionEndPoint.setZ(terrain->getHeight(missionEndPoint.getX(), missionEndPoint.getY()));
 	}
 

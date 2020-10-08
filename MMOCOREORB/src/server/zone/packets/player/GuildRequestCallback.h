@@ -8,7 +8,7 @@
 #ifndef GUILDREQUESTCALLBACK_H_
 #define GUILDREQUESTCALLBACK_H_
 
-#include "server/zone/packets/MessageCallback.h"
+#include "../MessageCallback.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "GuildResponseMessage.h"
 
@@ -28,7 +28,7 @@ public:
 	void run() {
 		ManagedReference<SceneObject*> obj = server->getZoneServer()->getObject(objectID);
 
-		if (obj == nullptr || !obj->isCreatureObject())
+		if (obj == NULL || !obj->isCreatureObject())
 			return;
 
 		CreatureObject* creature = cast<CreatureObject*>( obj.get());

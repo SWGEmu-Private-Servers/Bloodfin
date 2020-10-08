@@ -8,6 +8,8 @@
 #ifndef SURVEYCMINIGAMESUICALLBACK_H_
 #define SURVEYCMINIGAMESUICALLBACK_H_
 
+
+#include "server/zone/objects/tangible/tool/SurveyTool.h"
 #include "server/zone/objects/player/sui/SuiCallback.h"
 #include "server/zone/objects/player/sessions/survey/SurveySession.h"
 
@@ -30,7 +32,7 @@ public:
 
 		ManagedReference<SurveySession*> session = player->getActiveSession(SessionFacadeType::SURVEY).castTo<SurveySession*>();
 
-		if(session == nullptr) {
+		if(session == NULL) {
 			return;
 		}
 

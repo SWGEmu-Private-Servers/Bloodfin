@@ -8,6 +8,7 @@
 #ifndef LOOTGROUPCOLLECTION_H_
 #define LOOTGROUPCOLLECTION_H_
 
+#include "engine/engine.h"
 #include "LootGroupCollectionEntry.h"
 
 class LootGroupCollection {
@@ -37,13 +38,13 @@ public:
 		}
 	}
 
-	inline int count() const {
+	inline int count() {
 		return entries.size();
 	}
 
-	const LootGroupCollectionEntry* get(int i) const {
+	LootGroupCollectionEntry* get(int i) {
 		if (i < 0 || i >= entries.size())
-			return nullptr;
+			return NULL;
 
 		return &entries.get(i);
 	}

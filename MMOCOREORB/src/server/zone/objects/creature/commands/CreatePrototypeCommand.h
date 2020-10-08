@@ -5,6 +5,7 @@
 #ifndef CREATEPROTOTYPECOMMAND_H_
 #define CREATEPROTOTYPECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/managers/player/PlayerManager.h"
 #include "server/zone/objects/player/sessions/TradeSession.h"
 
@@ -37,7 +38,7 @@ public:
 
 		ManagedReference<TradeSession*> tradeContainer = creature->getActiveSession(SessionFacadeType::TRADE).castTo<TradeSession*>();
 
-		if (tradeContainer != nullptr) {
+		if (tradeContainer != NULL) {
 			server->getZoneServer()->getPlayerManager()->handleAbortTradeMessage(creature);
 		}
 
@@ -60,7 +61,7 @@ public:
 
 		Reference<CraftingSession*> session = creature->getActiveSession(SessionFacadeType::CRAFTING).castTo<CraftingSession*>();
 
-		if(session == nullptr) {
+		if(session == NULL) {
 			return GENERALERROR;
 		}
 

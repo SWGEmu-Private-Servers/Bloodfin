@@ -8,16 +8,18 @@ import engine.log.Logger;
 import system.util.VectorMap;
 import system.util.Vector;
 
+import engine.core.ManagedObject;
 import server.zone.objects.creature.CreatureObject;
-include server.zone.objects.player.sui.listbox.SuiListBox;
+import server.zone.objects.player.sui.listbox.SuiListBox;
+import server.zone.objects.area.ActiveArea;
 include server.zone.packets.scene.AttributeListMessage;
 
 import server.zone.objects.resource.ResourceContainer;
+include server.zone.objects.resource.SpawnDensityMap;
 include server.zone.objects.resource.SpawnMap;
 import server.zone.objects.scene.SceneObject;
 
 @lua
-@json
 class ResourceSpawn extends SceneObject {
 
 	protected string spawnType;
@@ -79,6 +81,8 @@ class ResourceSpawn extends SceneObject {
 		//if (!dbDestroyed && (containerReferenceCount == 0))
 		//	decreaseContainerReferenceCount();
 	}
+
+	public native void initializeTransientMembers();
 
 	/**
 	 * Fills the attribute list message options that are sent to player creature
@@ -149,7 +153,7 @@ class ResourceSpawn extends SceneObject {
 	@preLocked
 	public native void addAttribute(final string attribute, int value);
 
-	@read
+	@dirty
 	public boolean isType(final string type) {
 		for(int i = 0; i < stfSpawnClasses.size(); ++i) {
 			if(stfSpawnClasses.get(i) == type)
@@ -173,17 +177,17 @@ class ResourceSpawn extends SceneObject {
 	}
 
 	// getters
-	@read
+	@dirty
 	public string getName() {
 		return spawnName;
 	}
 
-	@read
+	@dirty
 	public string getType() {
 		return spawnType;
 	}
 
-	@read
+	@dirty
 	public string getClass(int index) {
 		if(index < spawnClasses.size()) {
 			return spawnClasses.get(index);
@@ -192,7 +196,7 @@ class ResourceSpawn extends SceneObject {
 		}
 	}
 
-	@read
+	@dirty
 	public string getStfClass(int index) {
 		if(index < stfSpawnClasses.size()) {
 			return stfSpawnClasses.get(index);
@@ -201,7 +205,7 @@ class ResourceSpawn extends SceneObject {
 		}
 	}
 
-	@read
+	@dirty
 	public string getFinalClass() {
 		if(spawnClasses.size() > 1)
 			return spawnClasses.get(spawnClasses.size() - 1);
@@ -209,10 +213,10 @@ class ResourceSpawn extends SceneObject {
 			return "";
 	}
 
-	@read
+	@dirty
 	public native string getFamilyName();
 
-	@read
+	@dirty
 	public native string getSurveyMissionSpawnFamilyName();
 
 	@preLocked
@@ -225,7 +229,7 @@ class ResourceSpawn extends SceneObject {
 		despawned = t;
 	}
 
-	@read
+	@dirty
 	public unsigned long getDespawned() {
 		return despawned;
 	}
@@ -250,7 +254,7 @@ class ResourceSpawn extends SceneObject {
 		return poolSlot;
 	}
 
-	@read
+	@dirty
 	public boolean isEnergy() {
 		return energy;
 	}
@@ -265,7 +269,7 @@ class ResourceSpawn extends SceneObject {
 		return surveyToolType;
 	}
 
-	@read
+	@dirty
 	public int getSpawnMapSize() {
 		return spawnMaps.size();
 	}
@@ -277,49 +281,56 @@ class ResourceSpawn extends SceneObject {
 	@preLocked
 	public native ResourceContainer createResource(int units);
 
-	@read
+	@local
+	@dirty
 	public native string getSpawnMapZone(int i);
 
-	@read
+	@local
+	@dirty
 	public native boolean isUnknownType();
 
 	@local
 	@preLocked
 	public native void createSpawnMaps(boolean jtl, int minpool, int maxpool, final string zonerestriction, @dereferenced Vector<string> activeZones);
 
-	@read
+	@local
+	@dirty
 	private native int getConcentration(boolean jtl);
 
-	@read
+	@dirty
 	public native unsigned int getPlanetCRC();
 
 	@local
 	@dereferenced
-	@read
+	@dirty
 	private native Vector<string> getSpawnZones(int minpool, int maxpool, final string zonerestriction, @dereferenced Vector<string> activeZones);
 
-	@read
+	@local
+	@dirty
 	public native float getDensityAt(final string zoneName, float x, float y);
 
-	@read
+	@local
+	@dirty
 	public native boolean inShift();
 
-	@read
+	@local
+	@dirty
 	public native int getAttributeAndValue(string attribute, int index);
 
-	@read
+	@dirty
 	public int getAttributeValue(int index) {
 		return spawnAttributes.get(index);
 	}
 
-	@read
+	@dirty
 	public native int getValueOf(int index);
 
-	@read
+	@dirty
 	public native int getValueOf(final string attribute);
 
 	public native void addStatsToDeedListBox(SuiListBox suil);
 
-	@read
+	@local
+	@dirty
 	public native void print();
 }

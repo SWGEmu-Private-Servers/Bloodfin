@@ -5,6 +5,8 @@
 #ifndef SAMPLECOMMAND_H_
 #define SAMPLECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class SampleCommand : public QueueCommand {
 public:
 
@@ -25,6 +27,13 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		if (creature->isPlayerCreature()) {
+			ManagedReference<SurveySession*> session = creature->getActiveSession(SessionFacadeType::SURVEY).castTo<SurveySession*>();
+			if(session == NULL) {
+				creature->sendSystemMessage("@ui:survey_notool");
+			}
+		}
 
 		return SUCCESS;
 	}

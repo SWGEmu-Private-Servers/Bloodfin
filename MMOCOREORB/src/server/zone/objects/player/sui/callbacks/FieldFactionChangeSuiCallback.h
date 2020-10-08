@@ -30,10 +30,17 @@ public:
 			return;
 		}
 
-		if (player->getFutureFactionStatus() != -1)
+		uint32 pvpStatusBitmask = player->getPvpStatusBitmask();
+
+		if (pvpStatusBitmask & CreatureFlag::CHANGEFACTIONSTATUS)
 			return;
 
-		int curStatus = player->getFactionStatus();
+		ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
+
+		if (ghost == NULL)
+			return;
+
+		int curStatus = ghost->getFactionStatus();
 
 		if (curStatus == newStatus)
 			return;
@@ -45,28 +52,32 @@ public:
 			}
 
 			player->sendSystemMessage("@gcw:handle_go_covert"); // You will be flagged as a Combatant in 30 seconds.
-			player->setFutureFactionStatus(FactionStatus::COVERT);
+			player->setPvpStatusBit(CreatureFlag::CHANGEFACTIONSTATUS);
 
 			ManagedReference<CreatureObject*> creo = player->asCreatureObject();
 
 			Core::getTaskManager()->scheduleTask([creo]{
-				if(creo != nullptr) {
+				if(creo != NULL) {
 					Locker locker(creo);
 
-					creo->setFactionStatus(FactionStatus::COVERT);
+					PlayerObject* ghost = creo->getPlayerObject();
+					if (ghost != NULL)
+						ghost->setFactionStatus(FactionStatus::COVERT);
 				}
 			}, "UpdateFactionStatusTask", 30000);
 		} else if (newStatus == FactionStatus::OVERT) {
 			player->sendSystemMessage("You will be flagged as Special Forces in 5 minutes."); // No string available for overt.
-			player->setFutureFactionStatus(FactionStatus::OVERT);
+			player->setPvpStatusBit(CreatureFlag::CHANGEFACTIONSTATUS);
 
 			ManagedReference<CreatureObject*> creo = player->asCreatureObject();
 
 			Core::getTaskManager()->scheduleTask([creo]{
-				if(creo != nullptr) {
+				if(creo != NULL) {
 					Locker locker(creo);
 
-					creo->setFactionStatus(FactionStatus::OVERT);
+					PlayerObject* ghost = creo->getPlayerObject();
+					if (ghost != NULL)
+						ghost->setFactionStatus(FactionStatus::OVERT);
 				}
 			}, "UpdateFactionStatusTask", 300000);
 		}

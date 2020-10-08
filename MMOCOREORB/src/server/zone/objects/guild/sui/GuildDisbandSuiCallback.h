@@ -27,9 +27,9 @@ public:
 
 		ManagedReference<GuildManager*> guildManager = server->getGuildManager();
 
-		ManagedReference<SceneObject*> obj = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = suiBox->getUsingObject();
 
-		if (obj == nullptr || !obj->isTerminal())
+		if (obj == NULL || !obj->isTerminal())
 			return;
 
 		Terminal* terminal = cast<Terminal*>( obj.get());
@@ -39,7 +39,7 @@ public:
 
 		ManagedReference<GuildObject*> guild = player->getGuildObject().get();
 
-		if (guild == nullptr)
+		if (guild == NULL)
 			return;
 
 		Locker guildLocker(guild, player);

@@ -6,6 +6,8 @@
 #define DROIDTRAPMODULEDATACOMPONENT_H_
 
 #include "BaseDroidModuleComponent.h"
+#include "engine/core/ManagedReference.h"
+#include "server/zone/objects/tangible/pharmaceutical/StimPack.h"
 
 namespace server {
 namespace zone {
@@ -13,6 +15,7 @@ namespace objects {
 namespace tangible {
 namespace components {
 namespace droid {
+
 
 class DroidTrapModuleDataComponent : public BaseDroidModuleComponent {
 
@@ -22,15 +25,13 @@ protected:
 	ManagedReference<TangibleObject*> trap;
 public:
 	static const String EMPTY_TRAP_MESSAGE;
-
 	DroidTrapModuleDataComponent();
 	~DroidTrapModuleDataComponent();
-
-	String getModuleName() const;
+	String getModuleName();
 	void initializeTransientMembers();
 	void fillAttributeList(AttributeListMessage* msg, CreatureObject* droid);
 	int getBatteryDrain() { return 0;}
-	String toString() const;
+	String toString();
 	// crafting droid module specific
 	void onCall();
 	void onStore();
@@ -48,19 +49,12 @@ public:
 	void decrementTrap();
 	ManagedReference<TangibleObject*> getTrap() { return trap;}
 	int getTrapBonus() { return trapBonus;}
-
-	void writeJSON(nlohmann::json& j) const {
-		BaseDroidModuleComponent::writeJSON(j);
-
-		SERIALIZE_JSON_MEMBER(trapBonus);
-		SERIALIZE_JSON_MEMBER(modules);
-		SERIALIZE_JSON_MEMBER(trap);
-	}
 private:
 	int writeObjectMembers(ObjectOutputStream* stream);
 	bool readObjectMember(ObjectInputStream* stream, const String& name);
 
 };
+
 
 } // droid
 } // components
@@ -69,5 +63,4 @@ private:
 } // zone
 } // server
 using namespace server::zone::objects::tangible::components::droid;
-
 #endif /* DROIDTRAPMODULEDATACOMPONENT_H_ */

@@ -7,16 +7,16 @@
 
 #ifndef MINEFIELDATTACKTASK_H_
 #define MINEFIELDATTACKTASK_H_
-
+#include "server/zone/managers/combat/CombatManager.h"
+#include "server/zone/managers/gcw/GCWManager.h"
+#include "server/zone/objects/creature/commands/QueueCommand.h"
 #include "engine/engine.h"
-#include "server/zone/managers/objectcontroller/ObjectController.h"
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "server/zone/packets/scene/PlayClientEffectLocMessage.h"
-#include "server/zone/objects/creature/commands/CombatQueueCommand.h"
-
+#include "server/zone/packets/tangible/UpdatePVPStatusMessage.h"
 class MinefieldAttackTask : public Task {
 	ManagedReference<SceneObject*> sceneObject;
 	ManagedReference<CreatureObject*> player;
+	ManagedReference<WeaponObject*> mine;
 
 public:
 	MinefieldAttackTask(SceneObject* scene, CreatureObject* player) {
@@ -25,7 +25,7 @@ public:
 	}
 
 	void run() {
-		if(sceneObject == nullptr)
+		if(sceneObject == NULL)
 			return;
 
 		Locker locker(sceneObject);
@@ -34,13 +34,13 @@ public:
 			return;
 
 		DataObjectComponentReference* ref = sceneObject->getDataObjectComponent();
-		if(ref == nullptr){
+		if(ref == NULL){
 			return;
 		}
 
 		MinefieldDataComponent* mineData = cast<MinefieldDataComponent*>(ref->get());
 
-		if(mineData == nullptr || !mineData->canExplode()){
+		if(mineData == NULL || !mineData->canExplode()){
 			return;
 		}
 
@@ -48,22 +48,25 @@ public:
 
 		ManagedReference<WeaponObject*> weapon = sceneObject->getContainerObject(0).castTo<WeaponObject*>();
 
-		if (weapon == nullptr || sceneObject->getZone() == nullptr)
+		if (weapon == NULL || sceneObject->getZone() == NULL)
 			return;
 
 		PlayClientEffectLoc* explodeLoc = new PlayClientEffectLoc("clienteffect/lair_damage_heavy.cef", sceneObject->getZone()->getZoneName(), sceneObject->getPositionX(), sceneObject->getPositionZ(), sceneObject->getPositionY());
 		sceneObject->broadcastMessage(explodeLoc, false);
 
-		sceneObject->removeObject(weapon,nullptr,true);
+		sceneObject->removeObject(weapon,NULL,true);
 
-		if(sceneObject->getZoneServer() != nullptr){
+		if(sceneObject->getZoneServer() != NULL){
 			ManagedReference<ObjectController*> objectController = sceneObject->getZoneServer()->getObjectController();
-			const QueueCommand* command = objectController->getQueueCommand(STRING_HASHCODE("minefieldattack"));
+			QueueCommand* command = objectController->getQueueCommand(String("minefieldattack").hashCode());
 
-			if(command != nullptr){
-				const CombatQueueCommand* combatCommand = cast<const CombatQueueCommand*>(command);
-				if(combatCommand != nullptr){
+			if(command != NULL){
+				CombatQueueCommand* combatCommand = cast<CombatQueueCommand*>(command);
+				if(combatCommand != NULL){
 					CombatManager::instance()->doCombatAction(sceneObject.castTo<TangibleObject*>(), weapon, player, combatCommand);
+					player->inflictDamage(player, CreatureAttribute::HEALTH, 2700, true);
+
+
 				}
 			}
 
@@ -74,7 +77,7 @@ public:
 
 		if(sceneObject->getContainerObjectsSize() <= 0){
 			TangibleObject* tano = sceneObject.castTo<TangibleObject*>();
-			if(tano == nullptr)
+			if(tano == NULL)
 				return;
 
 			tano->setPvpStatusBitmask(tano->getPvpStatusBitmask() | CreatureFlag::ATTACKABLE);

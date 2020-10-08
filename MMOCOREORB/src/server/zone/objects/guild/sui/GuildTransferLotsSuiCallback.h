@@ -27,29 +27,29 @@ public:
 
 		ManagedReference<GuildManager*> guildManager = server->getGuildManager();
 
-		ManagedReference<SceneObject*> usingObject = suiBox->getUsingObject().get();
-		if (usingObject == nullptr)
+		ManagedReference<SceneObject*> usingObject = suiBox->getUsingObject();
+		if (usingObject == NULL)
 			return;
 
 		Terminal* terminal = usingObject.castTo<Terminal*>();
-		if (terminal == nullptr || !terminal->isGuildTerminal())
+		if (terminal == NULL || !terminal->isGuildTerminal())
 			return;
 
 		GuildTerminal* guildTerminal = cast<GuildTerminal*>( terminal);
-		if (guildTerminal == nullptr)
+		if (guildTerminal == NULL)
 			return;
 
-		ManagedReference<BuildingObject*> buildingObject = guildTerminal->getParentRecursively(SceneObjectType::BUILDING).castTo<BuildingObject*>();
-		if (buildingObject == nullptr)
+		ManagedReference<BuildingObject*> buildingObject = cast<BuildingObject*>( guildTerminal->getParentRecursively(SceneObjectType::BUILDING).get().get());
+		if (buildingObject == NULL)
 			return;
 
 		ManagedReference<CreatureObject*> owner = buildingObject->getOwnerCreatureObject();
-		if (owner == nullptr || !owner->isPlayerCreature())
+		if (owner == NULL || !owner->isPlayerCreature())
 			return;
 
 		ManagedReference<PlayerObject*> ownerGhost = owner->getPlayerObject().get();
 		ManagedReference<GuildObject*> guildObject = owner->getGuildObject().get();
-		if (ownerGhost == nullptr || guildObject == nullptr)
+		if (ownerGhost == NULL || guildObject == NULL)
 			return;
 
 		if (player->getPlayerObject()->getLotsRemaining() < 5) {

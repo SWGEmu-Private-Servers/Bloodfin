@@ -3,8 +3,10 @@
 
 #include "server/zone/objects/player/sui/SuiCallback.h"
 #include "server/zone/managers/skill/SkillManager.h"
+#include "server/zone/objects/scene/SceneObjectType.h"
 #include "server/zone/objects/player/PlayerObject.h"
-#include "templates/tangible/XpPurchaseTemplate.h"
+#include "server/zone/managers/gcw/GCWManager.h"
+#include "server/zone/templates/tangible/XpPurchaseTemplate.h"
 #include "server/zone/managers/stringid/StringIdManager.h"
 #include "server/zone/managers/crafting/schematicmap/SchematicMap.h"
 
@@ -18,7 +20,7 @@ public:
 	void run(CreatureObject* player, SuiBox* suiBox, uint32 eventIndex, Vector<UnicodeString>* args) {
 		bool cancelPressed = (eventIndex == 1);
 
-		if (!suiBox->isMessageBox() || player == nullptr || cancelPressed)
+		if (!suiBox->isMessageBox() || player == NULL || cancelPressed)
 			return;
 
 		if(player->isDead() || player->isIncapacitated())
@@ -26,17 +28,17 @@ public:
 
 		Reference<PlayerObject*> ghost = player->getSlottedObject("ghost").castTo<PlayerObject*>();
 
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return;
 
-		ManagedReference<SceneObject*> obj = suiBox->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = suiBox->getUsingObject();
 
-		if(obj == nullptr)
+		if(obj == NULL)
 			return;
 
 		XpPurchaseTemplate* templateData = cast<XpPurchaseTemplate*>(obj->getObjectTemplate());
 
-		if (templateData == nullptr) {
+		if (templateData == NULL) {
 			player->error("No XpPurchaseTemplate for: " + String::valueOf(obj->getServerObjectCRC()));
 			return;
 		}
@@ -92,7 +94,7 @@ public:
 			SkillManager* skillManager = SkillManager::instance();
 			Ability* grantAbility = skillManager->getAbility(grantName);
 
-			if (grantAbility == nullptr) {
+			if (grantAbility == NULL) {
 				player->error("Unable to learn ability: " + grantName);
 				return;
 			}
@@ -108,7 +110,7 @@ public:
 		} else if (grantType == "schematic") {
 			ManagedReference<DraftSchematic* > schematic = SchematicMap::instance()->get(grantName.hashCode());
 
-			if (schematic == nullptr) {
+			if (schematic == NULL) {
 				player->error("Unable to learn schematic: " + grantName);
 				return;
 			}

@@ -8,6 +8,7 @@
 #include "engine/util/u3d/Vector3.h"
 #include "engine/log/Logger.h"
 #include "UniverseSpawnMap.h"
+#include "engine/core/ManagedObject.h"
 
 namespace server {
 namespace zone {
@@ -18,7 +19,7 @@ namespace spawnmaps {
 /**
  * Class implementing methods to find a suitable spawn point for mission NPC's.
  */
-class MissionNpcSpawnMap : public Mutex, Logger {
+class MissionNpcSpawnMap : public ManagedObject, Logger {
 protected:
 	/**
 	 * Spawn points in the world.
@@ -29,13 +30,13 @@ public:
 	/**
 	 * Constructor.
 	 */
-	MissionNpcSpawnMap() : Mutex(), Logger("MissionNpcSpawnMap") {}
-
+	MissionNpcSpawnMap() : ManagedObject(), Logger("MissionNpcSpawnMap") {}
+	
 	/**
 	 * Destructor.
 	 */
 	~MissionNpcSpawnMap() {}
-
+	
 	/**
 	 * Load all spawn points from the lua script file.
 	 */
@@ -49,10 +50,9 @@ public:
 	 * @param spawnType the spawn type bitmask required for the spawn.
 	 * @param minDistance the minimum distance between the spawn point and the position supplied.
 	 * @param minDistance the maximum distance between the spawn point and the position supplied.
-	 * @return random npc matching requirements or nullptr if none could be found.
+	 * @return random npc matching requirements or NULL if none could be found.
 	 */
-	NpcSpawnPoint* getRandomNpcSpawnPoint(const uint32 planetCRC, const Vector3* position,
-			const int spawnType, const float minDistance, const float maxDistance);
+	NpcSpawnPoint* getRandomNpcSpawnPoint(const uint32 planetCRC, const Vector3* position, const int spawnType, const float minDistance, const float maxDistance);
 
 	/**
 	 * Get the center coordinates of a random city not close to the supplied coordinates.
@@ -60,7 +60,7 @@ public:
 	 * @param notCloseToPosition the city closest to this position will not be returned unless it is the only city.
 	 * @return random city not close to the coordinates.
 	 */
-	const Vector3* getRandomCityCoordinates(const uint32 planetCRC, const Vector3* notCloseToPosition) const;
+	Vector3* getRandomCityCoordinates(const uint32 planetCRC, const Vector3* notCloseToPosition);
 
 	/**
 	 * Add a spawn point to the specified planet.
@@ -74,9 +74,9 @@ public:
 	 * Finds a spawn point on a certain location.
 	 * @param planetCRC the CRC of the planet name.
 	 * @param position the position to search.
-	 * @return the spawn point on the position or nullptr if none exist.
+	 * @return the spawn point on the position or NULL if none exist.
 	 */
-	NpcSpawnPoint* findSpawnAt(uint32 planetCRC, const Vector3* position) const;
+	NpcSpawnPoint* findSpawnAt(uint32 planetCRC, Vector3* position);
 
 	/**
 	 * Read the object from a stream.

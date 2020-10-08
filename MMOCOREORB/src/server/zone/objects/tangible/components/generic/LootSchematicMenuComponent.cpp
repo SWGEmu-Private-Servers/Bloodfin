@@ -8,13 +8,14 @@
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "LootSchematicMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/objects/draftschematic/DraftSchematic.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 
-#include "templates/tangible/LootSchematicTemplate.h"
+#include "server/zone/templates/tangible/LootSchematicTemplate.h"
 #include "server/zone/managers/crafting/schematicmap/SchematicMap.h"
 
-void LootSchematicMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void LootSchematicMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
 	if (!sceneObject->isTangibleObject())
 		return;
@@ -25,7 +26,7 @@ void LootSchematicMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject
 
 	LootSchematicTemplate* schematicData = cast<LootSchematicTemplate*>(sceneObject->getObjectTemplate());
 
-	if (schematicData == nullptr) {
+	if (schematicData == NULL) {
 		error("No LootSchematicTemplate for: " + String::valueOf(sceneObject->getServerObjectCRC()));
 		return;
 	}
@@ -40,7 +41,7 @@ void LootSchematicMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject
 
 }
 
-int LootSchematicMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int LootSchematicMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isTangibleObject())
 		return 0;
 
@@ -57,7 +58,7 @@ int LootSchematicMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 
 		LootSchematicTemplate* schematicData = cast<LootSchematicTemplate*>(sceneObject->getObjectTemplate());
 
-		if (schematicData == nullptr) {
+		if (schematicData == NULL) {
 			error("No LootSchematicTemplate for: " + String::valueOf(sceneObject->getServerObjectCRC()));
 			return 0;
 		}
@@ -65,15 +66,16 @@ int LootSchematicMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 		String skillNeeded = schematicData->getRequiredSkill();
 
 		if((!skillNeeded.isEmpty() && !player->hasSkill(skillNeeded))) {
-			StringIdChatParameter noSkill("@loot_schematic:not_enough_skill"); // You must have %TO skill in order to understand this.
-			noSkill.setTO(skillNeeded);
-			player->sendSystemMessage(noSkill);
+			StringIdChatParameter* noSkill = NULL;
+			noSkill = new StringIdChatParameter("@loot_schematic:not_enough_skill"); // You must have %TO skill in order to understand this.
+			noSkill->setTO(skillNeeded);
+			player->sendSystemMessage(*noSkill);
 			return 0;
 		}
 
 		ManagedReference<DraftSchematic* > schematic = SchematicMap::instance()->get(schematicData->getTargetDraftSchematic().hashCode());
 
-		if (schematic == nullptr) {
+		if (schematic == NULL) {
 			player->sendSystemMessage("Error learning schematic, try again later");
 			error("Unable to create schematic: " + schematicData->getTargetDraftSchematic());
 			return 0;
@@ -82,7 +84,7 @@ int LootSchematicMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 		if(ghost->addRewardedSchematic(schematic, SchematicList::LOOT, schematicData->getTargetUseCount(), true)) {
 
 			TangibleObject* tano = cast<TangibleObject*>(sceneObject);
-			if(tano != nullptr)
+			if(tano != NULL)
 				tano->decreaseUseCount();
 			player->sendSystemMessage("@loot_schematic:schematic_learned"); // You acquire a new crafting schematic!
 		}

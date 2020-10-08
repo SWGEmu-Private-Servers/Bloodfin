@@ -5,6 +5,8 @@
 #ifndef SETCURRENTSKILLTITLECOMMAND_H_
 #define SETCURRENTSKILLTITLECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+
 class SetCurrentSkillTitleCommand : public QueueCommand {
 public:
 
@@ -23,7 +25,7 @@ public:
 
 		ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
 
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return GENERALERROR;
 
 		String titleSkill = arguments.toString().toLowerCase();

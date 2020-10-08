@@ -6,7 +6,7 @@
  */
 
 #include "WorldCoordinates.h"
-#include "server/zone/objects/cell/CellObject.h"
+#include "server/zone/objects/scene/SceneObject.h"
 
 WorldCoordinates::WorldCoordinates() : Object() {
 
@@ -30,16 +30,16 @@ WorldCoordinates& WorldCoordinates::operator=(const WorldCoordinates& c) {
 WorldCoordinates::WorldCoordinates(SceneObject* obj) : Object() {
 	point = obj->getPosition();
 
-	ManagedReference<CellObject*> parent = obj->getParent().get().castTo<CellObject*>();
+	ManagedReference<SceneObject*> parent = obj->getParent().get();
 
-	if (parent != nullptr && obj != parent)
+	if (parent != NULL && obj != parent && parent->isCellObject())
 		cell = parent;
 }
 
-WorldCoordinates::WorldCoordinates(const Vector3& position, CellObject* parent) : Object() {
+WorldCoordinates::WorldCoordinates(const Vector3& position, SceneObject* parent) : Object() {
 	point = position;
 
-	if (parent != nullptr)
+	if (parent != NULL && parent->isCellObject())
 		cell = parent;
 }
 
@@ -59,12 +59,12 @@ bool WorldCoordinates::parseFromBinaryStream(ObjectInputStream* stream) {
 }
 
 Vector3 WorldCoordinates::getWorldPosition() const {
-	if (cell == nullptr)
+	if (cell == NULL)
 		return point;
 
-	SceneObject* root = cell->getRootParent();
+	ManagedReference<SceneObject*> root = cell->getRootParent();
 
-	if (root == nullptr)
+	if (root == NULL)
 		return point;
 
 	float length = Math::sqrt(point.getX() * point.getX() + point.getY() * point.getY());

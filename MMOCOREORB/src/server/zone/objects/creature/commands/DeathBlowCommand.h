@@ -26,12 +26,17 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+
+		}
+
 		if (!creature->isPlayerCreature())
 			return GENERALERROR;
 
 		ManagedReference<SceneObject*> targetObject = server->getZoneServer()->getObject(target);
 
-		if (creature == targetObject || targetObject == nullptr)
+		if (creature == targetObject || targetObject == NULL)
 			return GENERALERROR;
 
 		//TODO: play coup_de_grace combat animations - ranged_coup_de_grace, melee_coup_de_grace, unarmed_coup_de_grace
@@ -42,16 +47,16 @@ public:
 			Locker clocker(player, creature);
 
 			if (!CollisionManager::checkLineOfSight(creature, player)) {
-				creature->sendSystemMessage("@combat_effects:cansee_fail");// You cannot see your target.
+				creature->sendSystemMessage("@container_error_message:container18");
 				return GENERALERROR;
 			}
 
 			if (!player->isIncapacitated() || player->isFeigningDeath()){
-				creature->sendSystemMessage("@error_message:target_not_incapacitated"); //You cannot perform the death blow. Your target is not incapacitated.
+				creature->sendSystemMessage("@error_message:target_not_incapacitated");
 				return GENERALERROR;
 			}
 
-			if (player->isAttackableBy(creature) && checkDistance(player, creature, 5)) {
+			if (player->isAttackableBy(creature) && player->isInRange(creature, 5)) {
 				PlayerManager* playerManager = server->getPlayerManager();
 
 				playerManager->killPlayer(creature, player, 1);
@@ -62,16 +67,16 @@ public:
 			Locker clocker(pet, creature);
 
 			if (!CollisionManager::checkLineOfSight(creature, pet)) {
-				creature->sendSystemMessage("@combat_effects:cansee_fail");// You cannot see your target.
+				creature->sendSystemMessage("@container_error_message:container18");
 				return GENERALERROR;
 			}
 
 			if (!pet->isIncapacitated()){
-				creature->sendSystemMessage("@error_message:target_not_incapacitated"); //You cannot perform the death blow. Your target is not incapacitated.
+				creature->sendSystemMessage("@error_message:target_not_incapacitated");
 				return GENERALERROR;
 			}
 
-			if (pet->isAttackableBy(creature) && checkDistance(pet, creature, 5)) {
+			if (pet->isAttackableBy(creature) && pet->isInRange(creature, 5)) {
 				PetManager* petManager = server->getZoneServer()->getPetManager();
 
 				petManager->killPet(creature, pet);
@@ -79,10 +84,6 @@ public:
 		} else {
 			return GENERALERROR;
 		}
-
-		StringIdChatParameter params("base_player", "prose_target_dead"); // %TT is no more.
-		params.setTT(targetObject->getDisplayedName());
-		creature->sendSystemMessage(params);
 
 		return SUCCESS;
 	}

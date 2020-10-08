@@ -10,15 +10,15 @@
 
 #include "server/zone/objects/scene/variables/DeltaVector.h"
 #include "server/zone/objects/resource/ResourceContainer.h"
+#include "server/zone/objects/resource/ResourceSpawn.h"
 
 class HopperList : public DeltaVector<ManagedReference<ResourceContainer*> > {
 public:
 
-	ManagedReference<ResourceContainer*> set(int idx,
-			const ManagedReference<ResourceContainer*>& newValue, DeltaMessage* message = nullptr, int updates = 1) override {
+	ManagedReference<ResourceContainer*> set(int idx, const ManagedReference<ResourceContainer*>& newValue, DeltaMessage* message = NULL, int updates = 1) {
 		ManagedReference<ResourceContainer*> object = vector.set(idx, newValue);
 
-		if (message != nullptr) {
+		if (message != NULL) {
 			if (updates != 0)
 				message->startList(updates, updateCounter += updates);
 
@@ -32,10 +32,10 @@ public:
 		return object;
 	}
 
-	bool add(const ManagedReference<ResourceContainer*>& element, DeltaMessage* message = nullptr, int updates = 1) override {
+	bool add(const ManagedReference<ResourceContainer*>& element, DeltaMessage* message = NULL, int updates = 1) {
 		bool val = vector.add(element);
 
-		if (message != nullptr) {
+		if (message != NULL) {
 			if (updates != 0)
 				message->startList(updates, updateCounter += updates);
 
@@ -49,7 +49,7 @@ public:
 		return val;
 	}
 
-	void insertToMessage(BaseMessage* msg) const override {
+	void insertToMessage(BaseMessage* msg) {
 		msg->insertInt(size());
 		msg->insertInt(updateCounter);
 

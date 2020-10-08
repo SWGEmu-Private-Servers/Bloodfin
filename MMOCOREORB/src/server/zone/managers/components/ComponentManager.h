@@ -8,7 +8,11 @@
 #ifndef COMPONENTMANAGER_H_
 #define COMPONENTMANAGER_H_
 
+#include "engine/engine.h"
+
 #include "server/zone/objects/scene/components/SceneObjectComponent.h"
+#include "server/zone/objects/scene/components/LuaObjectMenuComponent.h"
+#include "server/zone/objects/scene/components/LuaContainerComponent.h"
 #include "server/zone/objects/scene/components/DataObjectComponent.h"
 #include "engine/util/ObjectFactory.h"
 
@@ -45,7 +49,7 @@ public:
 	void putComponent(const String& name, SceneObjectComponent* component) {
 		Locker locker(this);
 
-		if (component != nullptr)
+		if (component != NULL)
 			components.put(name, component);
 	}
 

@@ -8,6 +8,7 @@
 #include "server/zone/ZoneClientSession.h"
 #include "server/zone/ZoneProcessServer.h"
 
+#include "packets/zone/ClientIDMessage.h"
 #include "packets/zone/ClientIDMessageCallback.h"
 #include "packets/zone/SelectCharacterCallback.h"
 #include "packets/zone/CmdSceneReadyCallback.h"
@@ -72,7 +73,6 @@
 #include "packets/chat/ChatPersistentMessageToServerCallback.h"
 #include "packets/chat/ChatRequestPersistentMessageCallback.h"
 #include "packets/chat/ChatDeletePersistentMessageCallback.h"
-#include "packets/chat/ChatDeleteAllPersistentMessagesCallback.h"
 #include "packets/chat/ChatEnterRoomByIdCallback.h"
 #include "packets/chat/ChatCreateRoomCallback.h"
 #include "packets/chat/ChatDestroyRoomCallback.h"
@@ -91,15 +91,10 @@
 #include "packets/trade/VerifyTradeMessageCallback.h"
 #include "packets/trade/AddItemMessageCallback.h"
 #include "packets/trade/GiveMoneyMessageCallback.h"
-#include "packets/trade/DenyTradeMessage.h"
 
 #include "packets/ship/ShipUpdateTransformCallback.h"
 
 #include "packets/auction/IsVendorOwnerMessageCallback.h"
-
-ZonePacketHandler::ZonePacketHandler() : Logger() {
-	server = nullptr;
-}
 
 ZonePacketHandler::ZonePacketHandler(const String& s, ZoneProcessServer* serv) : Logger(s) {
 	processServer = serv;
@@ -107,17 +102,16 @@ ZonePacketHandler::ZonePacketHandler(const String& s, ZoneProcessServer* serv) :
 	server = processServer->getZoneServer();
 
 	setGlobalLogging(true);
-	setLogLevel(Logger::INFO);
+	setLogging(true);
 
 	registerMessages();
 	registerObjectControllerMessages();
-}
 
-ZonePacketHandler::~ZonePacketHandler() {
+	MessageCallbackFactory<MessageCallback* (ZoneClientSession*, ZoneProcessServer*), uint32> messageCallbackFactory2;
 }
 
 void ZonePacketHandler::registerMessages() {
-	debug("registering Messages");
+	info("registering Messages");
 
 	messageCallbackFactory.registerObject<ClientIDMessageCallback>(0xD5899226);
 	messageCallbackFactory.registerObject<ClientCreateCharacterCallback>(0xB97F3074);
@@ -153,7 +147,6 @@ void ZonePacketHandler::registerMessages() {
 	messageCallbackFactory.registerObject<BidAuctionMessageCallback>(0x91125453);
 	messageCallbackFactory.registerObject<PlanetTravelPointListRequestCallback>(0x96405d4d);
 	messageCallbackFactory.registerObject<AbortTradeMessageCallback>(0x9CA80F98);
-	messageCallbackFactory.registerObject<DenyTradeMessageCallback>(0x6EC28670);
 	messageCallbackFactory.registerObject<AcceptTransactionMessageCallback>(0xB131CA17);
 	messageCallbackFactory.registerObject<UnAcceptTransactionMessageCallback>(0xE81E4382);
 	messageCallbackFactory.registerObject<VerifyTradeMessageCallback>(0x9AE247EE);
@@ -177,14 +170,14 @@ void ZonePacketHandler::registerMessages() {
 	messageCallbackFactory.registerObject<ChatRemoveModeratorFromRoomCallback>(0x8A3F8E04);
 	messageCallbackFactory.registerObject<ChatBanFromRoomCallback>(0xD9FA0194);
 	messageCallbackFactory.registerObject<ChatUnbanFromRoomCallback>(0x4C8F94A9);
-	messageCallbackFactory.registerObject<ChatDeleteAllPersistentMessagesCallback>(0x8B1E8E72);
+
 }
 
 void ZonePacketHandler::registerObjectControllerMessages() {
-	debug("registering ObjectController Messages");
+	info("registering ObjectController Messages");
 
 	ObjectControllerMessageCallback::objectMessageControllerFactory = new MessageCallbackFactory<MessageCallback* (ObjectControllerMessageCallback*), uint32>();
-	auto objectMessageControllerFactory = ObjectControllerMessageCallback::objectMessageControllerFactory.get();
+	MessageCallbackFactory<MessageCallback* (ObjectControllerMessageCallback*), uint32>* objectMessageControllerFactory = ObjectControllerMessageCallback::objectMessageControllerFactory;
 
 	objectMessageControllerFactory->registerObject<DataTransformCallback>(0x71);
 	objectMessageControllerFactory->registerObject<DataTransformWithParentCallback>(0xF1);
@@ -207,40 +200,46 @@ void ZonePacketHandler::registerObjectControllerMessages() {
 	objectMessageControllerFactory->registerObject<InsertedAsPilotCallback>(0x3fa);
 	objectMessageControllerFactory->registerObject<JtlShipListRequestCallback>(0x41C);
 	objectMessageControllerFactory->registerObject<LotteryWindowCallback>(0x43f);
+
 }
 
-Task* ZonePacketHandler::generateMessageTask(ZoneClientSession* client, Message* pack) const {
-	debug() << "parsing " << *pack;
+Task* ZonePacketHandler::generateMessageTask(ZoneClientSession* client, Message* pack) {
+	//info("parsing " + pack->toStringData(), true);
 
-	if (client == nullptr)
-		return nullptr;
+	if (client == NULL)
+		return NULL;
 
 	try {
 		uint16 opcount = pack->parseShort();
 		uint32 opcode = pack->parseInt();
 
-		debug() << "handleMessage: opcount: " << opcount << " opcode: 0x" << hex << opcode;
+		/*
+		StringBuffer buffer;
+		buffer << "handleMessage: opcount: " << hex << opcount << dec << " opcode: " << hex << opcode << endl;
+		info(buffer);
+		*/
 
 		MessageCallback* messageCallback = messageCallbackFactory.createObject(opcode, client, processServer);
 
-		if (messageCallback == nullptr) {
-			warning() << "unknown opcode 0x" << hex << opcode;
+		if (messageCallback == NULL) {
+			StringBuffer msg;
+			msg << "unknown opcode 0x" << hex << opcode;
+		//	info(msg, true);
 
-			return nullptr;
+			//System::out << pack->toStringData() << endl;
+
+			return NULL;
 		}
 
-		//TODO: move this into the task itself eventually
 		if (!messageCallback->parseMessage(pack)) {
 			delete messageCallback;
-			return nullptr;
+			return NULL;
 		} else
 			return messageCallback;
 
-	} catch (const Exception& e) {
+	} catch (Exception& e) {
 		error("unreported exception caught creating message task");
-		e.printMessage();
 	}
 
-	return nullptr;
+	return NULL;
 }
-

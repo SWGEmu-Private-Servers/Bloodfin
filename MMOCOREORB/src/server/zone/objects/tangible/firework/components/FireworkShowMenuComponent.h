@@ -10,6 +10,7 @@
 
 #include "server/zone/objects/tangible/components/TangibleObjectMenuComponent.h"
 #include "server/zone/objects/tangible/firework/FireworkObject.h"
+#include "FireworkShowDataComponent.h"
 
 class FireworkShowMenuComponent : public TangibleObjectMenuComponent {
 public:
@@ -20,7 +21,7 @@ public:
 	 * @post { this object is locked, menuResponse is complete}
 	 * @param menuResponse ObjectMenuResponse that will be sent to the client
 	 */
-	virtual void fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const;
+	virtual void fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player);
 
 	/**
 	 * Handles the radial selection sent by the client, must be overriden by inherited objects
@@ -30,17 +31,17 @@ public:
 	 * @param selectedID selected menu id
 	 * @returns 0 if successfull
 	 */
-	virtual int handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const;
+	virtual int handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID);
 
-	void addEvent(CreatureObject* player, FireworkObject* firework) const;
+	void addEvent(CreatureObject* player, FireworkObject* firework);
 
-	void removeEvent(CreatureObject* player, FireworkObject* firework) const;
+	void removeEvent(CreatureObject* player, FireworkObject* firework);
 
-	void modifyEvent(CreatureObject* player, FireworkObject* firework) const;
+	void modifyEvent(CreatureObject* player, FireworkObject* firework);
 
-	void reorderShow(CreatureObject* player, FireworkObject* firework) const;
+	void reorderShow(CreatureObject* player, FireworkObject* firework);
 
-	void showData(CreatureObject* player, FireworkObject* firework) const;
+	void showData(CreatureObject* player, FireworkObject* firework);
 
 };
 

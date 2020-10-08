@@ -7,28 +7,31 @@
 
 #include "UplinkTerminalMenuComponent.h"
 #include "server/zone/Zone.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/CreatureObject.h"
+#include "server/zone/objects/player/FactionStatus.h"
+#include "server/zone/objects/structure/StructureObject.h"
 #include "server/zone/objects/building/BuildingObject.h"
 #include "server/zone/managers/gcw/GCWManager.h"
 #include "server/zone/objects/tangible/TangibleObject.h"
 
-void UplinkTerminalMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void UplinkTerminalMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
-	ManagedReference<BuildingObject*> building = sceneObject->getParentRecursively(SceneObjectType::FACTIONBUILDING).castTo<BuildingObject*>();
+	ManagedReference<BuildingObject*> building = cast<BuildingObject*>(sceneObject->getParentRecursively(SceneObjectType::FACTIONBUILDING).get().get());
 
-	if (building == nullptr || player->isDead() || player->isIncapacitated())
+	if (building == NULL || player->isDead() || player->isIncapacitated())
 		return;
 
 	Zone* zone = building->getZone();
 
-	if (zone == nullptr)
+	if (zone == NULL)
 		return;
 
 	GCWManager* gcwMan = zone->getGCWManager();
 
-	if (gcwMan == nullptr)
+	if (gcwMan == NULL)
 		return;
 
 	if (!gcwMan->isBaseVulnerable(building))
@@ -37,24 +40,24 @@ void UplinkTerminalMenuComponent::fillObjectMenuResponse(SceneObject* sceneObjec
 	menuResponse->addRadialMenuItem(20, 3, "@hq:mnu_jam");
 }
 
-int UplinkTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
-	if (sceneObject == nullptr || !sceneObject->isTangibleObject() || player == nullptr || player->isDead() || player->isIncapacitated() || selectedID != 20)
+int UplinkTerminalMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
+	if (sceneObject == NULL || !sceneObject->isTangibleObject() || player == NULL || player->isDead() || player->isIncapacitated() || selectedID != 20)
 		return 0;
 
-	ManagedReference<BuildingObject*> building = sceneObject->getParentRecursively(SceneObjectType::FACTIONBUILDING).castTo<BuildingObject*>();
+	ManagedReference<BuildingObject*> building = cast<BuildingObject*>(sceneObject->getParentRecursively(SceneObjectType::FACTIONBUILDING).get().get());
 	ManagedReference<TangibleObject*> uplinkTerminal = cast<TangibleObject*>(sceneObject);
 
-	if (building == nullptr)
+	if (building == NULL)
 		return 1;
 
 	Zone* zone = sceneObject->getZone();
 
-	if (zone == nullptr)
+	if (zone == NULL)
 		return 1;
 
 	ManagedReference<GCWManager*> gcwMan = zone->getGCWManager();
 
-	if (gcwMan == nullptr)
+	if (gcwMan == NULL)
 		return 1;
 
 	if (!gcwMan->isBaseVulnerable(building))

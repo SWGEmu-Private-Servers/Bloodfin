@@ -24,19 +24,24 @@ public:
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
 
+		if (creature->isInvisible()) {
+			return GENERALERROR;
+
+		}
+
 		if (!creature->isPlayerCreature())
 			return GENERALERROR;
 
 		ManagedReference<SceneObject* > object = server->getZoneServer()->getObject(target);
 
-		if (object == nullptr || !object->isCreature()) {
+		if (object == NULL || !object->isCreature()) {
 			creature->sendSystemMessage("@pet/pet_menu:sys_cant_tame"); // You can't tame that
 			return INVALIDTARGET;
 		}
 
 		Creature* baby = cast<Creature*>(object.get());
 
-		if (!checkDistance(object, creature, 8.0f)){
+		if (!object->isInRange(creature, 8.0f + object->getTemplateRadius() + creature->getTemplateRadius())){
 			creature->sendSystemMessage("@system_msg:out_of_range"); // You are out of range
 			return TOOFAR;
 		}
@@ -53,7 +58,7 @@ public:
 			if (creature->isPlayerCreature()) {
 				PlayerObject* ghost = creature->getPlayerObject();
 
-				if (ghost == nullptr)
+				if (ghost == NULL)
 					return GENERALERROR;
 
 				if (ghost->hasAbility("admin")) {

@@ -6,6 +6,9 @@
 #define DROIDPLAYBACKMODULEDATACOMPONENT_H_
 
 #include "BaseDroidModuleComponent.h"
+#include "engine/core/ManagedReference.h"
+#include "system/util/Vector.h"
+#include "system/util/VectorMap.h"
 #include "server/zone/objects/tangible/components/droid/DroidPlaybackObserver.h"
 
 namespace server {
@@ -14,6 +17,7 @@ namespace objects {
 namespace tangible {
 namespace components {
 namespace droid {
+
 
 class DroidPlaybackModuleDataComponent : public BaseDroidModuleComponent {
 
@@ -39,14 +43,14 @@ protected:
 public:
 	DroidPlaybackModuleDataComponent();
 	~DroidPlaybackModuleDataComponent();
-	String getModuleName() const;
+	String getModuleName();
 	void initializeTransientMembers();
 	void fillAttributeList(AttributeListMessage* msg, CreatureObject* droid);
 	void fillObjectMenuResponse(SceneObject* droidObject, ObjectMenuResponse* menuResponse, CreatureObject* player);
 	int handleObjectMenuSelect(CreatureObject* player, byte selectedID, PetControlDevice* controller);
 	int getBatteryDrain();
 	void deactivate();
-	String toString() const;
+	String toString();
 	void onCall();
 	void onStore();
 	bool isActive();
@@ -69,27 +73,12 @@ public:
 	bool trackEmpty(int index);
 	void stopTimer();
 	void doFlourish(int number);
-
-	void writeJSON(nlohmann::json& j) const {
-		BaseDroidModuleComponent::writeJSON(j);
-
-		SERIALIZE_JSON_MEMBER(active);
-		SERIALIZE_JSON_MEMBER(recording);
-		SERIALIZE_JSON_MEMBER(recordingTrack);
-		SERIALIZE_JSON_MEMBER(recordingSong);
-		SERIALIZE_JSON_MEMBER(recordingInstrument);
-		SERIALIZE_JSON_MEMBER(totalTracks);
-		SERIALIZE_JSON_MEMBER(selectedIndex);
-		SERIALIZE_JSON_MEMBER(tracks);
-		SERIALIZE_JSON_MEMBER(instruments);
-		SERIALIZE_JSON_MEMBER(observer);
-
-	}
 private:
 	void stopRecording(CreatureObject* player, bool success);
 	int writeObjectMembers(ObjectOutputStream* stream);
 	bool readObjectMember(ObjectInputStream* stream, const String& name);
 };
+
 
 } // droid
 } // components
@@ -98,5 +87,4 @@ private:
 } // zone
 } // server
 using namespace server::zone::objects::tangible::components::droid;
-
 #endif /* DROIDPLAYBACKMODULEDATACOMPONENT_H_ */

@@ -11,15 +11,20 @@
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/Zone.h"
 #include "CampKitMenuComponent.h"
+#include "server/zone/objects/scene/components/ObjectMenuComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
+#include "server/zone/packets/player/PlayMusicMessage.h"
+#include "server/zone/packets/object/PlayClientEffectObjectMessage.h"
+#include "server/zone/packets/scene/PlayClientEffectLocMessage.h"
 #include "server/zone/objects/structure/StructureObject.h"
-#include "templates/tangible/CampKitTemplate.h"
-#include "templates/building/CampStructureTemplate.h"
+#include "server/zone/templates/tangible/CampKitTemplate.h"
+#include "server/zone/templates/tangible/CampStructureTemplate.h"
 #include "server/zone/objects/area/CampSiteActiveArea.h"
 #include "server/zone/objects/tangible/terminal/Terminal.h"
+#include "server/zone/objects/region/Region.h"
 
 void CampKitMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
-		ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+		ObjectMenuResponse* menuResponse, CreatureObject* player) {
 
 	if (!sceneObject->isCampKit())
 		return;
@@ -30,16 +35,16 @@ void CampKitMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject,
 }
 
 int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
-		CreatureObject* player, byte selectedID) const {
+		CreatureObject* player, byte selectedID) {
 	if (!sceneObject->isTangibleObject())
 		return 0;
 
 	TangibleObject* tano = cast<TangibleObject*>(sceneObject);
 
-	if (tano == nullptr || !player->isPlayerCreature())
+	if (tano == NULL || !player->isPlayerCreature())
 		return 0;
 
-	if (player->getZone() == nullptr)
+	if (player->getZone() == NULL)
 		return 0;
 
 	if (!sceneObject->isASubChildOf(player))
@@ -49,7 +54,7 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 
 		/// Get Camp Kit Template
 		CampKitTemplate* campKitData = cast<CampKitTemplate*> (sceneObject->getObjectTemplate());
-		if (campKitData == nullptr) {
+		if (campKitData == NULL) {
 			error("No CampKitTemplate for: " + String::valueOf(sceneObject->getServerObjectCRC()));
 			return 0;
 		}
@@ -57,25 +62,25 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 		/// Get Camp Template
 		SharedObjectTemplate* templateData = TemplateManager::instance()->getTemplate(campKitData->getSpawnObjectTemplate().hashCode());
 		CampStructureTemplate* campStructureData = cast<CampStructureTemplate*> (templateData);
-		if (campStructureData == nullptr) {
+		if (campStructureData == NULL) {
 			error("No CampStructureTemplate for: " + campKitData->getSpawnObjectTemplate());
 			return 0;
 		}
 
 		ManagedReference<ZoneServer*> zoneServer = player->getZoneServer();
-		if (zoneServer == nullptr) {
+		if (zoneServer == NULL) {
 			error("ZoneServer is null when trying to create camp");
 			return 0;
 		}
 
 		ManagedReference<Zone*> zone = player->getZone();
-		if (zone == nullptr) {
+		if (zone == NULL) {
 			error("Zone is null when trying to create camp");
 			return 0;
 		}
 
 		ManagedReference<PlanetManager*> planetManager = zone->getPlanetManager();
-		if (planetManager == nullptr) {
+		if (planetManager == NULL) {
 			error("Unable to get PlanetManager when placing camp");
 			return 0;
 		}
@@ -83,7 +88,7 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 
 		/// Get Ghost
 		Reference<PlayerObject*> ghost = player->getSlottedObject("ghost").castTo<PlayerObject*>();
-		if (ghost == nullptr) {
+		if (ghost == NULL) {
 			error("PlayerCreature has no ghost: " + String::valueOf(player->getObjectID()));
 			return 0;
 		}
@@ -100,7 +105,7 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 			return 0;
 		}
 
-		if(player->getParent() != nullptr && player->getParent().get()->isCellObject()) {
+		if(player->getParent() != NULL && player->getParent().get()->isCellObject()) {
 			player->sendSystemMessage("@camp:error_inside");
 			return 0;
 		}
@@ -115,8 +120,8 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 			return 0;
 		}
 
-		ManagedReference<CityRegion*> region = player->getCityRegion().get();
-		if(region != nullptr) {
+		ManagedReference<CityRegion*> region = player->getCityRegion();
+		if(region != NULL) {
 			player->sendSystemMessage("@camp:error_muni_true");
 			return 0;
 		}
@@ -133,14 +138,14 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 
 			ManagedReference<StructureObject*> structure = ghost->getZoneServer()->getObject(oid).castTo<StructureObject*>();
 
-			if (structure != nullptr && structure->isCampStructure()) {
+			if (structure != NULL && structure->isCampStructure()) {
 				player->sendSystemMessage("@camp:sys_already_camping");
 				return 0;
 			}
 		}
 
 		/// Check if player is in another camp
-		if(player->getCurrentCamp() != nullptr) {
+		if(player->getCurrentCamp() != NULL) {
 			player->sendSystemMessage("@camp:error_camp_exists");
 			return 0;
 		}
@@ -150,23 +155,23 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 		/// Check camps/lairs nearby
 		SortedVector<ManagedReference<QuadTreeEntry* > > nearbyObjects;
 		zone->getInRangeObjects(player->getPositionX(), player->getPositionY(),
-				512, &nearbyObjects, true, false);
+				512, &nearbyObjects, true);
 
 		for(int i = 0; i < nearbyObjects.size(); ++i) {
 			SceneObject* scno = cast<SceneObject*>(nearbyObjects.get(i).get());
-			if (scno != nullptr && scno->isCampStructure() && scno->getDistanceTo(
+			if (scno != NULL && scno->isCampStructure() && scno->getDistanceTo(
 					player) <= scno->getObjectTemplate()->getNoBuildRadius() + campStructureData->getRadius()) {
 				player->sendSystemMessage("@camp:error_camp_too_close");
 				return 0;
 			}
 
-			if (scno != nullptr && !scno->isCampStructure() && scno->isStructureObject() &&
+			if (scno != NULL && !scno->isCampStructure() && scno->isStructureObject() &&
 					scno->getDistanceTo(player) <= 100) {
 				player->sendSystemMessage("@camp:error_building_too_close");
 				return 0;
 			}
 
-			if(scno != nullptr && scno->getDistanceTo(player) <= scno->getObjectTemplate()->getNoBuildRadius() + campStructureData->getRadius()) {
+			if(scno != NULL && scno->getDistanceTo(player) <= scno->getObjectTemplate()->getNoBuildRadius() + campStructureData->getRadius()) {
 
 				if (scno->getObserverCount(ObserverEventType::OBJECTDESTRUCTION) > 0) {
 					SortedVector<ManagedReference<Observer* > > observers = scno->getObservers(ObserverEventType::OBJECTDESTRUCTION);
@@ -204,13 +209,13 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 				player->getPositionX(), player->getPositionY(),
 				(int) player->getDirectionAngle());
 
-		if (structureObject == nullptr) {
+		if (structureObject == NULL) {
 			error("Unable to create camp: " + campKitData->getSpawnObjectTemplate());
 			return 1;
 		}
 
 		/// Identify terminal for Active area
-		Terminal* campTerminal = nullptr;
+		Terminal* campTerminal = NULL;
 		SortedVector < ManagedReference<SceneObject*> > *childObjects
 				= structureObject->getChildObjects();
 
@@ -221,7 +226,7 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 			}
 		}
 
-		if (campTerminal == nullptr) {
+		if (campTerminal == NULL) {
 			structureObject->destroyObjectFromDatabase(true);
 			error("Camp does not have terminal: " + campStructureData->getTemplateFileName());
 			return 1;
@@ -238,7 +243,7 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 		ManagedReference<CampSiteActiveArea*> campArea =
 			(zoneServer->createObject( areaPath.hashCode(), 1)).castTo< CampSiteActiveArea*>();
 
-		if (campArea == nullptr) {
+		if (campArea == NULL) {
 			structureObject->destroyObjectFromDatabase(true);
 			return 1;
 		}
@@ -258,15 +263,13 @@ int CampKitMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject,
 			return 1;
 		}
 
-		campArea->setAbandoned(false);
-
 		structureObject->addActiveArea(campArea);
 
 		player->sendSystemMessage("@camp:camp_complete");
 
 		/// Remove Camp
 		TangibleObject* tano = cast<TangibleObject*>(sceneObject);
-		if(tano != nullptr)
+		if(tano != NULL)
 			tano->decreaseUseCount();
 
 

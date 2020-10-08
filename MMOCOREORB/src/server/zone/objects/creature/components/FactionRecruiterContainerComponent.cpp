@@ -5,9 +5,8 @@
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/tangible/components/generic/CoaMessageDataComponent.h"
 #include "server/zone/managers/player/BadgeList.h"
-#include "server/zone/objects/transaction/TransactionLog.h"
 
-int FactionRecruiterContainerComponent::canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) const {
+int FactionRecruiterContainerComponent::canAddObject(SceneObject* sceneObject, SceneObject* object, int containmentType, String& errorDescription) {
 
 	if (sceneObject == object) {
 		return TransferErrorCode::CANTADDTOITSELF;
@@ -25,16 +24,16 @@ int FactionRecruiterContainerComponent::canAddObject(SceneObject* sceneObject, S
 		return TransferErrorCode::INVALIDTYPE;
 	}
 
-	ManagedReference<CreatureObject*> player = object->getParentRecursively(SceneObjectType::PLAYERCREATURE).castTo<CreatureObject*>();
+	CreatureObject* player = object->getParentRecursively(SceneObjectType::PLAYERCREATURE).get().castTo<CreatureObject*>();
 
-	if (player == nullptr) {
+	if (player == NULL) {
 		return TransferErrorCode::MUSTBEINPLAYERINVENTORY;
 	}
 
 	if (object->getObjectTemplate()->getFullTemplateString() == "object/tangible/encoded_disk/message_assembled_base.iff") {
 		CoaMessageDataComponent* data = object->getDataObjectComponent()->castTo<CoaMessageDataComponent*>();
 
-		if (data != nullptr) {
+		if (data != NULL) {
 			String faction = data->getFaction().toLowerCase();
 			if (faction == "imperial" || faction == "rebel") {
 				return TransferErrorCode::SUCCESS;
@@ -45,23 +44,23 @@ int FactionRecruiterContainerComponent::canAddObject(SceneObject* sceneObject, S
 	return TransferErrorCode::INVALIDTYPE;
 }
 
-bool FactionRecruiterContainerComponent::transferObject(SceneObject* sceneObject, SceneObject* object, int containmentType, bool notifyClient, bool allowOverflow, bool notifyRoot) const {
+bool FactionRecruiterContainerComponent::transferObject(SceneObject* sceneObject, SceneObject* object, int containmentType, bool notifyClient, bool allowOverflow, bool notifyRoot) {
 	CoaMessageDataComponent* data = object->getDataObjectComponent()->castTo<CoaMessageDataComponent*>();
 
-	if (data == nullptr) {
+	if (data == NULL) {
 		return false;
 	}
 
-	ManagedReference<CreatureObject*> player = object->getParentRecursively(SceneObjectType::PLAYERCREATURE).castTo<CreatureObject*>();
+	CreatureObject* player = object->getParentRecursively(SceneObjectType::PLAYERCREATURE).get().castTo<CreatureObject*>();
 
-	if (player == nullptr) {
+	if (player == NULL) {
 		return false;
 	}
 
 	ZoneServer* zoneServer = player->getZoneServer();
 	PlayerObject* ghost = player->getPlayerObject();
 
-	if (zoneServer == nullptr || ghost == nullptr) {
+	if (zoneServer == NULL || ghost == NULL) {
 		return false;
 	}
 
@@ -72,13 +71,11 @@ bool FactionRecruiterContainerComponent::transferObject(SceneObject* sceneObject
 	AiAgent* recruiter = cast<AiAgent*>(sceneObject);
 
 	String recruiterFaction = recruiter->getFactionString().toLowerCase();
+	bool hasBadge = false;
 	
 	const Badge* badge = BadgeList::instance()->get("event_project_dead_eye_1");
-
-	if (badge == nullptr)
-		return false;
-
-	bool hasBadge = ghost->hasBadge(badge->getIndex());
+	if (badge != NULL)
+		hasBadge = ghost->hasBadge(badge->getIndex());
 
 	String faction = data->getFaction().toLowerCase();
 
@@ -96,22 +93,19 @@ bool FactionRecruiterContainerComponent::transferObject(SceneObject* sceneObject
 
 	ChatManager* chatManager = zoneServer->getChatManager();
 
-	if (chatManager == nullptr) {
+	if (chatManager == NULL) {
 		return false;
 	}
 
 	Locker locker(recruiter);
-	chatManager->broadcastChatMessage(recruiter, response.toString(), 0, 0, recruiter->getMoodID());
+	chatManager->broadcastChatMessage(recruiter,response.toString(), 0, 0, 0);
 
 	object->destroyObjectFromWorld(true);
 	object->destroyObjectFromDatabase();
 
 	int credits = System::random(500) + 500;
-	{
-		TransactionLog trx(faction == "rebel" ? TrxCode::REBELFACTION : TrxCode::IMPERIALFACTION, player, credits, true);
-		player->sendSystemMessage("You receive " + String::valueOf(credits) + " credits.");
-		player->addCashCredits(credits, true);
-	}
+	player->sendSystemMessage("You receive " + String::valueOf(credits) + " credits.");
+	player->addCashCredits(credits, true);
 
 	if (!hasBadge) {
 		ghost->awardBadge(badge->getIndex());

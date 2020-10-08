@@ -2,15 +2,12 @@
 #define SCENEOBJECT_H_
 
 #include "engine/engine.h"
-
-#include "engine/util/u3d/Coordinate.h"
-
 #include "variables/StringId.h"
 
 class ZoneClient;
 class Zone;
 
-class SceneObject : public Coordinate, public Mutex, public Logger, public Object {
+class SceneObject : public Coordinate, public Mutex, public Logger {
 protected:
 	uint64 objectID;
 	uint32 objectCRC;

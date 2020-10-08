@@ -5,6 +5,9 @@
 #ifndef SETPERFORMANCEBUFFTARGETCOMMAND_H_
 #define SETPERFORMANCEBUFFTARGETCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/player/sessions/EntertainingSession.h"
+
 class SetPerformanceBuffTargetCommand : public QueueCommand {
 public:
 
@@ -29,7 +32,7 @@ public:
 		ManagedReference<CreatureObject*> targetObject = server->getZoneServer()->getObject(target).castTo<CreatureObject*>();
 
 
-		if(targetObject == nullptr) {
+		if(targetObject == NULL) {
 			creature->sendSystemMessage("@performance:buff_invalid_target_self");
 			return GENERALERROR;
 		}

@@ -4,14 +4,21 @@
 
 package server.zone.objects.creature.buffs;
 
+import engine.core.ManagedObject;
+import system.util.VectorMap;
+import system.lang.ref.Reference;
 import server.zone.objects.creature.CreatureObject;
+import server.zone.objects.creature.CreatureObject;
+import system.lang.Time;
+
+include server.zone.ZoneProcessServer;
+import server.zone.objects.creature.buffs.BuffDurationEvent;
 import server.zone.objects.creature.buffs.Buff;
 include server.zone.objects.creature.buffs.BuffType;
 include server.zone.managers.object.ObjectManager;
+include server.chat.StringIdChatParameter;
 import server.zone.objects.tangible.consumable.DelayedBuffObserver;
-include system.util.Vector;
 
-@json
 class DelayedBuff extends Buff {
 	protected int usesRemaining;
 	protected CreatureObject player;
@@ -21,7 +28,7 @@ class DelayedBuff extends Buff {
 	protected Vector<int> eventTypes;
 
 	public DelayedBuff(CreatureObject creo, unsigned int buffcrc, int effectCount) {
-		super(creo, buffcrc, 3600, BuffType.FOOD);
+		super(creo, buffcrc, 1380, BuffType.FOOD);
 
 		usesRemaining = effectCount;
 		player = creo;

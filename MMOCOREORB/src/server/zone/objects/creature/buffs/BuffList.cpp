@@ -9,7 +9,7 @@
 BuffList::BuffList() {
 	spiceActive = false;
 
-	buffList.setNullValue(nullptr);
+	buffList.setNullValue(NULL);
 	buffList.setAllowDuplicateInsertPlan();
 
 	addSerializableVariable("spiceActive", &spiceActive);
@@ -22,11 +22,6 @@ BuffList::BuffList(const BuffList& bf) : Object(), Serializable(), mutex() {
 
 	addSerializableVariable("spiceActive", &spiceActive);
 	addSerializableVariable("buffList", &buffList);
-}
-
-void to_json(nlohmann::json& j, const BuffList& l) {
-	j["spiceActive"] = l.spiceActive;
-	j["buffList"] = l.buffList;
 }
 
 void BuffList::updateBuffsToDatabase() {
@@ -42,7 +37,7 @@ void BuffList::updateBuffsToDatabase() {
 	}
 }
 
-void BuffList::sendTo(CreatureObject* player) const {
+void BuffList::sendTo(CreatureObject* player) {
 	Locker guard(&mutex);
 
 	for (int i = 0; i < buffList.size(); ++i) {
@@ -52,7 +47,7 @@ void BuffList::sendTo(CreatureObject* player) const {
 	}
 }
 
-void BuffList::sendDestroyTo(CreatureObject* player) const {
+void BuffList::sendDestroyTo(CreatureObject* player) {
 	Locker guard(&mutex);
 
 	for (int i = 0; i < buffList.size(); ++i) {
@@ -63,7 +58,7 @@ void BuffList::sendDestroyTo(CreatureObject* player) const {
 }
 
 void BuffList::addBuff(Buff* buff) {
-	if (buff == nullptr)
+	if (buff == NULL)
 		return;
 
 	Locker guard(&mutex);
@@ -110,7 +105,7 @@ bool BuffList::removeBuff(uint32 buffcrc) {
 }
 
 void BuffList::removeBuff(Buff* buff) {
-	if (buff == nullptr)
+	if (buff == NULL)
 		return;
 
 	Locker guard(&mutex);
@@ -144,7 +139,7 @@ void BuffList::removeBuff(Buff* buff) {
 	}
 }
 
-int BuffList::findBuff(Buff* buff) const {
+int BuffList::findBuff(Buff* buff) {
 	Locker guard(&mutex);
 
 	uint32 buffCRC = buff->getBuffCRC();
@@ -170,20 +165,20 @@ int BuffList::findBuff(Buff* buff) const {
 	return -1;
 }
 
-void BuffList::clearBuffs(bool updateclient, bool removeAll) {
+void BuffList::clearBuffs(bool updateclient) {
 	Locker guard(&mutex);
 
-	for (int i = buffList.size() -1; i >= 0; i--) {
-		ManagedReference<Buff*> buff = buffList.get(i);
-
-		if (!removeAll && !buff->removeOnClearBuffs())
-			continue;
+	while (buffList.size() > 0) {
+		ManagedReference<Buff*> buff = buffList.get(0);
 
 		Locker locker(buff);
 
+		if (buff->isActive())
+			buff->clearBuffEvent();
+
 		buff->clearBuffEvent();
 
-		buffList.remove(i);
+		buffList.remove(0);
 
 		mutex.unlock();
 

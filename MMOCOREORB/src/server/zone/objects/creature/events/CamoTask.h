@@ -7,24 +7,27 @@
 
 #ifndef CAMOTASK_H_
 #define CAMOTASK_H_
-
 #include "server/chat/StringIdChatParameter.h"
-#include "server/zone/managers/player/PlayerManager.h"
+#include "server/zone/objects/player/PlayerObject.h"
+#include "engine/core/ManagedReference.h"
+#include "engine/core/ManagedWeakReference.h"
+#include "system/lang/String.h"
 #include "server/zone/objects/creature/CreatureObject.h"
-#include "server/zone/objects/creature/buffs/ConcealBuff.h"
 
 class CamoTask : public Task {
-	ManagedWeakReference<CreatureObject*> play;
-	ManagedWeakReference<CreatureObject*> mob;
+	ManagedWeakReference<CreatureObject*> creo;
+	ManagedWeakReference<CreatureObject*> targ;
 	bool success;
 	bool maskScent;
+	bool awardXp;
 
 public:
-	CamoTask(CreatureObject* pl, CreatureObject* mobile, bool ms, bool succ) : Task() {
-		play = pl;
-		mob = mobile;
+	CamoTask(CreatureObject* cr, CreatureObject* tar, bool ms, bool succ, bool award) : Task(){
+		creo = cr;
+		targ = tar;
 		success = succ;
 		maskScent = ms;
+		awardXp = award;
 	}
 
 	void run() {
@@ -34,51 +37,45 @@ public:
 			crc = STRING_HASHCODE("skill_buff_mask_scent_self");
 		}
 
-		ManagedReference<CreatureObject*> ai = mob.get();
-		ManagedReference<CreatureObject*> player = play.get();
-		if (ai == nullptr || player == nullptr)
+		ManagedReference<CreatureObject*> target = targ.get();
+		if (target == NULL)
 			return;
 
-		Locker locker(ai);
-		Locker clocker(player, ai);
+		ManagedReference<CreatureObject*> creature = creo.get();
+		if (creature == NULL)
+			return;
 
-		if (!success) {
-			if (player->hasBuff(crc)) {
-				player->sendSystemMessage("@skl_use:sys_scentmask_break"); // A creature has detected you, despite your attempts at camouflage!
-				player->removeBuff(crc);
-			}
+		Locker locker(target);
+		Locker clocker(creature, target);
 
+		if (!success && creature->hasBuff(crc)) {
+			creature->sendSystemMessage("@skl_use:sys_scentmask_break"); // A creature has detected you, despite your attempts at camouflage!
+			creature->removeBuff(crc);
+		}
+
+		if(!success) {
 			// on failure 50% chance to aggro animal if aggressive and within 40 meters
-			if (System::random(100) > 50 && ai->isAggressiveTo(player) && ai->isInRange3d(player, 40.0f))
-				CombatManager::instance()->startCombat(ai, player, true);
-
+			if (System::random(100) > 50 && target->isAggressiveTo(creature) && target->isInRange(creature,40.0f))
+				CombatManager::instance()->startCombat(target,creature,true);
 			return;
 		}
 
+		if (creature->getPlayerObject() == NULL)
+			return;
+
+		if (!maskScent && !creature->hasSkill("outdoors_ranger_novice"))
+			return;
+
 		if (maskScent) {
-			StringIdChatParameter success("skl_use", "sys_scentmask_success"); // Due to your scent mask, a %TT ignores you.
-			success.setTT(ai->getObjectID());
-			player->sendSystemMessage(success);
+			StringIdChatParameter success("skl_use", "sys_scentmask_success");
+			success.setTT(target);
+
+			creature->sendSystemMessage(success);
 		}
 
-		ManagedReference<PlayerManager*> playerManager = player->getZoneServer()->getPlayerManager();
-
-		if (maskScent) {
-			playerManager->awardExperience(player, "scout", (ai->getLevel() * 2), true);
-		} else {
-			Reference<ConcealBuff*> buff = cast<ConcealBuff*>(player->getBuff(crc));
-			if (buff != nullptr) {
-				clocker.release();
-				locker.release();
-
-				ManagedReference<CreatureObject*> buffGiver = buff->getBuffGiver();
-				if (buffGiver != nullptr) {
-					Locker buffGiverlocker(buffGiver);
-					if (buffGiver->hasSkill("outdoors_ranger_novice")) {
-						playerManager->awardExperience(buffGiver, "scout", (ai->getLevel() * 2), true);
-					}
-				}
-			}
+		if (awardXp) {
+			ManagedReference<PlayerManager*> playerManager = creature->getZoneServer()->getPlayerManager();
+			playerManager->awardExperience(creature, "scout", (target->getLevel() * 2), true);
 		}
 	}
 };

@@ -11,8 +11,15 @@
 #ifndef SAMPLETASK_H_
 #define SAMPLETASK_H_
 
+#include "engine/engine.h"
+#include "server/zone/managers/objectcontroller/ObjectController.h"
+#include "server/zone/packets/resource/SurveyMessage.h"
+#include "server/zone/packets/chat/ChatSystemMessage.h"
+#include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/objects/tangible/tool/SurveyTool.h"
 #include "server/zone/objects/player/sessions/survey/SurveySession.h"
+
+class ResourceSpawner;
 
 class SampleTask : public Task {
 
@@ -31,11 +38,11 @@ public:
 	void run() {
 		Locker playerLocker(playerCreature);
 
-		if (!cancelled && playerCreature->getPendingTask("sample") != nullptr) {
+		if (!cancelled && playerCreature->getPendingTask("sample") != NULL) {
 			playerCreature->removePendingTask("sample");
 
 			ManagedReference<SurveySession*> session = playerCreature->getActiveSession(SessionFacadeType::SURVEY).castTo<SurveySession*>();
-			if(session != nullptr) {
+			if(session != NULL) {
 				session->reSample();
 			}
 			return;

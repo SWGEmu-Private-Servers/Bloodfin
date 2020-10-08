@@ -9,9 +9,7 @@
 #define COLLISIONMANAGER_H_
 
 #include "engine/engine.h"
-#include "server/zone/CloseObjectsVector.h"
-
-#include "templates/appearance/AppearanceTemplate.h"
+#include "server/zone/objects/scene/WorldCoordinates.h"
 
 class PathNode;
 class FloorMesh;
@@ -46,16 +44,18 @@ using namespace server::zone::objects::ship;
 using namespace server::zone;
 
 class CollisionManager : public Singleton<CollisionManager> {
-public:
-	static const AppearanceTemplate* getCollisionAppearance(SceneObject* scno, int collisionBlockFlags);
+protected:
+	static AABBTree* getAABBTree(SceneObject* scno, int collisionBlockFlags);
 	static Ray convertToModelSpace(const Vector3& rayOrigin, const Vector3& rayEnd, SceneObject* model);
 	static Vector3 convertToModelSpace(const Vector3& point, SceneObject* model);
-	static const TriangleNode* getTriangle(const Vector3& point, const FloorMesh* floor);
 	static Reference<Matrix4*> getTransformMatrix(SceneObject* model);
+public:
+	static TriangleNode* getTriangle(const Vector3& point, FloorMesh* floor);
+
 	/**
 	 * @returns nearest available path node int the floor path graph with the lowest distance from triangle to final target
 	 */
-	static const PathNode* findNearestPathNode(const TriangleNode* triangle, const FloorMesh* floor, const Vector3& finalTarget);
+	static PathNode* findNearestPathNode(TriangleNode* triangle, FloorMesh* floor, const Vector3& finalTarget);
 
 	static bool checkLineOfSightInBuilding(SceneObject* object1, SceneObject* object2, SceneObject* building);
 	static bool checkLineOfSight(SceneObject* object1, SceneObject* object2);
@@ -64,8 +64,7 @@ public:
 	static float getRayOriginPoint(CreatureObject* creature);
 
 	static float getWorldFloorCollision(float x, float y, Zone* zone, bool testWater);
-	static float getWorldFloorCollision(float x, float y, float z, Zone* zone, bool testWater);
-	static void getWorldFloorCollisions(float x, float y, Zone* zone, SortedVector<IntersectionResult>* result, CloseObjectsVector* closeObjectsVector = nullptr);
+	static void getWorldFloorCollisions(float x, float y, Zone* zone, SortedVector<IntersectionResult>* result, CloseObjectsVector* closeObjectsVector = NULL);
 
 	static void getWorldFloorCollisions(float x, float y, Zone* zone, SortedVector<IntersectionResult>* result, const SortedVector<ManagedReference<QuadTreeEntry*> >& inRangeObjects);
 	static void getWorldFloorCollisions(float x, float y, Zone* zone, SortedVector<IntersectionResult>* result, const Vector<QuadTreeEntry* >& inRangeObjects);

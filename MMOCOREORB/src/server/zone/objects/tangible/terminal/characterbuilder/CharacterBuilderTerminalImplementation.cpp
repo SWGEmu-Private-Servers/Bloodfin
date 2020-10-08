@@ -3,21 +3,22 @@
 #include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/objects/player/sui/characterbuilderbox/SuiCharacterBuilderBox.h"
 #include "server/zone/managers/skill/SkillManager.h"
-#include "templates/tangible/CharacterBuilderTerminalTemplate.h"
+#include "server/zone/templates/tangible/CharacterBuilderTerminalTemplate.h"
+#include "CharacterBuilderMenuNode.h"
 #include "server/zone/objects/player/PlayerObject.h"
 #include "server/zone/managers/player/PlayerManager.h"
-#include "server/zone/managers/jedi/JediManager.h"
-#include "server/zone/managers/director/DirectorManager.h"
 
 void CharacterBuilderTerminalImplementation::loadTemplateData(SharedObjectTemplate* templateData) {
 	TangibleObjectImplementation::loadTemplateData(templateData);
 
 	CharacterBuilderTerminalTemplate* terminalData = dynamic_cast<CharacterBuilderTerminalTemplate*>(templateData);
 
-	if (terminalData == nullptr)
+	if (terminalData == NULL)
 		return;
 
 	rootNode = terminalData->getItemList();
+
+	//info("loaded " + String::valueOf(itemList.size()));
 }
 
 void CharacterBuilderTerminalImplementation::initializeTransientMembers() {
@@ -27,10 +28,7 @@ void CharacterBuilderTerminalImplementation::initializeTransientMembers() {
 }
 
 int CharacterBuilderTerminalImplementation::handleObjectMenuSelect(CreatureObject* player, byte selectedID) {
-	if (!ConfigManager::instance()->getCharacterBuilderEnabled())
-		return 1;
-
-	debug() << "entering start terminal radial call";
+	//info("entering start terminal radial call", true);
 
 	if (selectedID != 20) // not use object
 		return 1;
@@ -41,12 +39,9 @@ int CharacterBuilderTerminalImplementation::handleObjectMenuSelect(CreatureObjec
 }
 
 void CharacterBuilderTerminalImplementation::sendInitialChoices(CreatureObject* player) {
-	if (!ConfigManager::instance()->getCharacterBuilderEnabled())
-		return;
+	//info("entering sendInitialChoices", true);
 
-	debug() << "entering sendInitialChoices";
-
-	if (rootNode == nullptr) {
+	if (rootNode == NULL) {
 		player->sendSystemMessage("There was an error initializing the menu for this character builder terminal. Sorry for the inconvenience.");
 		return;
 	}
@@ -65,13 +60,13 @@ void CharacterBuilderTerminalImplementation::enhanceCharacter(CreatureObject* pl
 
 	ManagedReference<PlayerObject*> ghost = player->getPlayerObject();
 
-	if (ghost == nullptr)
+	if (ghost == NULL)
 		return;
 
 	for (int i = 0; i < ghost->getActivePetsSize(); i++) {
 		ManagedReference<AiAgent*> pet = ghost->getActivePet(i);
 
-		if (pet != nullptr) {
+		if (pet != NULL) {
 			Locker crossLocker(pet, player);
 
 			pm->enhanceCharacter(pet);
@@ -109,56 +104,17 @@ void CharacterBuilderTerminalImplementation::giveLanguages(CreatureObject* playe
 void CharacterBuilderTerminalImplementation::grantGlowyBadges(CreatureObject* player) {
 	CharacterBuilderTerminalTemplate* terminalTemplate = dynamic_cast<CharacterBuilderTerminalTemplate*>(templateObject.get());
 
-	if (terminalTemplate == nullptr)
+	if (terminalTemplate == NULL)
 		return;
 
 	PlayerObject* ghost = player->getPlayerObject();
 
-	if (ghost == nullptr)
+	if (ghost == NULL)
 		return;
 
-	const auto& ids = terminalTemplate->getGlowyBadgeIds();
+	Vector<int> ids = terminalTemplate->getGlowyBadgeIds();
 
 	for (int i = 0; i < ids.size(); i++) {
 		ghost->awardBadge(ids.get(i));
 	}
-}
-
-void CharacterBuilderTerminalImplementation::grantJediInitiate(CreatureObject* player) {
-	if (JediManager::instance()->getJediProgressionType() != JediManager::VILLAGEJEDIPROGRESSION)
-		return;
-
-	CharacterBuilderTerminalTemplate* terminalTemplate = dynamic_cast<CharacterBuilderTerminalTemplate*>(templateObject.get());
-
-	if (terminalTemplate == nullptr)
-		return;
-
-	PlayerObject* ghost = player->getPlayerObject();
-
-	if (ghost == nullptr)
-		return;
-
-	SkillManager* skillManager = server->getSkillManager();
-
-	grantGlowyBadges(player);
-
-	Lua* lua = DirectorManager::instance()->getLuaInstance();
-
-	Reference<LuaFunction*> luaVillageGmCmd = lua->createFunction("FsIntro", "completeVillageIntroFrog", 0);
-	*luaVillageGmCmd << player;
-
-	luaVillageGmCmd->callFunction();
-
-	const auto& branches = terminalTemplate->getVillageBranchUnlocks();
-
-	for (int i = 0; i < branches.size(); i++) {
-		String branch = branches.get(i);
-		player->setScreenPlayState("VillageUnlockScreenPlay:" + branch, 2);
-		skillManager->awardSkill(branch + "_04", player, true, true, true);
-	}
-
-	luaVillageGmCmd = lua->createFunction("FsOutro", "completeVillageOutroFrog", 0);
-	*luaVillageGmCmd << player;
-
-	luaVillageGmCmd->callFunction();
 }

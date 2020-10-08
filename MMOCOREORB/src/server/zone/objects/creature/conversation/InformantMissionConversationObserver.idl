@@ -5,12 +5,15 @@
 package server.zone.objects.creature.conversation;
 
 include server.zone.objects.creature.conversation.ConversationObserver;
+include server.zone.templates.mobile.ConversationTemplate;
+include server.zone.objects.creature.CreatureObject;
 include server.zone.objects.creature.conversation.screenhandlers.InformantMissionScreenHandler;
+include server.zone.objects.creature.conversation.screenhandlers.ScreenHandler;
 
 class InformantMissionConversationObserver extends ConversationObserver {
 	@dereferenced
 	InformantMissionScreenHandler informantMissionScreenHandler;
 
-	public native InformantMissionConversationObserver(unsigned int convoTemplateCRC);
+	public native InformantMissionConversationObserver(ConversationTemplate conversationTemplate);
 }
 

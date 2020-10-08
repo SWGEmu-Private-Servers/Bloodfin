@@ -7,11 +7,11 @@
 #include "server/zone/objects/player/sui/messagebox/SuiMessageBox.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 
-void CoaEncodedDiskMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
+void CoaEncodedDiskMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
 	TangibleObjectMenuComponent::fillObjectMenuResponse(sceneObject, menuResponse, player);
 
 	TangibleObject* disk = cast<TangibleObject*>(sceneObject);
-	if (disk == nullptr) {
+	if (disk == NULL) {
 		return;
 	}
 
@@ -29,13 +29,13 @@ void CoaEncodedDiskMenuComponent::fillObjectMenuResponse(SceneObject* sceneObjec
 	}
 }
 
-int CoaEncodedDiskMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int CoaEncodedDiskMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 	if (!player->isPlayerCreature()) {
 		return 0;
 	}
 
 	SceneObject* inventory = player->getSlottedObject("inventory");
-	if (inventory == nullptr) {
+	if (inventory == NULL) {
 		return 0;
 	}
 
@@ -45,12 +45,12 @@ int CoaEncodedDiskMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject
 	}
 
 	TangibleObject* disk = cast<TangibleObject*>(sceneObject);
-	if (disk == nullptr) {
+	if (disk == NULL) {
 		return 0;
 	}
 
 	PlayerObject* ghost = player->getPlayerObject();
-	if (ghost == nullptr) {
+	if (ghost == NULL) {
 		return 0;
 	}
 
@@ -121,7 +121,7 @@ int CoaEncodedDiskMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject
 	return TangibleObjectMenuComponent::handleObjectMenuSelect(sceneObject, player, selectedID);
 }
 
-String CoaEncodedDiskMenuComponent::getFaction(TangibleObject* disk) const {
+String CoaEncodedDiskMenuComponent::getFaction(TangibleObject* disk) {
 	String name = disk->getObjectNameStringIdFile();
 	String faction;
 
@@ -134,7 +134,7 @@ String CoaEncodedDiskMenuComponent::getFaction(TangibleObject* disk) const {
 	return faction;
 }
 
-bool CoaEncodedDiskMenuComponent::isDecoded(TangibleObject* disk) const {
+bool CoaEncodedDiskMenuComponent::isDecoded(TangibleObject* disk) {
 	String name = disk->getObjectNameStringIdName();
 
 	if (name.contains("decoded")) {

@@ -6,16 +6,18 @@
  */
 
 #include "Behavior.h"
+#include "CompositeBehavior.h"
 #include "server/zone/managers/creature/AiMap.h"
+#include "LuaBehavior.h"
 
 Behavior::Behavior(AiAgent* _agent, const String& className) {
 	agent = _agent;
 	result = AiMap::SUSPEND;
-	parent = nullptr;
+	parent = NULL;
 	interface = AiMap::instance()->getBehavior(className);
 	id = 0;
 
-	if (interface == nullptr) {
+	if (interface == NULL) {
 		_agent->error("Null interface in Behavior: " + className);
 	}
 }
@@ -28,26 +30,26 @@ void Behavior::start() {
 
 	result = AiMap::RUNNING;
 
-	if (interface != nullptr) {
-		AiAgent* strongReference = agent.getReferenceUnsafeStaticCast();
+	if (interface != NULL) {
+		Reference<AiAgent*> strongReference = agent.get();
 
 		interface->start(strongReference);
 	}
 }
 
 void Behavior::end() {
-	if (interface != nullptr) {
-		AiAgent* strongReference = agent.getReferenceUnsafeStaticCast();
+	if (interface != NULL) {
+		Reference<AiAgent*> strongReference = agent.get();
 
 		interface->end(strongReference);
 	}
 }
 
 void Behavior::doAction(bool directlyExecuted) {
-	AiAgent* agent = this->agent.getReferenceUnsafeStaticCast();
+	Reference<AiAgent*> agent = this->agent.get();
 
-	if (agent->isDead() || agent->isIncapacitated() || (agent->getZone() == nullptr)) {
-		agent->setFollowObject(nullptr);
+	if (agent->isDead() || agent->isIncapacitated() || (agent->getZone() == NULL)) {
+		agent->setFollowObject(NULL);
 		return;
 	}
 
@@ -59,10 +61,10 @@ void Behavior::doAction(bool directlyExecuted) {
 	else if (!this->checkConditions())
 		endWithFailure();
 
-	agent = this->agent.getReferenceUnsafeStaticCast();
+	agent = this->agent.get();
 
 	if (finished()) {
-		if (parent == nullptr) {
+		if (parent == NULL) {
 			this->end();
 			result = AiMap::SUSPEND;
 			agent->activateMovementEvent(); // this is an automatic recycle decorator for the root node
@@ -75,7 +77,7 @@ void Behavior::doAction(bool directlyExecuted) {
 	}
 
 	int res = AiMap::INVALID;
-	if (interface != nullptr)
+	if (interface != NULL)
 		res = interface->doAction(agent);
 
 	switch(res) {
@@ -86,19 +88,19 @@ void Behavior::doAction(bool directlyExecuted) {
 		endWithFailure();
 		break;
 	case AiMap::INVALID:
-		if (agent == nullptr)
+		if (agent == NULL)
 			return;
 
 		agent->resetBehaviorList();
 		break;
 	default:
-		if (agent == nullptr)
+		if (agent == NULL)
 			return;
 
 		break;
 	}
 
-	if (!finished() || parent == nullptr)
+	if (!finished() || parent == NULL)
 		agent->activateMovementEvent();
 	else if (directlyExecuted) {
 		agent->setCurrentBehavior(parent->id);

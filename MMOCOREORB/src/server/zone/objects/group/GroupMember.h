@@ -8,33 +8,22 @@
 #ifndef GROUPMEMBER_H_
 #define GROUPMEMBER_H_
 
-#include "engine/util/json_utils.h"
-
-namespace server {
-	namespace zone {
-		namespace objects {
-			namespace creature {
-				class CreatureObject;
-			}
-		}
-	}
-}
-
-using namespace server::zone::objects::creature;
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/scene/variables/StringId.h"
 
 class GroupMember : public Variable {
-	ManagedReference<CreatureObject*> creature;
+	ManagedReference<SceneObject*> creature;
 
 public:
 	GroupMember() {
-		creature = nullptr;
+		creature = NULL;
 	}
 
 	GroupMember(const GroupMember& obj) : Variable() {
 		creature = obj.creature;
 	}
 
-	GroupMember(CreatureObject* obj) {
+	GroupMember(SceneObject* obj) {
 		creature = obj;
 	}
 
@@ -42,23 +31,23 @@ public:
 		return creature.get() == member.creature.get();
 	}
 
-	bool operator==(CreatureObject* member) const {
+	bool operator==(SceneObject* member) const {
 		return creature.get() == member;
 	}
 
-	void operator=(CreatureObject* obj) {
+	void operator=(SceneObject* obj) {
 		creature = obj;
 	}
 
-	Reference<CreatureObject*> operator->() const {
+	Reference<SceneObject*> operator->() const {
 		return creature.get();
 	}
 
-	Reference<CreatureObject*> get() {
+	Reference<SceneObject*> get() {
 		return creature.get();
 	}
 
-	operator Reference<CreatureObject*>() const {
+	operator Reference<SceneObject*>() const {
 		return creature.get();
 	}
 
@@ -70,14 +59,25 @@ public:
 		return creature.parseFromString(str, version);
 	}
 
-	friend void to_json(nlohmann::json& j, const GroupMember& m);
+	bool toBinaryStream(ObjectOutputStream* stream) {
+		String name;
 
-	bool toBinaryStream(ObjectOutputStream* stream);
+		creature.toBinaryStream(stream);
+
+		if (creature != NULL) {
+			StringId* stringId = creature->getObjectName();
+			name = creature->getCustomObjectName().toString();
+		}
+
+		name.toBinaryStream(stream);
+
+		return true;
+	}
 
 	bool parseFromBinaryStream(ObjectInputStream* stream) {
 		creature.parseFromBinaryStream(stream);
 
-		if (creature == nullptr)
+		if (creature == NULL)
 			return false;
 
 		String name;
@@ -86,6 +86,8 @@ public:
 
 		return true;
 	}
+
+
 
 };
 

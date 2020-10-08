@@ -5,6 +5,7 @@
 #ifndef RECRUITSKILLTRAINERCOMMAND_H_
 #define RECRUITSKILLTRAINERCOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/creature/commands/sui/RecruitSkillTrainerSuiCallback.h"
 
@@ -25,17 +26,14 @@ public:
 			return INVALIDLOCOMOTION;
 
 		PlayerObject* ghost = creature->getPlayerObject();
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return GENERALERROR;
 
 		if (!ghost->hasAbility("recruitskilltrainer"))
 			return GENERALERROR;
 
-		if (creature->isIncapacitated() || creature->isDead())
-			return GENERALERROR;
-
-		ManagedReference<CityRegion*> city = creature->getCityRegion().get();
-		if (city == nullptr)
+		ManagedReference<CityRegion*> city = creature->getCityRegion();
+		if (city == NULL)
 			return GENERALERROR;
 
 		if (!city->isMayor(creature->getObjectID()))

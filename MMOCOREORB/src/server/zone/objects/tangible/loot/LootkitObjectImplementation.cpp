@@ -6,12 +6,14 @@
  */
 
 #include "server/zone/objects/tangible/loot/LootkitObject.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 #include "server/zone/packets/scene/AttributeListMessage.h"
+#include "server/zone/objects/scene/variables/CustomizationVariables.h"
 #include "server/zone/ZoneServer.h"
 #include "server/zone/ZoneProcessServer.h"
-#include "templates/tangible/LootkitObjectTemplate.h"
+#include "server/zone/templates/tangible/LootkitObjectTemplate.h"
 
 void LootkitObjectImplementation::fillAttributeList(AttributeListMessage* alm, CreatureObject* object) {
 	TangibleObjectImplementation::fillAttributeList(alm,object);
@@ -29,22 +31,20 @@ void LootkitObjectImplementation::fillAttributeList(AttributeListMessage* alm, C
 void LootkitObjectImplementation::loadTemplateData(SharedObjectTemplate* templateData) {
 	TangibleObjectImplementation::loadTemplateData(templateData);
 
-	LootkitObjectTemplate* lootkitData = dynamic_cast<LootkitObjectTemplate*>(templateData);
+	LootkitObjectTemplate* LootkitData = dynamic_cast<LootkitObjectTemplate*>(templateData);
 
-	if (lootkitData == nullptr)
-		return;
+	components = LootkitData->getComponents();
+	attributes = LootkitData->getAttributes();
 
-	components = lootkitData->getComponents();
-	attributes = lootkitData->getAttributes();
+	comps = LootkitData->getComps();
+	reward = LootkitData->getReward();
 
-	comps = lootkitData->getComps();
-	reward = lootkitData->getReward();
-
-	deleteComponents = lootkitData->getDeleteComponents();
+	deleteComponents = LootkitData->getDeleteComponents();
 }
 
 Reference<CreatureObject*> LootkitObjectImplementation::getPlayer() {
-	return getParentRecursively(SceneObjectType::PLAYERCREATURE).castTo<CreatureObject*>();
+	ManagedReference<CreatureObject*> strong = getParentRecursively(SceneObjectType::PLAYERCREATURE).castTo<CreatureObject*>();
+	return strong.get();
 }
 
 int LootkitObjectImplementation::notifyObjectInserted(SceneObject* object) {
@@ -65,7 +65,7 @@ void LootkitObjectImplementation::addToKit(SceneObject* object) {
 
 			if (deleteComponents) {
 				ManagedReference<CreatureObject*> player = getPlayer();
-				if (player == nullptr)
+				if (player == NULL)
 					return;
 
 				Locker locker(object);
@@ -100,11 +100,11 @@ void LootkitObjectImplementation::createItem() {
 		}
 	}
 	ManagedReference<CreatureObject*>  player = getPlayer();
-	if (player != nullptr) {
+	if (player != NULL) {
 
 		ManagedReference<SceneObject*> inventory = player->getSlottedObject("inventory");
 
-		if (inventory == nullptr) {
+		if (inventory == NULL) {
 			return;
 		}
 
@@ -112,7 +112,7 @@ void LootkitObjectImplementation::createItem() {
 
 		ManagedReference<SceneObject*> rewardObject = zoneServer->createObject(reward.get(System::random(reward.size()-1)), 2);
 
-		if (rewardObject == nullptr) {
+		if (rewardObject == NULL) {
 			return;
 		}
 
@@ -135,7 +135,7 @@ void LootkitObjectImplementation::createItem() {
 int LootkitObjectImplementation::canAddObject(SceneObject* object, int containmentType, String& errorDescription) {
 	ManagedReference<CreatureObject*>  player = getPlayer();
 	if (components.contains(object->getServerObjectCRC())) {
-		if (!components.get(object->getServerObjectCRC()) && player != nullptr) {
+		if (!components.get(object->getServerObjectCRC()) && player != NULL) {
 			ManagedReference<SceneObject*> inventory = player->getSlottedObject("inventory");
 
 			if (inventory->isContainerFullRecursive()) {
@@ -147,7 +147,7 @@ int LootkitObjectImplementation::canAddObject(SceneObject* object, int containme
 
 		} else {
 
-			if (player != nullptr) {
+			if (player != NULL) {
 				errorDescription = "@loot_kit:already_contains"; // That item is already contained by this kit.
 			}
 
@@ -155,7 +155,7 @@ int LootkitObjectImplementation::canAddObject(SceneObject* object, int containme
 		}
 	}
 
-	if (player != nullptr) {
+	if (player != NULL) {
 		errorDescription = "@loot_kit:incorrect_item"; // The kit examines the item and rejects it. This kit will only accept items that are compatible with its design. For a list of what items this kit will accept examine it by using its radial menu.
 	}
 

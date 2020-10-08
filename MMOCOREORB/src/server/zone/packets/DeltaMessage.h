@@ -5,26 +5,40 @@
 #ifndef DELTAMESSAGE_H_
 #define DELTAMESSAGE_H_
 
-#include "engine/service/proto/BaseMessage.h"
+#include "engine/engine.h"
 #include "server/zone/objects/scene/variables/StringId.h"
 
 class DeltaMessage : public BaseMessage {
 	int updateCount;
-
+	
 public:
 	DeltaMessage(uint64 oid, uint32 name, uint8 type) {
 		insertShort(0x05);
 		insertInt(0x12862153);
 		insertLong(oid);
 		insertInt(name);
+		//insertInt(generateRandomObjectCRC());
 		insertByte(type);
 		insertInt(0);
 
 		setCompression(true);
-
+	
 		updateCount = 0;
 		insertShort(updateCount);
 	}
+
+	uint32 generateRandomObjectCRC() {
+		int idx = System::random(4);
+		
+		if (idx == 0)
+			return 0x4352454F;  // CREO;
+		else if (idx == 1)
+			return 0x504C4159;  // PLAY 
+		else if (idx == 2)
+			return 0x54414E4F;  // TANO 
+		else 
+			return System::random(0xFFFFFFFF); 
+	};
 
 	inline void startUpdate(uint16 type) {
 		++updateCount;
@@ -74,13 +88,13 @@ public:
 		startUpdate(type);
 		insertFloat(value);
 	}
-
+	
 	inline void addAsciiUpdate(uint16 type, const String& val) {
 		startUpdate(type);
 		insertAscii(val.toCharArray());
 	}
 
-	inline void addStringIdUpdate(uint16 type, const StringId& val) {
+	inline void addStringIdUpdate(uint16 type, StringId& val) {
 		startUpdate(type);
 		insertAscii(val.getFile());
 		insertInt(0);
@@ -108,7 +122,7 @@ public:
 		insertShort(index);
 		insertInt(value);
 	}
-
+	
 	inline void addListFloatElement(uint16 index, float value) {
 		insertByte(0x01);
 		insertShort(index);
@@ -131,7 +145,7 @@ public:
 		insertShort(index);
 		insertInt(value);
 	}
-
+	
 	inline void removeListFloatElement(uint16 index, float value) {
 		insertByte(0x02);
 		insertShort(index);
@@ -158,7 +172,7 @@ public:
 		insertInt(23, size() - 27);
 		insertShort(27, updateCount);
 	}
-
+	
 };
 
 #endif /*DELTAMESSAGE_H_*/

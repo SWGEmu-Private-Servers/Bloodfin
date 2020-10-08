@@ -36,25 +36,19 @@ class StructureMaintenanceTask : public Task, public Logger {
 protected:
 	ManagedWeakReference<StructureObject*> structureObject;
 
-public:
-	inline const AtomicTime& getNextExecutionTime() const {
-		return Task::getNextExecutionTime();
-	}
+	const static int oneDayTime = 24 * 60 * 60 * 1000;
 
+public:
 	StructureMaintenanceTask(StructureObject* structure) : Task(), Logger("StructureMaintenanceTask") {
 		structureObject = structure;
-
-		setCustomTaskQueue("slowQueue");
 	}
 
 	void run();
 
 private:
-	void sendMailMaintenanceWithdrawnFromBank(const String& creoName, StructureObject* structure);
-	void sendMailDecay(const String& creoName, StructureObject* structure);
-	void sendMailCondemned(const String& creoName, StructureObject* structure);
-	void sendMailDestroy(const String& creoName, StructureObject* structure);
-	void destroyStructureWithReason(StructureObject* structure, const String& reason);
+	void sendMailMaintenanceWithdrawnFromBank(CreatureObject* owner, StructureObject* structure);
+	void sendMailDecay(CreatureObject* owner, StructureObject* structure);
+	void sendMailCondemned(CreatureObject* owner, StructureObject* structure);
 
 	bool shouldBuildingBeDestroyed(StructureObject* structure);
 };

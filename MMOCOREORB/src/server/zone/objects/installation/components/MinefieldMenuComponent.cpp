@@ -4,20 +4,23 @@
  *  Created on: Jan 31, 2013
  *      Author: root
  */
-
 #include "MinefieldMenuComponent.h"
 #include "server/zone/packets/object/ObjectMenuResponse.h"
 #include "server/zone/Zone.h"
+#include "server/zone/managers/gcw/GCWManager.h"
 #include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/objects/tangible/TangibleObject.h"
 #include "server/zone/objects/installation/InstallationObject.h"
-#include "templates/params/creature/CreatureFlag.h"
+#include "server/zone/objects/player/sui/listbox/SuiListBox.h"
+#include "server/zone/objects/creature/CreatureFlag.h"
 
-void MinefieldMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) const {
 
-	if(!sceneObject->isMinefield() || sceneObject->getZoneServer() == nullptr || sceneObject->getZone() == nullptr)
+void MinefieldMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, ObjectMenuResponse* menuResponse, CreatureObject* player) {
+
+	if(!sceneObject->isMinefield() || sceneObject->getZoneServer() == NULL || sceneObject->getZone() == NULL)
 		return;
 
-	if ( player  == nullptr || player->isDead() || player->isIncapacitated())
+	if ( player  == NULL || player->isDead() || player->isIncapacitated())
 		return;
 
 
@@ -26,7 +29,7 @@ void MinefieldMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, Ob
 
 	ManagedReference<InstallationObject*> installation = cast<InstallationObject*>(sceneObject);
 
-	if(installation == nullptr)
+	if(installation == NULL)
 		return;
 
 	uint64 ownerid = installation->getOwnerObjectID();
@@ -35,7 +38,7 @@ void MinefieldMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, Ob
 
 	ManagedReference<SceneObject*> ownerObject = server->getObject(ownerid);
 
-	if(ownerObject == nullptr)
+	if(ownerObject == NULL)
 		return;
 
 	if(player->getFaction() != installation->getFaction())
@@ -51,14 +54,18 @@ void MinefieldMenuComponent::fillObjectMenuResponse(SceneObject* sceneObject, Ob
 
 }
 
-int MinefieldMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) const {
+int MinefieldMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, CreatureObject* player, byte selectedID) {
 
 	Zone* zne = player->getZone();
-	if(zne == nullptr)
+	if(zne == NULL)
+		return 1;
+
+	GCWManager* gcw = zne->getGCWManager();
+	if(gcw == NULL)
 		return 1;
 
 	ManagedReference<InstallationObject*> installation = cast<InstallationObject*>(sceneObject);
-	if(installation == nullptr)
+	if(installation == NULL)
 		return 1;
 	if ( selectedID == 37) {
 		if(installation->checkContainerPermission(player,ContainerPermissions::OPEN)){
@@ -74,3 +81,11 @@ int MinefieldMenuComponent::handleObjectMenuSelect(SceneObject* sceneObject, Cre
 	return 0;
 
 }
+
+
+
+
+
+
+
+

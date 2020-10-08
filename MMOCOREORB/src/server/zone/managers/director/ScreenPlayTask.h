@@ -8,16 +8,11 @@
 #ifndef SCREENPLAYTASK_H_
 #define SCREENPLAYTASK_H_
 
+#include "engine/engine.h"
+#include "DirectorManager.h"
 #include "server/zone/managers/director/PersistentEvent.h"
-#include "server/ServerCore.h"
-#include "server/zone/ZoneServer.h"
 
 #include "server/zone/objects/scene/SceneObject.h"
-
-namespace server {
-namespace zone {
-namespace managers {
-namespace director {
 
 class ScreenPlayTask : public Task {
 	ManagedWeakReference<SceneObject*> obj;
@@ -32,24 +27,42 @@ public:
 		taskKey = key;
 		screenPlay = playName;
 		args = arguments;
-		persistentEvent = nullptr;
+		persistentEvent = NULL;
 	}
 
-	void run();
+	void run() {
+		ZoneServer* zoneServer = ServerCore::getZoneServer();
+
+		if (zoneServer != NULL && zoneServer->isServerLoading()) {
+			schedule(1000);
+
+			return;
+		}
+
+		ManagedReference<SceneObject*> obj = this->obj.get();
+
+		if (obj != NULL) {
+			Locker locker(obj);
+
+			DirectorManager::instance()->activateEvent(this);
+		} else {
+			DirectorManager::instance()->activateEvent(this);
+		}
+	}
 
 	ManagedReference<SceneObject*> getSceneObject() {
 		return obj.get();
 	}
 
-	const String& getTaskKey() const {
+	String getTaskKey() {
 		return taskKey;
 	}
 
-	const String& getScreenPlay() const {
+	String getScreenPlay() {
 		return screenPlay;
 	}
 
-	const String& getArgs() const {
+	String getArgs() {
 		return args;
 	}
 
@@ -57,21 +70,10 @@ public:
 		this->persistentEvent = persistentEvent;
 	}
 
-	Reference<PersistentEvent*>& getPersistentEvent() {
-		return persistentEvent;
-	}
-
-	const Reference<PersistentEvent*>& getPersistentEvent() const {
+	Reference<PersistentEvent*> getPersistentEvent() {
 		return persistentEvent;
 	}
 
 };
-
-} // namespace director
-} // namespace managers
-} // namespace zone
-} // namespace server
-
-using namespace server::zone::managers::director;
 
 #endif /* SCREENPLAYTASK_H_ */

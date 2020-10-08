@@ -5,6 +5,7 @@
 #ifndef STARTDANCECOMMAND_H_
 #define STARTDANCECOMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/objects/player/sessions/EntertainingSession.h"
 #include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/managers/skill/SkillManager.h"
@@ -25,7 +26,7 @@ public:
 		ManagedReference<EntertainingSession*> session =
 				dynamic_cast<EntertainingSession*> (facade.get());
 
-		if (session == nullptr) {
+		if (session == NULL) {
 			session = new EntertainingSession(creature);
 			creature->addActiveSession(SessionFacadeType::ENTERTAINING, session);
 		}
@@ -38,10 +39,10 @@ public:
 		sui->setPromptTitle("@performance:available_dances");
 		sui->setPromptText("@performance:select_dance");
 
-		const AbilityList* list = ghost->getAbilityList();
+		AbilityList* list = ghost->getAbilityList();
 
 		for (int i = 0; i < list->size(); ++i) {
-			const Ability* ability = list->get(i);
+			Ability* ability = list->get(i);
 
 			String abilityName = ability->getAbilityName();
 
@@ -81,7 +82,7 @@ public:
 		ManagedReference<EntertainingSession*> session =
 				dynamic_cast<EntertainingSession*> (facade.get());
 
-		if (session != nullptr) {
+		if (session != NULL) {
 			if (session->isPlayingMusic()) {
 				session->stopPlayingMusic();
 			}
@@ -98,7 +99,7 @@ public:
 				creature->getSlottedObject(
 						"ghost").castTo<PlayerObject*> ();
 
-		if (ghost == nullptr)
+		if (ghost == NULL)
 			return GENERALERROR;
 
 		String args = arguments.toString();

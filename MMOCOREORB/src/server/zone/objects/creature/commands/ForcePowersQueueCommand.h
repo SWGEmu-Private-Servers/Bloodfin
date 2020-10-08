@@ -13,7 +13,13 @@
 #include "server/zone/managers/combat/CombatManager.h"
 #include "server/zone/managers/combat/CreatureAttackData.h"
 #include "server/zone/managers/collision/CollisionManager.h"
+#include "server/zone/objects/creature/CreatureAttribute.h"
+#include "server/zone/objects/creature/CreatureState.h"
+#include "server/zone/objects/creature/commands/effect/StateEffect.h"
+#include "server/zone/objects/creature/commands/effect/DotEffect.h"
+#include "server/zone/objects/creature/commands/effect/CommandEffect.h"
 #include "CombatQueueCommand.h"
+#include "server/zone/managers/collision/PathFinderManager.h"
 #include "server/zone/managers/visibility/VisibilityManager.h"
 
 class ForcePowersQueueCommand : public CombatQueueCommand {
@@ -24,96 +30,60 @@ public:
 	}
 
 	int doCombatAction(CreatureObject* creature, const uint64& target, const UnicodeString& arguments = "") const {
-		ManagedReference<SceneObject*> targetObject = server->getZoneServer()->getObject(target);
+			ManagedReference<SceneObject*> targetObject = server->getZoneServer()->getObject(target);
 
-		if (targetObject == nullptr || !targetObject->isTangibleObject() || targetObject == creature)
-			return INVALIDTARGET;
-
-		float checkRange = range;
-
-		if (creature->isProne())
-			return NOPRONE;
-
-		if(!checkDistance(creature, targetObject, checkRange))
-			return TOOFAR;
-
-		if (!CollisionManager::checkLineOfSight(creature, targetObject)) {
-			creature->sendSystemMessage("@cbt_spam:los_fail");// "You lost sight of your target."
-			return GENERALERROR;
-		}
-
-		ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
-
-		if (ghost != nullptr && ghost->getForcePower() < getFrsModifiedForceCost(creature)) {
-			creature->sendSystemMessage("@jedi_spam:no_force_power"); //"You do not have enough Force Power to peform that action.
-			return GENERALERROR;
-		}
-
-		CombatManager* combatManager = CombatManager::instance();
-
-		try {
-			int res = combatManager->doCombatAction(creature, creature->getWeapon(), cast<TangibleObject*>(targetObject.get()), CreatureAttackData(arguments, this, target));
-
-			switch (res) {
-			case -1:
+			if (targetObject == NULL || !targetObject->isTangibleObject() || targetObject == creature)
 				return INVALIDTARGET;
-			case -3:
+
+			float checkRange = range;
+
+			if (creature->isProne())
+				return NOPRONE;
+
+			if (!targetObject->isInRange(creature, checkRange + targetObject->getTemplateRadius() + creature->getTemplateRadius()))
+				return TOOFAR;
+
+			if (!CollisionManager::checkLineOfSight(creature, targetObject)) {
+				creature->sendSystemMessage("@container_error_message:container18");
 				return GENERALERROR;
 			}
 
-			if (ghost != nullptr)
-				ghost->setForcePower(ghost->getForcePower() - getFrsModifiedForceCost(creature));
+			ManagedReference<PlayerObject*> playerObject = creature->getPlayerObject();
 
-		} catch (Exception& e) {
-			error("unreported exception caught in ForcePowersQueueCommand::doCombatAction");
-			error(e.getMessage());
-			e.printStackTrace();
-		}
+			if (playerObject != NULL && playerObject->getForcePower() < forceCost) {
+				creature->sendSystemMessage("@jedi_spam:no_force_power"); //"You do not have enough Force Power to peform that action.
 
-		// Increase Visibility for Force Power.
-		if (ghost != nullptr)
+				return GENERALERROR;
+			}
+
+			CombatManager* combatManager = CombatManager::instance();
+
+			try {
+				int res = combatManager->doCombatAction(creature, creature->getWeapon(), cast<TangibleObject*>(targetObject.get()), CreatureAttackData(arguments, this, target));
+
+				switch (res) {
+				case -1:
+					return INVALIDTARGET;
+				case -3:
+					return GENERALERROR;
+				}
+
+				if (playerObject != NULL)
+					playerObject->setForcePower(playerObject->getForcePower() - forceCost);
+
+			} catch (Exception& e) {
+				error("unreported exception caught in ForcePowersQueueCommand::doCombatAction");
+				error(e.getMessage());
+				e.printStackTrace();
+			}
+
+			// Increase Visibility for Force Power.
 			VisibilityManager::instance()->increaseVisibility(creature, visMod);
-
-		return SUCCESS;
-	}
-
-	int getFrsModifiedForceCost(CreatureObject* creature) const {
-		ManagedReference<PlayerObject*> ghost = creature->getPlayerObject();
-
-		if (ghost == nullptr)
-			return forceCost;
-
-		Locker locker(creature);
-
-		FrsData* playerData = ghost->getFrsData();
-		int councilType = playerData->getCouncilType();
-
-		locker.release();
-
-		int manipulationMod = 0;
-		float frsModifier = 0;
-
-		if (councilType == FrsManager::COUNCIL_LIGHT) {
-			manipulationMod = creature->getSkillMod("force_manipulation_light");
-			frsModifier = frsLightForceCostModifier;
-		} else if (councilType == FrsManager::COUNCIL_DARK) {
-			manipulationMod = creature->getSkillMod("force_manipulation_dark");
-			frsModifier = frsDarkForceCostModifier;
+			return SUCCESS;
 		}
-
-		if (manipulationMod == 0 || frsModifier == 0)
-			return forceCost;
-
-		return forceCost + (int)((manipulationMod * frsModifier) + .5);
-	}
 
 	float getCommandDuration(CreatureObject *object, const UnicodeString& arguments) const {
-		float combatHaste = object->getSkillMod("combat_haste");
-
-		if (combatHaste > 0)
-			return speed * (1.f - (combatHaste / 100.f));
-		else
-			return speed;
+		return defaultTime * speed;
 	}
 
 	virtual bool isJediCombatQueueCommand() {

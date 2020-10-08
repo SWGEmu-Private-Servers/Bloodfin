@@ -7,18 +7,13 @@ package server.zone.objects.intangible;
 import server.zone.objects.intangible.IntangibleObject;
 import server.zone.objects.tangible.DespawnLairOnPlayerDisappear;
 import server.zone.objects.creature.CreatureObject;
-import server.zone.objects.scene.SceneObject;
-include server.zone.CloseObjectsVector;
-import server.zone.QuadTreeEntry;
-include system.thread.atomic.AtomicInteger;
-include engine.log.Logger;
+include engine.util.u3d.CloseObjectsVector;
+include engine.util.u3d.QuadTreeEntry;
 
-@json
 class TheaterObject extends IntangibleObject {
 	@dereferenced
 	protected transient AtomicInteger numberOfPlayersInRange;
 	protected boolean despawnOnNoPlayersInRange;
-	protected boolean shouldFlatten;
 
 	protected transient DespawnLairOnPlayerDisappear despawnEvent;
 
@@ -29,7 +24,6 @@ class TheaterObject extends IntangibleObject {
 		super.closeobjects.setNoDuplicateInsertPlan();
 
 		despawnOnNoPlayersInRange = false;
-		shouldFlatten = false;
 	}
 
 	@dirty
@@ -45,16 +39,6 @@ class TheaterObject extends IntangibleObject {
 	@preLocked
 	public void setDespawnOnNoPlayersInRange(boolean b) {
 		despawnOnNoPlayersInRange = b;
-	}
-
-	@read
-	public boolean shouldFlattenTheater() {
-		return shouldFlatten;
-	}
-
-	@preLocked
-	public void setShouldFlatten(boolean b) {
-		shouldFlatten = b;
 	}
 
 	public void notifyInsert(QuadTreeEntry entry) {
@@ -90,7 +74,7 @@ class TheaterObject extends IntangibleObject {
 	}
 
 	public void activateDespawnEvent() {
-		if (despawnEvent)
+		if (despawnEvent != null)
 			return;
 
 		despawnEvent = new DespawnLairOnPlayerDisappear(this);
@@ -98,7 +82,7 @@ class TheaterObject extends IntangibleObject {
 	}
 
 	public void clearDespawnEvent() {
-		if (!despawnEvent)
+		if (despawnEvent == null)
 			return;
 
 		despawnEvent.cancel();

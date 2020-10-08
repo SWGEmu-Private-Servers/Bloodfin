@@ -7,7 +7,6 @@
 
 #include "server/zone/objects/scene/SceneObject.h"
 #include "server/zone/managers/resource/ResourceManager.h"
-#include "server/zone/objects/structure/StructureObject.h"
 
 class AddPowerCommand : public QueueCommand {
 public:
@@ -27,10 +26,9 @@ public:
 
 		ManagedReference<PlayerManager*> playerManager = server->getPlayerManager();
 
-		uint64 targetid = creature->getTargetID();
-		ManagedReference<SceneObject*> obj = playerManager->getInRangeStructureWithAdminRights(creature, targetid);
+		ManagedReference<SceneObject*> obj = playerManager->getInRangeStructureWithAdminRights(creature, target);
 
-		if (obj == nullptr || !obj->isStructureObject())
+		if (obj == NULL || !obj->isStructureObject())
 			return INVALIDTARGET;
 
 		StructureObject* structure = cast<StructureObject*>( obj.get());

@@ -1,9 +1,9 @@
 #ifndef FIREWORKSHOWDATACOMPONENT_H_
 #define FIREWORKSHOWDATACOMPONENT_H_
-
 #include "server/zone/objects/scene/components/DataObjectComponent.h"
 #include "server/zone/objects/tangible/firework/FireworkObject.h"
 #include "engine/engine.h"
+#include "system/util/Vector.h"
 #include "system/util/VectorMap.h"
 
 class FireworkShowDataComponent : public DataObjectComponent {
@@ -18,10 +18,6 @@ public:
 
 	virtual ~FireworkShowDataComponent() {
 
-	}
-
-	void writeJSON(nlohmann::json& j) const {
-		SERIALIZE_JSON_MEMBER(fireworkList);
 	}
 
 	bool toBinaryStream(ObjectOutputStream* stream) {

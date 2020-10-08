@@ -5,7 +5,7 @@
 #ifndef SHIPOBJECTMESSAGE6_H_
 #define SHIPOBJECTMESSAGE6_H_
 
-#include "server/zone/packets/tangible/TangibleObjectMessage6.h"
+#include "../../packets/tangible/TangibleObjectMessage6.h"
 #include "server/zone/objects/ship/ShipObject.h"
 
 class ShipObjectMessage6 : public TangibleObjectMessage6 {
@@ -23,12 +23,12 @@ public:
 		insertFloat(10.472f); // 7 Pitch Acceleration Max
 		insertFloat(5.23599f); //8 Roll Acceleration Max
 
-		insertFloat(0.1675516f); //9 Yaw Acceleration
-		insertFloat(0.1675516f); //10 Pitch Acceleration
+		insertFloat(0.4675516); //9 Yaw Acceleration
+		insertFloat(0.4675516); //10 Pitch Acceleration
 		insertFloat(0.907571f); //11 Roll Acceleration
 
 
-		insertFloat(50.f); //12 max speed
+		insertFloat(100.f); //12 max speed
 
 		insertLong(0); //13 const Archive::AutoDeltaVariableCallback<CachedNetworkId,ShipObject::Callbacks::DefaultCallback<ShipObject::Messages::LookAtTargetChanged,CachedNetworkId>,ShipObject>::`vftable'
 
@@ -47,7 +47,7 @@ public:
 
 		insertByte(0);
 		insertInt(1);
-		insertInt(0x35a0c705); // 0x05, 0xC7, 0xA0, 0x35, //eng_prototype
+		insertInt(0xe73217be); // 0x05, 0xC7, 0xA0, 0x35, //eng_prototype
 
 		insertByte(0);
 		insertInt(2);
@@ -74,7 +74,7 @@ public:
 		insertAscii(""); //19 const Archive::AutoDeltaVariable<_STL::basic_string<char,_STL::char_traits<char>,_STL::allocator<char>>>::`vftable'
 		insertAscii(""); //20 const Archive::AutoDeltaVariable<_STL::basic_string<char,_STL::char_traits<char>,_STL::allocator<char>>>::`vftable'
 
-		insertFloat(301.f); //21 front shield current
+		insertFloat(302.f); //21 front shield current
 		insertFloat(302.f); //22 back shield current
 
 		insertInt(0); //23 const Archive::AutoDeltaVariable<int>::`vftable'

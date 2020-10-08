@@ -8,6 +8,8 @@
 #ifndef CHECKAUCTIONSTASK_H_
 #define CHECKAUCTIONSTASK_H_
 
+#include "engine/engine.h"
+
 #include "server/zone/managers/auction/AuctionManager.h"
 
 class CheckAuctionsTask : public Task {
@@ -16,19 +18,12 @@ class CheckAuctionsTask : public Task {
 public:
 	CheckAuctionsTask(AuctionManager* manager) {
 		auctionManager = manager;
-
-		setCustomTaskQueue("slowQueue");
 	}
 
 	void run() {
 		ManagedReference<AuctionManager*> strongRef = auctionManager.get();
 
-		if (strongRef == nullptr)
-			return;
-
-		ZoneServer* server = strongRef->getZoneServer();
-
-		if (server == nullptr || server->isServerShuttingDown())
+		if (strongRef == NULL)
 			return;
 
 		strongRef->checkAuctions();

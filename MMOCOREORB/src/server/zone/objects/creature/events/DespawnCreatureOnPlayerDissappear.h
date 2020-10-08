@@ -23,18 +23,12 @@ class DespawnCreatureOnPlayerDissappear : public Task {
 public:
 	DespawnCreatureOnPlayerDissappear(AiAgent* creo) {
 		creature = creo;
-
-		auto zone = creo->getZone();
-
-		if (zone != nullptr) {
-			setCustomTaskQueue(zone->getZoneName());
-		}
 	}
 
 	void run() {
 		ManagedReference<AiAgent*> strongRef = creature.get();
 
-		if (strongRef == nullptr)
+		if (strongRef == NULL)
 			return;
 
 		Locker locker(strongRef);
@@ -43,7 +37,7 @@ public:
 
 		Zone* zone = strongRef->getZone();
 
-		if (zone == nullptr)
+		if (zone == NULL)
 			return;
 
 		if (!strongRef->getDespawnOnNoPlayerInRange())

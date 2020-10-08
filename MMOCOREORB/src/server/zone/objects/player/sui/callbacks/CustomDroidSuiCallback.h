@@ -11,7 +11,10 @@
 #include "server/zone/objects/player/sui/SuiCallback.h"
 #include "server/zone/objects/player/sui/listbox/SuiListBox.h"
 #include "server/zone/objects/player/sui/colorbox/SuiColorBox.h"
+#include "server/zone/objects/player/sui/SuiCallback.h"
 #include "server/zone/objects/player/sui/callbacks/ColorWithKitSuiCallback.h"
+
+
 
 class CustomDroidSuiCallback : public SuiCallback {
 	int numPalette;
@@ -32,12 +35,12 @@ public:
 
 		if(!creature->isPlayerCreature())
 			return;
-		ManagedReference<SceneObject*> obj = sui->getUsingObject().get();
+		ManagedReference<SceneObject*> obj = sui->getUsingObject();
 
-		if(obj == nullptr)
+		if(obj == NULL)
 			return;
 
-		if( customizationKit == nullptr )
+		if( customizationKit == NULL )
 			return;
 
 		ManagedReference<TangibleObject*> target = cast<TangibleObject*>(obj.get());
@@ -49,9 +52,9 @@ public:
 			if(index < 0 || index > 3)
 				return;
 
-			if(server != nullptr) {
+			if(server != NULL) {
 
-				if (target == nullptr || !target->isDroidObject()) {
+				if (target == NULL || !target->isDroidObject()) {
 					creature->sendSystemMessage("You can only use this tool to customize droids");
 					return;
 				}

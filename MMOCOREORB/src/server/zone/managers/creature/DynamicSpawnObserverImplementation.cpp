@@ -1,11 +1,10 @@
 #include "server/zone/managers/creature/DynamicSpawnObserver.h"
 #include "server/zone/objects/creature/events/RespawnCreatureTask.h"
 #include "server/zone/objects/creature/events/DespawnDynamicSpawnTask.h"
-#include "server/zone/objects/creature/ai/CreatureTemplate.h"
+#include "server/zone/templates/mobile/CreatureTemplate.h"
 #include "server/zone/managers/creature/CreatureManager.h"
 #include "server/zone/managers/creature/CreatureTemplateManager.h"
 #include "server/zone/objects/creature/ai/Creature.h"
-#include "server/chat/ChatManager.h"
 
 int DynamicSpawnObserverImplementation::notifyObserverEvent(unsigned int eventType, Observable* observable, ManagedObject* arg1, int64 arg2) {
 
@@ -19,12 +18,12 @@ int DynamicSpawnObserverImplementation::notifyObserverEvent(unsigned int eventTy
 	Reference<AiAgent*> ai = cast<AiAgent*>(arg1);
 	Reference<SceneObject*> spawn = cast<SceneObject*>(observable);
 
-	if (ai == nullptr || spawn == nullptr)
+	if (ai == NULL || spawn == NULL)
 		return 0;
 
 	if (ai->getRespawnCounter() > 1) {
 		spawnedCreatures.removeElement(ai.get());
-		ai->setHomeObject(nullptr);
+		ai->setHomeObject(NULL);
 		ai->resetRespawnCounter();
 
 		if (spawnedCreatures.isEmpty()) {
@@ -40,7 +39,7 @@ int DynamicSpawnObserverImplementation::notifyObserverEvent(unsigned int eventTy
 
 	Zone* zone = spawn->getZone();
 
-	if (zone == nullptr)
+	if (zone == NULL)
 		return 0;
 
 	int level = ai->getLevel();
@@ -57,40 +56,39 @@ int DynamicSpawnObserverImplementation::notifyObserverEvent(unsigned int eventTy
 }
 
 void DynamicSpawnObserverImplementation::spawnInitialMobiles(SceneObject* building) {
-	if (building->getZone() == nullptr)
+	if (building->getZone() == NULL)
 		return;
 
 	int spawnLimitAdjustment = (difficulty - 2) / 2;
 
 	int totalNumberToSpawn = (lairTemplate->getSpawnLimit() / 3) + spawnLimitAdjustment;
 	VectorMap<String, int> objectsToSpawn; // String mobileTemplate, int number to spawn
-	const Vector<String>* mobiles = lairTemplate->getWeightedMobiles();
-	uint32 lairTemplateCRC = getLairTemplateName().hashCode();
+	Vector<String>* mobiles = lairTemplate->getWeightedMobiles();
 
 	if (totalNumberToSpawn < 1)
 		totalNumberToSpawn = 1;
 
 	for (int i = 0; i < totalNumberToSpawn; i++) {
 		int num = System::random(mobiles->size() - 1);
-		const String& mob = mobiles->get(num);
+		String mob = mobiles->get(num);
 
-		int find = objectsToSpawn.find(mob);
-
-		if (find != -1) {
-			int& value = objectsToSpawn.elementAt(find).getValue();
-			++value;
+		if (objectsToSpawn.contains(mob)) {
+			int value = objectsToSpawn.get(mob);
+			objectsToSpawn.drop(mob);
+			objectsToSpawn.put(mob, value + 1);
 		} else {
 			objectsToSpawn.put(mob, 1);
 		}
 	}
 
-	for (int i = 0; i < objectsToSpawn.size(); ++i) {
-		const String& templateToSpawn = objectsToSpawn.elementAt(i).getKey();
-		int numberToSpawn = objectsToSpawn.elementAt(i).getValue();
+	for(int i = 0; i < objectsToSpawn.size(); ++i) {
+
+		String templateToSpawn = objectsToSpawn.elementAt(i).getKey();
+		int numberToSpawn = objectsToSpawn.get(templateToSpawn);
 
 		CreatureTemplate* creatureTemplate = CreatureTemplateManager::instance()->getTemplate(templateToSpawn);
 
-		if (creatureTemplate == nullptr)
+		if (creatureTemplate == NULL)
 			continue;
 
 		float tamingChance = creatureTemplate->getTame();
@@ -103,17 +101,17 @@ void DynamicSpawnObserverImplementation::spawnInitialMobiles(SceneObject* buildi
 			float y = building->getPositionY() + (size - System::random(size * 20) / 10.0f);
 			float z = building->getZone()->getHeight(x, y);
 
-			ManagedReference<CreatureObject*> creo = nullptr;
+			ManagedReference<CreatureObject*> creo = NULL;
 
 			if (creatureManager->checkSpawnAsBaby(tamingChance, babiesSpawned, 500)) {
 				creo = creatureManager->spawnCreatureAsBaby(templateToSpawn.hashCode(), x, z, y);
 				babiesSpawned++;
 			}
 
-			if (creo == nullptr)
+			if (creo == NULL)
 				creo = creatureManager->spawnCreatureWithAi(templateToSpawn.hashCode(), x, z, y);
 
-			if (creo == nullptr)
+			if (creo == NULL)
 				continue;
 
 			if (!creo->isAiAgent()) {
@@ -128,14 +126,9 @@ void DynamicSpawnObserverImplementation::spawnInitialMobiles(SceneObject* buildi
 				ai->setRespawnTimer(0);
 				ai->resetRespawnCounter();
 				ai->setHomeObject(building);
-				ai->setLairTemplateCRC(lairTemplateCRC);
-
-				if (ai->isNonPlayerCreatureObject() && System::random(3) == 0) {
-					unsigned int id = ai->getZoneServer()->getChatManager()->getRandomMoodID();
-					ai->setMood(id);
-				}
 
 				spawnedCreatures.add(creo);
+
 			}
 		}
 	}

@@ -3,6 +3,7 @@
 #define PETRECHARGECOMMAND_H_
 
 #include "server/zone/objects/creature/commands/QueueCommand.h"
+#include "server/zone/objects/creature/ai/AiAgent.h"
 #include "server/zone/objects/creature/ai/DroidObject.h"
 
 class PetRechargeCommand : public QueueCommand {
@@ -14,9 +15,9 @@ public:
 
 	int doQueueCommand(CreatureObject* creature, const uint64& target, const UnicodeString& arguments) const {
 
-		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().get().castTo<PetControlDevice*>();
+		ManagedReference<PetControlDevice*> controlDevice = creature->getControlDevice().castTo<PetControlDevice*>();
 
-		if (controlDevice == nullptr)
+		if (controlDevice == NULL)
 			return GENERALERROR;
 
 		// Droid specific command
@@ -24,11 +25,11 @@ public:
 			return GENERALERROR;
 
 		ManagedReference<DroidObject*> droidPet = cast<DroidObject*>(creature);
-		if( droidPet == nullptr )
+		if( droidPet == NULL )
 			return GENERALERROR;
 
 		ManagedReference< CreatureObject*> player = droidPet->getLinkedCreature().get();
-		if( player == nullptr )
+		if( player == NULL )
 			return GENERALERROR;
 
 		// Recharge

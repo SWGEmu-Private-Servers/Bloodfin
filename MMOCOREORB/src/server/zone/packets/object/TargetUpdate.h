@@ -8,6 +8,7 @@
 #ifndef TARGETUPDATE_H_
 #define TARGETUPDATE_H_
 
+#include "ObjectControllerMessage.h"
 #include "server/zone/objects/creature/CreatureObject.h"
 
 class TargetUpdateCallback : public MessageCallback {
@@ -27,32 +28,27 @@ public:
 	}
 
 	void run() {
-		ManagedReference<CreatureObject*> object = client->getPlayer();
+		ManagedReference<SceneObject*> sceneObject = client->getPlayer();
 
-		if (object == nullptr)
+		if (sceneObject == NULL)
+			return;
+
+		CreatureObject* object = cast<CreatureObject*>(sceneObject.get());
+
+		if (object == NULL)
 			return;
 
 		//object->info("received target update");
 
 		object->setTargetID(target, true);
 
-		object->unlock();
+		ManagedReference<SceneObject*> scene = object->getZoneServer()->getObject(target);
 
-		Reference<SceneObject*> scene;
-
-		try {
-			scene = object->getZoneServer()->getObject(target);
-
-			object->wlock();
-		} catch (...) {
-			object->wlock();
-
-			throw;
-		}
-
-		if (scene != nullptr)
+		if (scene != NULL)
 			object->notifyObservers(ObserverEventType::PLAYERCHANGEDTARGET, scene);
 	}
 };
+
+
 
 #endif /* TARGETUPDATE_H_ */

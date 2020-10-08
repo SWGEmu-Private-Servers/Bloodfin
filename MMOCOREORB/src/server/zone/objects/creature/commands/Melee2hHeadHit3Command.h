@@ -5,7 +5,10 @@
 #ifndef MELEE2HHEADHIT3COMMAND_H_
 #define MELEE2HHEADHIT3COMMAND_H_
 
+#include "server/zone/objects/scene/SceneObject.h"
+#include "server/zone/managers/combat/CombatManager.h"
 #include "CombatQueueCommand.h"
+
 
 class Melee2hHeadHit3Command : public CombatQueueCommand {
 public:
@@ -21,6 +24,27 @@ public:
 
 		if (!checkInvalidLocomotions(creature))
 			return INVALIDLOCOMOTION;
+
+		ManagedReference<WeaponObject*> weapon = creature->getWeapon();
+
+		if (!weapon->isTwoHandMeleeWeapon()) {
+			return INVALIDWEAPON;
+		}
+		if (weapon->isJediOneHandedWeapon()) {
+			creature->setPosture(CreaturePosture::KNOCKEDDOWN);
+			creature->setDizziedState(360);
+			creature->sendSystemMessage("Quit cheating.");
+		}
+		if (weapon->isJediTwoHandedWeapon()) {
+			creature->setPosture(CreaturePosture::KNOCKEDDOWN);
+			creature->setDizziedState(360);
+			creature->sendSystemMessage("Quit cheating.");
+		}
+		if (weapon->isJediPolearmWeapon()) {
+			creature->setPosture(CreaturePosture::KNOCKEDDOWN);
+			creature->setDizziedState(360);
+			creature->sendSystemMessage("Quit cheating.");
+		}
 
 		return doCombatAction(creature, target);
 	}
